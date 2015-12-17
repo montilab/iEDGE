@@ -1,2 +1,2 @@
 # iEDGE
-integrative analysis of (epi-)DNA and gene expression data
+**I**ntegrative analysis of (**E**pi-)**D**NA and **G**ene **E**xpression **D**ata
