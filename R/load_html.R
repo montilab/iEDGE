@@ -6,15 +6,11 @@ to_table_html<-function(x, x.name,
 	){
 
 	library(knitr)
-
 	##add default js header
 	x.name.escape<-gsub("\\.", "\\\\.", x.name)
 	js_header<-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"./bower_components/jquery/dist/jquery.js\"></script>
-
 <link rel=\"stylesheet\" type=\"text/css\" href=\"./bower_components/datatables.net-dt/css/jquery.dataTables.css\">
-
 <script type=\"text/javascript\" charset=\"utf8\" src=\"./bower_components/datatables.net/js/jquery.dataTables.js\"></script>
-
 <script type=\"text/javascript\">
     $(document).ready(function() {
         $('#", x.name.escape, "').DataTable();
@@ -22,7 +18,6 @@ to_table_html<-function(x, x.name,
 </script>", sep = "")
 
 	js_header2<-header
-
 	attrstr<-paste("id=\"", x.name, "\"", sep = "")
 	res<-kable(x, "html", table.attr = attrstr,
 	caption = x.name)
@@ -41,8 +36,13 @@ in_table<-lapply(in_files, function(x){
 })
 names(in_table)<-gsub("\\.txt", "", in_files)
 
+
+##addboxplots js reference
+in_table_headers<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"../../inst/javascript/addboxplot.js\"></script>"
+in_table_headers<-rep(in_table_headers, length(in_table))
+
 ##write by-alteration DE tables to html
-res<-mapply(to_table_html, in_table, names(in_table))
+res<-mapply(to_table_html, in_table, names(in_table), in_table_headers)
 out_dir<-"../test/html"
 sapply(names(res), 
 	function(x){
@@ -51,7 +51,7 @@ sapply(names(res),
 
 #write summary DE table to html
 summarytable<-read.table(paste(in_dir, "/", "summarytable.txt", sep = ""), header = TRUE, quote = "")
-	addinksheader <-"<script type=\"text/javascript\" charset=\"utf8\" src=\"../../R/addlinks.js\"></script>
+addlinksheader <-"<script type=\"text/javascript\" charset=\"utf8\" src=\"../../inst/javascript/addlinks.js\"></script>
 "
 #add links
 summarytable.html<-to_table_html(x = summarytable, x.name = "summarytable", header = addlinksheader)

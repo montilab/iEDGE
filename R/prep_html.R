@@ -257,6 +257,34 @@ if (FALSE){
 	write.table(res1.summary.cbind, file = out.file, quote = FALSE, sep = "\t", 
 					row.names = FALSE, col.names = TRUE)
 
+	ds<-lymph
+	ds.cn<-ds[grepl("cn", names(ds))]
+	ds.gep<-ds[grepl("gep", names(ds)) &  !grepl("cisgenes", names(ds))]
+	ds.cisgenes<-ds[grepl("cisgenes", names(ds))]
+
+	##write ds cn esets
+	write.eset<-function(eset,header){
+		x<-exprs(eset)
+		write.table(x,  file = paste(header, "_exprs.txt", sep = ""), sep = "\t", row.names = F)
+		fdat<-fData(eset)
+		write.table(fdat,  file = paste(header, "_fdata.txt", sep = ""), sep = "\t", row.names = F)
+		pdat<-fData(eset)
+		write.table(pdat,  file = paste(header, "_pdata.txt", sep = ""), sep = "\t", row.names =F)
+
+		cat("eset written to text file\n")
+	}
+
+	for (i in names(ds.cn)){
+	ds.item<-ds.cn[[i]]
+	header<-"../test/data/cancercell2012_"
+	ds.item.name<-paste(header, i, sep = "")
+	write.eset(eset = ds.item, header = ds.item.name)
+	}
+	##write ds gep esets
+	##write ds cisgenes esets
+
+
+
 }
 
 	
