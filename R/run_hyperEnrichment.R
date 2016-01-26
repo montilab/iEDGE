@@ -84,7 +84,7 @@ subset_hyperEnrichment<-function(x, #list of data frames
 #' @import CBMRtools
 #' @export
 #'
-run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE, verbose = TRUE){
+run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE, verbose = TRUE, order = TRUE){
   require(CBMRtools)
   res.HE<-hyperEnrichment(
       drawn=drawn,         
@@ -100,6 +100,9 @@ run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht =
   for (i in num_col)
     res.HE.df[,i] <-as.numeric(paste(res.HE.df[, i]))
 
+  if (order)
+    res.HE.df<-res.HE.df[order(res.HE.df$fdr, decreasing = FALSE),]
+    
   return(res.HE.df)
 }
 
