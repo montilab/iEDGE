@@ -219,15 +219,15 @@ run_lymph<-function(){
  		interaction_type = "trans",
  		fdr.cutoff = fdr.trans.cutoff)
 	
-	f.out<-paste(f.dir.out, "/", header, "_trans_sig_fdr_", fdr.cis.cutoff, ".txt", sep = "")
+	f.out<-paste(f.dir.out, "/", header, "_trans_sig_fdr_", fdr.trans.cutoff, ".txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(res.trans$sig, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
 
-	f.out<-paste(f.dir.out, "/", header, "_trans_full.txt", sep = "")
-	cat(paste("Writing table to ", f.out, "\n", sep = ""))
-	write.table(res.trans$full, sep = "\t", col.names = TRUE, row.names = FALSE,
-		file = f.out)
+#	f.out<-paste(f.dir.out, "/", header, "_trans_full.txt", sep = "")
+#	cat(paste("Writing table to ", f.out, "\n", sep = ""))
+#	write.table(res.trans$full, sep = "\t", col.names = TRUE, row.names = FALSE,
+#		file = f.out)
 	
 	cat("Done!\n")
 
