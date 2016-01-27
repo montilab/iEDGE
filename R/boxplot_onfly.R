@@ -19,45 +19,52 @@ data2html<-function(df){
 	return(paste(head, body, tail, sep = ""))
 }
 
-make_boxplotdataset<-function(
-	ds,
+make_boxplotdataset<-function(cn,
+	gep,
 	testtype,
 	alterationid,
 	gene,
+	tabid = "Unique.Name",
+	geneid = "accession",
 	loggep = TRUE
 	){
 
 	library(Biobase)
 	library(ggplot2)
-	altstatus_rowid<-which(fData(ds[[testtype]])[, "Unique.Name"] == alterationid)
+	altstatus_rowid<-which(fData(cn)[, tabid] == alterationid)
 	if (length(altstatus_rowid) == 0){
 		return(NULL)
 	}
-	altstatus<-as.numeric(exprs(ds[[testtype]])[altstatus_rowid,])
+	altstatus<-as.numeric(exprs(cn)[altstatus_rowid,])
 	altstatus<-as.factor(altstatus)
-	gep_rowid<-which(fData(ds[["gep"]])[, "accession"] == gene)
+	gep_rowid<-which(fData(gep)[, geneid] == gene)
 	if (length(gep_rowid) == 0){
 		return(NULL)
 	}
-	gep<-as.numeric(exprs(ds[["gep"]])[gep_rowid,])
+
+	emat<-exprs(gep)
+	ematrow<-as.numeric(emat[gep_rowid,])
 
 	if (loggep){
-		gep<-log2(gep+1)
+		emat<-emat+(-1*min(emat))
+		ematrow<-as.numeric(emat[gep_rowid,])
+		ematrow<-log2(ematrow+1)
 		logind <- "(log2 transformed)"
 	}
 	df<-data.frame(alteration = altstatus, 
-		gene_expression = round(gep, 2), 
-		name =  colnames(ds[["gep"]]))
+		gene_expression = round(ematrow, 2), 
+		name =  colnames(gep))
 	df$name<-paste("\"", df$name, "\"", sep = "")
 	return(df)
 }
 
-ds<-lymph
+
 #testtype<-"cn.focal.binary"
 #alterationid<-"AmplificationPeak1"
 #gene<-"FCGR2B"
 
 if (FALSE){
+
 	lymph <-readRDS("../test/data/cancercell2012_all.RDS")
 	f.dir.out <- "../test/figures"
 	header <- "cancercell2012"
@@ -65,12 +72,9 @@ if (FALSE){
 		dir.create(f.dir.out)
 	}
 
-
 	tab<-list.files("../test/tables")
 	tab<-tab[grepl("^byalteration.*", tab)]
 
-
-	
 	for(i in tab){
 		if(length(grep("^byalteration.*focal_.*", i)) == 1){
 			testtype<-"cn.focal.binary"

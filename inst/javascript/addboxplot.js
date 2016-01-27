@@ -14,7 +14,7 @@ function addBoxplotToDoc(tableName){
     
         	prev_value = selection.text();
         
-            dir_out = "../../test/figures/";
+            dir_out = "../../test2/figures/";
            // link_name = "summarytable.html"
            
             link_name = tableName + "_" + prev_value + ".html";
@@ -26,7 +26,6 @@ function addBoxplotToDoc(tableName){
 
         //    console.log(link_name)
         	new_text = "<a href=\"" + dir_out + "/" + link_name + "\">" + prev_value + "</a>";
-        	console.log(new_text);
 
         	selection.html(new_text);
         }
@@ -45,6 +44,9 @@ function addBoxplotToDoc(tableName){
 //var tableName = htmlName.replace("\.html", "");
 //console.log(tableName);
 //alert(tableName)
+
+
+
 
 $(document).ready( function() {
     var htmlName = document.location.href.match(/[^\/]+$/)[0];
