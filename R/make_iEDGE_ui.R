@@ -6,7 +6,7 @@
 to_table_html<-function(x, 
 	x.name, 
 	header = "", ## addition js header
-	jsdir = "/Users/amyli/Desktop/git_projects/iEDGE/inst/javascript"
+	jsdir = "../../inst/javascript"
 	){
 	library(knitr)
 	##add default js header
@@ -81,7 +81,7 @@ write_byalt_html<-function(tab,#data frame to write
 
 	in_table_headers<-rep(in_table_headers, length(in_table))
 
- 	jsdir <- "/Users/amyli/Desktop/git_projects/iEDGE/inst/javascript"
+ 	jsdir <- "../../inst/javascript"
  	jsdir <-rep(jsdir, length(in_table))
 
 	##write by-alteration DE tables to html
@@ -199,7 +199,7 @@ summarytab<-lapply(alterations, function(x){
 summarytab<-do.call(rbind, summarytab)
 
 row.names(summarytab)<-NULL
-jsdir<-"/Users/amyli/Desktop/git_projects/iEDGE/inst/javascript"
+jsdir<-"../../inst/javascript"
 addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"",
 jsdir,"/addlinks.js\"></script>", sep = "")
 

@@ -277,6 +277,30 @@ run_lymph<-function(){
 	
 	cat("Done!\n")
 
+
+	#run hyperenrichment with lists of sig cis genes separated by the alteration it is contained in
+
+	drawnList<-sapply(unique(res.cis$sig$Unique.Name), 
+		function(x){
+			y<-subset(res.cis$sig, Unique.Name == x)
+			return(unique(as.character(y$accession)))
+			})
+	
+ 	hyper.cis.c2.split<-run_hyperEnrichment(drawn=drawnList,
+    categories=c2,
+    ntotal=nrow(lymph$gep.log.corrected),
+    min.drawsize = 4, mht = TRUE, verbose = TRUE, order = TRUE)
+
+ 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_c2_cis_splitbyalteration.txt", sep = "")
+	
+	cat(paste("Writing table to ", f.out, "\n", sep = ""))
+	write.table(hyper.cis.c2.split, sep = "\t", col.names = TRUE, row.names = FALSE,
+		file = f.out)
+	
+	cat("Done!\n")
+
+
+
 	#run hyperenrichment with lists of sig trans genes separated by the alteration it is contained in
 
 	drawnList<-sapply(unique(res.trans$sig$Unique.Name), 
