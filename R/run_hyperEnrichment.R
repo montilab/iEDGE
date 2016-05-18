@@ -1,4 +1,26 @@
+##same output format as GSA.read.gmt except without the annoying text outputs
+#' \code{read_gmt} read from gmt file
+#' @param f name of gmt file
+#' @param split.char delimiter
+read_gmt<-function(f, split.char = '\t'){
 
+  con <- file(f, open = 'r') 
+
+  results.list <- list()
+  current.line <- 1
+  while (length(line <- readLines(con, n = 1, warn = FALSE)) > 0) {
+    results.list[[current.line]] <- as.character(unlist(strsplit(line, split=split.char)))
+    current.line <- current.line + 1
+  } 
+  close(con)
+
+  genesets<-sapply(results.list, function(x) x[-(1:2)])
+  geneset.names<-unlist(sapply(results.list, function(x) x[1]))
+  geneset.descriptions<-unlist(sapply(results.list, function(x) x[2]))
+  names(genesets)<-geneset.names
+  res<-list(genesets = genesets, geneset.names = geneset.names, geneset.descriptions = geneset.descriptions)
+  return(res)
+}
 
 #' \code{run_hyperEnrichment_wrapper} wrapper for run_hyperEnrichment
 #' @param gs.tab DE results table from gistic2ge
@@ -22,9 +44,6 @@ run_hyperEnrichment_wrapper<-function(gs.tab, #gistic2ge_sig
       ntotal = ntot)
   }
   
-  #res.HE.single.sig<-lapply(res.HE.single, function(x) 
-  #  if (is.null(x)) return(NULL) else return(subset(x, fdr < hyper.fdr)))
-
   res.HE.groupalt<-list()
  
   for (j in names(gs.tab)){
@@ -46,16 +65,11 @@ run_hyperEnrichment_wrapper<-function(gs.tab, #gistic2ge_sig
     do.call(rbind, x[sapply(x, function(y) !all(is.na(y)))])
   })
  
-#  res.HE.groupalt.list.sig<-lapply(res.HE.groupalt.list, function(x) 
- #   if (is.null(x)) return(NULL) else return(subset(x, fdr < hyper.fdr)))
-
   cnames <-c("set", "pval","fdr","set annotated","set size","category annotated","total annotated","category","hits")
   nodata<-as.data.frame(setNames(replicate(length(cnames),numeric(0), simplify = F), cnames))
 
   res<-list(single = res.HE.single, groupalt=res.HE.groupalt.list)
-#  res<-list(res.single = res.HE.single, res.groupalt=res.HE.groupalt.list,
- #   res.single.sig = res.HE.single.sig, res.groupalt.sig = res.HE.groupalt.list.sig)
-  
+
   for (i in names(res)){
     for(j in names(res[[i]])){
       if(is.null(res[[i]][[j]])){
@@ -63,15 +77,6 @@ run_hyperEnrichment_wrapper<-function(gs.tab, #gistic2ge_sig
       }
     }
   }
-  return(res)
-}
-
-
-subset_hyperEnrichment<-function(x, #list of data frames
-  hyper.fdr){
-  res<-list()
-  for(i in names(x))
-    res[[i]]<-subset(x[[i]], fdr < hyper.fdr)
   return(res)
 }
 
@@ -84,8 +89,16 @@ subset_hyperEnrichment<-function(x, #list of data frames
 #' @import CBMRtools
 #' @export
 #'
-run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE, verbose = TRUE, order = TRUE){
-  require(CBMRtools)
+run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE, verbose = TRUE, order = TRUE,
+  hypercol = "fdr", hyperthres = NULL){
+
+  if(length(drawn) == 0){
+    df.names<-c("set", "pval","fdr","set.annotated","set.size","category.annotated",
+    "total.annotated","category", "hits")
+    df<-as.data.frame(rep(list(a=numeric(0)), length(df.names)))
+    colnames(df)<-df.names
+    return(df)
+  }
   res.HE<-hyperEnrichment(
       drawn=drawn,         
       categories = categories,   
@@ -93,62 +106,124 @@ run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht =
       min.drawsize=min.drawsize, 
       mht=mht,       
       verbose=verbose)
-
+  if(length(drawn) == 0) return(NULL)
   res.HE.df<-data.frame(res.HE)
+  if (nrow(res.HE.df) == 0) return(res.HE.df)
   num_col<-c("pval", "fdr", "set.annotated", "set.size", "category.annotated", "total.annotated")
 
   for (i in num_col)
     res.HE.df[,i] <-as.numeric(paste(res.HE.df[, i]))
 
+  res.HE.df<-res.HE.df[apply(res.HE.df, 1, function(x) !all(is.na(x))),]
+
   if (order)
     res.HE.df<-res.HE.df[order(res.HE.df$fdr, decreasing = FALSE),]
+
+  if(hypercol %in% colnames(res.HE.df) & !is.null(hyperthres)){
+   
+    res.HE.df<-res.HE.df[res.HE.df[, hypercol]<=hyperthres,]
+  }
     
   return(res.HE.df)
 }
 
-
-run_test<-function(gistic2ge_sig){
-
-  st.res<-read.table("~/Desktop/git_projects/datasets/ricover2010/GISTIC_20110620.4amy/S2X_20110625/HyperEnrichment.MSigDBc2_cp.v2.5.wexp.fdr25.xls",
-   sep = "\t", header = TRUE)
-  st.res.category<-as.character(st.res$category)
-  
-  sig.df<-rbind(gistic2ge_sig[["peak_amp_cis_limma"]], gistic2ge_sig[["peak_del_cis_limma"]])
-  #thres<-log2(log2(130)/log2(100))
-  #sig.df<-subset(sig.df, logFC.lm > thres | logFC.lm < (-thres))
-
-  drawnList<-list(amp_del_region = unique(as.character(sig.df[["gene_id"]])))
-
-  ##hypernerichment
-
-  c2.file<-"/Users/amyli/Desktop/monti_lab/year2/DataIntegration/annot/msigdb_v2.5/c2.cp.v2.5.symbols.gmt"
-  c2<-read_gmt(c2.file)$genesets
-
-  c2<-sapply(c2, function(x){
-    a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
-    return(unique(do.call(c,a)))
-    })
-
-  categoriesList<-c2
-  #hyperE <- hyperEnrichment(drawn=hyperSig,categories=getGeneSet(hyperGsets),ntotal=10000)
-  hyperE <- run_hyperEnrichment(drawn=drawnList,
-    categories=categoriesList,
-    ntotal=nrow(gistic_ge_amp$ge$mat),
-    min.drawsize = 4, mht = TRUE, verbose = TRUE)
-  hyperE.fdr<-as.numeric(hyperE[, "fdr"])
-  hyperE.fdr.sig<-hyperE[which(hyperE.fdr < 0.25),]
-  hyperE.fdr.sig
-  dim(hyperE.fdr.sig)  
-
-  sig.cats<-hyperE.fdr.sig[, "category"]
-
-  length(st.res.category)
-  length(sig.cats)
-  length(intersect(st.res.category, sig.cats))
-
-
-
+hyperEnrichment<-function (drawn, categories, ntotal = length(unique(unlist(categories))), 
+    min.drawsize = 4, mht = TRUE, verbose = TRUE) {
+    if (!is(categories, "list")) {
+        stop("categories expected to be a list of gene sets")
+    }
+    gene.names <- unique(unlist(categories))
+    if (is.list(drawn) && is.null(names(drawn))) {
+        stop("drawn must have non-null names when a list")
+    }
+    if (ntotal < length(unique(unlist(categories)))) {
+        warning("background population's size less than unique categories' items: ", 
+            ntotal, "<", length(gene.names))
+    }
+    cnames <- c("pval", "fdr", "set annotated", "set size", "category annotated", 
+        "total annotated", "category", "hits")
+    if (is.list(drawn)) {
+        ncat <- length(categories)
+        enrich <- matrix(NA, ncat * length(drawn), length(cnames) + 
+            1)
+    
+        VERBOSE(verbose, "Testing", length(drawn), "drawsets on", 
+            ncat, "categories and", length(gene.names), "total items ..\n")
+        percent <- 0.1
+        base <- 0
+        ntst <- 0
+        for (i in 1:length(drawn)) {
+            VERBOSE(verbose, "*** Testing", names(drawn)[i], 
+                ".. ")
+            dset <- drawn[[i]]
+            tmp <- hyperEnrichment(dset, categories, ntotal = ntotal, 
+                verbose = verbose)
+            if (is.null(tmp)) {
+                VERBOSE(verbose, "not enough items drawn\n")
+                next
+            }
+            ntst <- ntst + 1
+            rng <- (base + 1):(base + ncat)
+            if (any(!is.na(enrich[rng, ]))) 
+                stop("something wrong")
+            enrich[rng, ] <- cbind(set = rep(names(drawn)[i], 
+                ncat), tmp)
+            base <- base + ncat
+            if (F && i >= round(length(drawn) * percent)) {
+                VERBOSE(verbose, round(100 * percent), "% ", 
+                  sep = "")
+                percent <- percent + 0.1
+            }
+            VERBOSE(verbose, " (min fdr: ", signif(min(as.numeric(tmp[, 
+                "fdr"])), 2), ")\n", sep = "")
+        }
+        VERBOSE(verbose, "done.\n")
+        colnames(enrich) <- c("set", cnames)
+        enrich <- enrich[1:base, , drop = F]
+        if (mht) {
+            VERBOSE(verbose, "MHT-correction across multiple draws ..")
+            enrich[, "fdr"] <- pval2fdr(as.numeric(enrich[, "pval"]))
+            VERBOSE(verbose, "done.\n")
+        }
+        VERBOSE(verbose, "Categories tested: ", rjust(length(categories), 
+            4), "\n", "Candidate sets:    ", rjust(length(drawn), 
+            4), "\n", "Sets tested:       ", rjust(ntst, 4), 
+            "\n", "Items tested:      ", rjust(sum(sapply(drawn, 
+                length)), 4), " (min,med,max: ", paste(quantile(sapply(drawn, 
+                length), probs = c(0, 0.5, 1)), collapse = ","), 
+            ")\n", "N(FDR<=0.25):      ", rjust(sum(enrich[, 
+                "fdr"] <= 0.25), 4), "\n", "N(FDR<=0.05):      ", 
+            rjust(sum(enrich[, "fdr"] <= 0.05), 4), "\n", "N(FDR<=0.01):      ", 
+            rjust(sum(enrich[, "fdr"] <= 0.01), 4), "\n", sep = "")
+        return(enrich)
+    }
+    m.idx <- drawn[drawn %in% gene.names]
+    if (length(m.idx) < min.drawsize) {
+        VERBOSE(verbose, "insufficient annotated genes in the drawn set: ", 
+            paste(gene.names[m.idx], collapse = ","), "\n")
+        return(NULL)
+    }
+    VERBOSE(verbose, length(m.idx), "/", length(drawn), " annotated genes found", 
+        sep = "")
+    nhits <- sapply(categories, function(x, y) length(intersect(x, 
+        y)), m.idx)
+    ndrawn <- length(drawn)
+    ncats <- sapply(categories, length)
+    nleft <- ntotal - ncats
+    enrich <- phyper(q = nhits - 1, m = ncats, n = nleft, k = ndrawn, 
+        lower.tail = F)
+    enrich <- cbind(pval = enrich, fdr = pval2fdr(enrich), nhits = nhits, 
+        ndrawn = ndrawn, ncats = ncats, ntot = ntotal, category = names(categories))
+    enrich <- cbind(enrich, hits = sapply(categories, function(x, 
+        y) paste(intersect(x, y), collapse = ","), m.idx))
+    ord <- order(as.numeric(enrich[, "pval"]))
+    enrich <- enrich[ord, , drop = F]
+    enrich[, "pval"] <- signif(as.numeric(enrich[, "pval"]), 
+        2)
+    enrich[, "fdr"] <- signif(as.numeric(enrich[, "fdr"]), 2)
+    colnames(enrich) <- cnames
+    rownames(enrich) <- names(categories)[ord]
+    return(enrich)
 }
-
 
 
