@@ -13,7 +13,7 @@ Reporting options are available in table (.txt) format as well as in html format
 (1) Please install the following Bioconductor packages first before installing iEDGE:
 
 ```
-source("https://bioconductor.org/biocLite.R")
+source("http://bioconductor.org/biocLite.R")
 biocLite(c("Biobase", "biomaRt", "limma"))
 
 ```
