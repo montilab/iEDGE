@@ -48,9 +48,15 @@ run_hyperEnrichment_wrapper<-function(gs.tab, #gistic2ge_sig
  
   for (j in names(gs.tab)){
     de.table<-gs.tab[[j]]
-    alt<-unique(de.table$alteration_descriptor)
+    alt<-unique(de.table[, "alteration_descriptor"])
     gs.custom.groupalt<-sapply(alt,
-      function(x) as.character(subset(de.table, alteration_descriptor == x)[, "gene_id"]))
+      function(x) 
+
+      as.character(de.table[de.table[, "alteration_descriptor"] == x, "gene_id"])
+
+      #as.character(subset(de.table, alteration_descriptor == x)[, "gene_id"])
+
+      )
     names(gs.custom.groupalt)<-paste(j, alt, sep = "_")
     res.HE.groupalt[[j]]<-list()
     for (k in names(gs.custom.groupalt)){
@@ -81,12 +87,11 @@ run_hyperEnrichment_wrapper<-function(gs.tab, #gistic2ge_sig
 }
 
 #' \code{run_hyperEnrichment} performs hyperenrichment test from gistic2ge DE results on gene sets
-#' @import CBMRtools
+
 #' @param drawn list of genesets, usually from user-defined queries
 #' @param categories list of genesets, usually from pathway databases
 #' @param ntotal total number of genes 
 #' @return limma topTable data frame
-#' @import CBMRtools
 #' @export
 #'
 run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE, verbose = TRUE, order = TRUE,

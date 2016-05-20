@@ -1,13 +1,191 @@
-library(XML)
+to.hex<-function(x){
+	cols<-col2rgb(x)
+	red<-cols[1]
+	green<-cols[2]
+	blue<-cols[3]
+	return(rgb(red, green, blue, maxColorValue = 255))
+}
 
-###
-# scripts for boxplot
-##
+#' @import RColorBrewer
+#' @export
+get_colors<-function(){
+	colors1<-brewer.pal(8,"Set1")
+	qual_col_pals<-brewer.pal.info[brewer.pal.info$category == 'qual',]
+	colors2<-unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+	set.seed(1)
+	colors3<-as.character(sapply(unique(sample(colors(),500)), to.hex))
+	colorsall<-union(colors1, union(colors2, colors3))
+	return(colorsall)
+}
 
-#input the dataset object (e.g lymph), 
-#testtype (e.g. cn.focal.binary),
-#alterationid (e.g. AmplificationPeak1), and gene (e.g.FCGR2B)
-#plot boxplot of gene expression for each alteration group
+
+cis_order<-function(dat){
+	cat("Performing cis ordering...\n")
+	cis_in<-unique(as.character(dat[,1]))
+	trans_in<-unique(as.character(dat[,2]))
+	n_edges<-as.numeric(sapply(cis_in, function(i){
+		sum(dat[,2] == i)
+		#nrow(subset(dat, cis == i))
+		}))
+
+	res<-cis_in[order(n_edges, decreasing = TRUE)]
+	return(res)
+}
+
+trans_order<-function(dat){
+	cis_in<-unique(as.character(dat[,1]))
+	trans_in<-unique(as.character(dat[,2]))	
+	n<-length(trans_in)
+	cat(paste("Performing trans ordering on ", n, " sets...\n", sep =""))
+	if(n<3) return(trans_in)
+	mat<-matrix(0,n,n)
+	dat.2<-dat[,2]
+	dat.1<-dat[,1]
+	in_i<-list()
+
+	#in-edges for each right node
+	for(i in 1:n) {
+		in_i[[i]]<-as.character(dat.1[dat.2 %in% trans_in[i]])
+	}
+	for(i in 1:n){
+		for(j in 1:i){
+			a<-intersect(in_i[[i]], in_i[[j]])
+			b<-union(in_i[[i]], in_i[[j]])
+			mat[i,j]<-length(a)/length(b)
+			mat[j,i]<-mat[i,j]
+		}
+	}
+	mat_dist<-1-mat
+	mat_dist_obj<-as.dist(mat_dist)
+	trans_ord<-hclust(mat_dist_obj, method = "complete")
+	trans_ord<-order.dendrogram(as.dendrogram(trans_ord))
+	res<-trans_in[order(trans_ord)]
+	return(res)
+}
+
+
+
+write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
+	
+	dir.create(f.dir.out)
+
+	colors<-get_colors()
+	colors.max<-length(colors)
+
+	ncis<-length(unique(tab$cis))
+	ntrans<-length(unique(tab$trans))
+
+	cis_ord<-cis_order(tab)
+	trans_ord<-trans_order(tab)
+	
+	cis_df<-data.frame(genes=cis_ord, 
+		numEdges=sapply(cis_ord, 
+			function(i){
+				sum(tab$cis %in% i)
+			}), 
+		color = rep(colors, ceiling(ncis/colors.max))[1:ncis])
+	
+	trans_df<-data.frame(genes=trans_ord, 
+		numEdges=sapply(trans_ord, 
+			function(i){
+				sum(tab$trans %in% i)
+			}),
+		color = rep(colors, ceiling(ntrans/colors.max))[1:ntrans])
+
+	cis.write<-write_JSON_df(df = cis_df, df.name = "var cis")
+	trans.write<-write_JSON_df(df = trans_df, df.name = "var trans")
+	f.tab.ord<-tab[order(match(tab$trans, trans_ord)),]
+	edges.write<-write_JSON_df(df = f.tab.ord, df.name = "var edges")
+
+	if(hasArg(hyper)){
+		hyper.union<-get_hyper_wrapper(hyper$hyperunion)
+		hyper.union.hypergsets<-write_JSON_df(df =hyper.union$hypergsets, df.name = "var hypergsets")
+		hyper.union.hyperedges<-write_JSON_df(df =hyper.union$hyperedges, df.name = "var hyperedges")
+
+
+		hyper.byalt.hypergsets<-list()
+		hyper.byalt.hyperedges<-list()
+
+		for(i in names(hyper$hyperbyalt)){
+			hyper.byalt<-get_hyper_wrapper(hyper$hyperbyalt[[i]])
+			hyper.byalt.hypergsets[[i]]<-write_JSON_df(df =hyper.byalt$hypergsets, 
+				df.name = paste("hypergsetscis","['", i, "']", sep = ""))
+			hyper.byalt.hyperedges[[i]]<-write_JSON_df(df =hyper.byalt$hyperedges, 
+				df.name =  paste("hyperedgescis","['", i, "']", sep = ""))
+		}
+
+		hyper.byalt.hypergsets<-hyper.byalt.hypergsets[hyper.byalt.hypergsets != ""]
+		hyper.byalt.hyperedges<-hyper.byalt.hyperedges[hyper.byalt.hyperedges != ""]
+
+		w1<-"var hypergsetscis = {};"
+		w2<-"var hyperedgescis = {};"
+
+		all.write<-paste(cis.write, trans.write, edges.write, 
+			hyper.union.hypergsets, hyper.union.hyperedges, 
+			w1, paste(hyper.byalt.hypergsets, collapse = "\n"), 
+			w2, paste(hyper.byalt.hyperedges, collapse = "\n"), 
+			sep = "\n")
+
+		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
+		
+	} else {
+
+		all.write<-paste(cis.write, trans.write, edges.write,
+			sep = "\n")
+		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
+
+	}
+}
+
+write_JSON_df<-function(df, df.name){
+	if(is.null(df)) return("")
+	res.header<-paste(df.name, " = ", sep = "")
+	res<-paste(res.header, "[", paste("[", apply(df, 1, function(i){
+				paste(paste("\"", i, "\"", sep =""), collapse =",")}), "]", collapse = ","), "]", sep = "")
+	res<-paste(res, ";", "\n", sep = "")
+	return(res)
+}
+
+get_hyper_edges<-function(df){
+	edges<-do.call(rbind, lapply(1:nrow(df), function(x){
+		transstr<-as.character(df$hits[x])
+		trans<-as.character(gsub(" ", "", strsplit(transstr, split = ",")[[1]]))
+		gsets<-as.character(df$category[x])
+		return(data.frame(trans = trans, enrichsets =rep(gsets, length(trans))))
+		}))
+	enrich_ord<-trans_order(edges)
+	return(edges)
+}
+
+get_hyper_wrapper<-function(f.tab.hyper){
+
+	colors<-get_colors()
+	colors.max<-length(colors)
+	if(nrow(f.tab.hyper) > 0){
+		f.tab.hyper.edges<-get_hyper_edges(f.tab.hyper)
+		nhyper<-length(unique(f.tab.hyper.edges$enrichsets))
+		hyper_ord<-trans_order(f.tab.hyper.edges)
+		hyper_df<-data.frame(genes=hyper_ord, 
+		numEdges=sapply(hyper_ord, 
+			function(i){
+				sum(f.tab.hyper.edges$enrich %in% i)
+			}),
+		color = rep(colors, ceiling(nhyper/colors.max))[1:nhyper], 
+		pval = as.numeric(sapply(hyper_ord, 
+			function(i){
+				f.tab.hyper[which(f.tab.hyper$category %in% i),"pval"]
+			})),
+		fdr = as.numeric(sapply(hyper_ord, 
+			function(i){
+				f.tab.hyper[which(f.tab.hyper$category %in% i),"fdr"]
+			})))
+		
+	return(list(hypergsets = hyper_df, hyperedges = f.tab.hyper.edges))
+
+	} else {
+		return(list(hypergsets = NULL, hyperedges = NULL))
+	}	
+}
 
 data2html<-function(df){
 	head<-"var data = ["
@@ -25,56 +203,17 @@ data2html<-function(df){
 	return(paste(head, body, tail, sep = ""))
 }
 
-make_boxplotdataset<-function(cn,
-	gep,
-	testtype,
-	alterationid,
-	gene,
-	tabid = "Unique.Name",
-	geneid = "accession",
-	loggep = TRUE
-	){
-
-	library(Biobase)
-	library(ggplot2)
-	altstatus_rowid<-which(fData(cn)[, tabid] == alterationid)
-	if (length(altstatus_rowid) == 0){
-		return(NULL)
-	}
-	altstatus<-as.numeric(exprs(cn)[altstatus_rowid,])
-	altstatus<-as.factor(altstatus)
-	gep_rowid<-which(fData(gep)[, geneid] == gene)
-	if (length(gep_rowid) == 0){
-		return(NULL)
-	}
-
-	emat<-exprs(gep)
-	ematrow<-as.numeric(emat[gep_rowid,])
-
-	if (loggep){
-		emat<-emat+(-1*min(emat))
-		ematrow<-as.numeric(emat[gep_rowid,])
-		ematrow<-log2(ematrow+1)
-		logind <- "(log2 transformed)"
-	}
-	df<-data.frame(alteration = altstatus, 
-		gene_expression = round(ematrow, 2), 
-		name =  colnames(gep))
-	df$name<-paste("\"", df$name, "\"", sep = "")
-	return(df)
-}
-
-
-
 ##turns data frame into html code 
 ##appends js headers
+
+#' @import knitr
 to_table_html<-function(x, 
 	x.name, 
 	header = "", ## addition js header
 	jsdir = "../../inst/javascript",
 	hidecol = FALSE
 	){
-	library(knitr)
+	
 	##add default js header
 	x.name.escape<-gsub("\\.", "\\\\.", x.name)
 
@@ -186,13 +325,11 @@ write_byalt_html<-function(tab,#data frame to write
 	names(in_table)<-paste(header, "_", alts, sep = "")
 
 	##addboxplots js reference
-
 	boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>",sep = "")
 
 	in_table_headers1<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addboxplot.js\"></script>"
 	in_table_headers2<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addgenecard.js\"></script>"
 	in_table_headers<-paste(boxplot_link,in_table_headers1, in_table_headers2, sep = "\n")
-	
 	in_table_headers<-rep(in_table_headers, length(in_table))
 
  	jsdir <- "../../inst/javascript"
@@ -208,6 +345,46 @@ write_byalt_html<-function(tab,#data frame to write
 	
 }
 
+#' @import Biobase
+make_boxplotdataset<-function(cn,
+	gep,
+	testtype,
+	alterationid,
+	gene,
+	tabid = "Unique.Name",
+	geneid = "accession",
+	loggep = TRUE
+	){
+
+
+	altstatus_rowid<-which(fData(cn)[, tabid] == alterationid)
+	if (length(altstatus_rowid) == 0){
+		return(NULL)
+	}
+	altstatus<-as.numeric(exprs(cn)[altstatus_rowid,])
+	altstatus<-as.factor(altstatus)
+	gep_rowid<-which(fData(gep)[, geneid] == gene)
+	if (length(gep_rowid) == 0){
+		return(NULL)
+	}
+
+	emat<-exprs(gep)
+	ematrow<-as.numeric(emat[gep_rowid,])
+
+	if (loggep){
+		emat<-emat+(-1*min(emat))
+		ematrow<-as.numeric(emat[gep_rowid,])
+		ematrow<-log2(ematrow+1)
+		logind <- "(log2 transformed)"
+	}
+	df<-data.frame(alteration = altstatus, 
+		gene_expression = round(ematrow, 2), 
+		name =  colnames(gep))
+	df$name<-paste("\"", df$name, "\"", sep = "")
+	return(df)
+}
+
+
 write_byalt_boxplot<-function(tab,#data frame to write
  tabid = "Unique.Name", #column name to split table by
  geneid = "accession", #column name for gene id
@@ -215,7 +392,8 @@ write_byalt_boxplot<-function(tab,#data frame to write
  header = "byalteration_cis",
  cn,
  gep, 
- basedir
+ basedir,
+ testtype
  ){
 
  	if (!file.exists(outdir)){
@@ -251,7 +429,7 @@ write_byalt_boxplot<-function(tab,#data frame to write
 ###
 # scripts for bipartite html
 ##
-
+#' @import XML
 make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "", 
 	template){
 
@@ -271,8 +449,9 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 		file.copy(from=paste(f.dir.in, "/",i, sep =""), to= paste(f.dir.out,"/", i.basename, headeradd, i.ext, sep = "") , 
 	          overwrite = TRUE, recursive = FALSE, 
 	          copy.mode = TRUE)
-		doc.html = htmlTreeParse(template,
-		           useInternal = TRUE)
+
+		#doc.html = htmlTreeParse(template, useInternal = TRUE)
+		doc.html = htmlTreeParse(template, useInternalNodes = TRUE)
 		temp.src = "temp.js"
 		new.src = paste(i.basename, headeradd, i.ext,sep = "")
 		#replace src file name of json data
@@ -289,15 +468,17 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 		})
 
 		f.out  = paste(f.dir.out, "/", gsub(".js","",i.base), headeradd, ".html", sep = "")
-		print(f.out)
 		#save to html for each JSON input file
 		
 		saveXML(doc.html, file = f.out)
 	}
 }
 
+
+
+#' @export
 make_iEDGE_ui<-function(cistab, transtab, cn, gep, cisgenes,
-	outdir, jsdir, cmijsdir, altid = "Unique.Name", geneid = "accession"){
+	outdir, jsdir, cmijsdir, cmi, altid = "Unique.Name", geneid = "accession"){
 
 	dir.create(outdir)
 
@@ -392,8 +573,6 @@ make_iEDGE_ui<-function(cistab, transtab, cn, gep, cisgenes,
 	summarytab<-data.frame(index = 1:nrow(summarytab), summarytab)
 
 	row.names(summarytab)<-NULL
-	#jsdir<-"../inst/javascript"
-
 	addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinks.js\"></script>", sep = "")
 
 	#add links

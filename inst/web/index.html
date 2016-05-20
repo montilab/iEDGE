@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-<title>Index. Gistic2GE 1.0</title>
+<title>Index. iEDGE 1.0</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="author" content="Amy Li">
 
@@ -14,13 +14,25 @@
 <!--[if lt IE 9]>
   <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
   </head>
 
   <body>
     <div class="navbar">
   <div class="navbar-inner">
     <div class="container">
-      <a class="brand" href="#">Gistic2GE 1.0</a>
+      <a class="brand" href="#">iEDGE 1.0</a>
       <div class="nav">
         <ul class="nav">
           <li><a href="index.html"><i class="icon-home icon-white"></i> Index</a></li>
@@ -37,9 +49,16 @@
       
       <div class="row">
   <div class="span8">
-    <h1>Gistic2GE</h1>
+    <h1>iEDGE</h1>
 
-<p>an R package for copy number variation and gene expression integrative analysis</p>
+<p><strong>I</strong>ntegrative analysis of (<strong>E</strong>pi-)<strong>D</strong>NA and <strong>G</strong>ene <strong>E</strong>xpression Data</p>
+
+<p>iEDGE is a R-package for performing integrative analysis of epi-DNA and gene expression data. This analysis was based on <a href="http://www.ncbi.nlm.nih.gov/pubmed/22975378">S. Monti et. al. Cancer Cell (2012).</a>, which describes an approach to integrate copy number alteration to gene expression dataset in Diffuse Large B cell lymphoma samples and extends the methodology to study in detail the effect of p53 and cell cycle deregulation in DLBCL. This package provides the generalized pipeline to perform integrative analysis of epi-genomic data (methylation, copy number alteration, mutation, microRNA, etc) and gene-expression data arising from overlapping samples. The package consistent of 3 major modules:
+1. cis/trans differential expression based analysis of epi-DNA and gene expression data
+2. pathway enrichment analysis of significant cis/trans correlations
+3. pruning of cis/trans epi-DNA to gene expression connections using conditional independence criteria</p>
+
+<p>Reporting options are available in table (.txt) format as well as in html format, supported by interactive plots and tables</p>
 
 
     <h2>Help topics</h2>
@@ -50,58 +69,13 @@
     <ul class="index">
         
       <li>
-        <code><a href="base.summary.html">base.summary</a></code><br />base.summary</li>
-            
-      <li>
-        <code><a href="base.summary.wrapper.html">base.summary.wrapper</a></code><br />base.summary.wrapper</li>
-            
-      <li>
-        <code><a href="cls2df.html">cls2df</a></code><br />cls2df</li>
-            
-      <li>
-        <code><a href="do_gistic2ge.html">do_gistic2ge</a></code><br />do_gistic2ge</li>
-            
-      <li>
-        <code><a href="do_gistic2ge_all.html">do_gistic2ge_all</a></code><br />do_gistic2ge_all</li>
-            
-      <li>
-        <code><a href="do_test_limma.html">do_test_limma</a></code><br />do_test_limma</li>
-            
-      <li>
-        <code><a href="main.html">main</a></code><br />main</li>
-            
-      <li>
-        <code><a href="match_samples.html">match_samples</a></code><br />match_samples</li>
-            
-      <li>
-        <code><a href="process_data.html">process_data</a></code><br />process_data</li>
-            
-      <li>
-        <code><a href="read_cis_genes.html">read_cis_genes</a></code><br />read_cis_genes</li>
-            
-      <li>
-        <code><a href="read_gistic.html">read_gistic</a></code><br />read_gistic</li>
-            
-      <li>
         <code><a href="read_gmt.html">read_gmt</a></code><br />read_gmt</li>
-            
-      <li>
-        <code><a href="read_res.html">read_res</a></code><br />read_res</li>
             
       <li>
         <code><a href="run_hyperEnrichment.html">run_hyperEnrichment</a></code><br />run_hyperEnrichment</li>
             
       <li>
         <code><a href="run_hyperEnrichment_wrapper.html">run_hyperEnrichment_wrapper</a></code><br />run_hyperEnrichment_wrapper</li>
-            
-      <li>
-        <code><a href="run_process_data.html">run_process_data</a></code><br />run_process_data</li>
-            
-      <li>
-        <code><a href="util.save.rds.html">util.save.rds</a></code><br />util.save.rds</li>
-            
-      <li>
-        <code><a href="util.save.xlsx.html">util.save.xlsx</a></code><br />util.save.xlsx</li>
     
     </ul>
   </div>
@@ -110,10 +84,10 @@
         
     <h2>Dependencies</h2>
     <ul>
-      <li><strong>Depends</strong>: </li>
-      <li><strong>Imports</strong>: limma, plyr, XLConnect, CBMRtools</li>
-      <li><strong>Suggests</strong>: </li>
-      <li><strong>Extends</strong>: </li>
+      
+      <li><strong>Imports</strong>: Biobase, limma, plyr, infotheo, XML, knitr, RColorBrewer, biomaRt, cba</li>
+      
+      
     </ul>
     <h2>Authors</h2>
     <ul>

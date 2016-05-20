@@ -179,17 +179,7 @@ matchIndex <- function( key, names, ignore.case=FALSE )
   if (is.na(idx)) stop( "index not found: ", key )
   return( idx )
 }
-#' @export
-plot.norm <- function( n=1000, mean=0, sd=1, add=F, lty="solid", ...)
-{
-  p <- (1:(n-1))/n
-  if ( add ) {
-    lines( qnorm(p,mean=mean,sd=sd), dnorm( qnorm(p,mean=mean,sd=sd),mean=mean,sd=sd ),type="l", lty=lty,...)
-  }
-  else {
-    plot( qnorm(p,mean=mean,sd=sd), dnorm( qnorm(p,mean=mean,sd=sd),mean=mean,sd=sd ),type="l", lty=lty, ...)
-  }
-}
+
 #' @export
 cumineq <- function( prm, obs, dir=1, debug=F )
 {
@@ -314,23 +304,7 @@ ljust <- function(x,n)
 {
   format(x,width=n,justify="left")
 }
-segment.overlap <- function(seg1,seg2,do.plot=F)
-{
-  ## is 1st segment within, left-overlap, right-overlap, containing 2nd segment?
-  ##
-  ovlp.inn <- seg1[1]>=seg2[1] && seg1[2]<=seg2[2]
-  ovlp.lft <- seg1[1]<=seg2[1] && seg1[2]>=seg2[1] && seg1[2]<=seg2[2]
-  ovlp.rgt <- seg1[1]>=seg2[1] && seg1[1]<=seg2[2] && seg1[2]>=seg2[2]
-  ovlp.out <- seg1[1]<=seg2[1] && seg1[2]>=seg2[2]
 
-  if ( do.plot ) {
-    xlim <- c(min(seg1,seg2),max(seg1,seg2))
-    plot( seg1, c(1,1), pch="|", type="b",col="red",xlim=xlim)
-    points( seg2, c(1.1,1.1), pch="|", type="b",col="blue")
-    legend("topleft",c("segment 1","segment 2"),col=c("red","blue"),pch="|",lty=1)
-  }
-  return( c(inn=ovlp.inn,lft=ovlp.lft,rgt=ovlp.rgt,out=ovlp.out) )
-}
 ## REPMAT
 ##
 ## replicate a matrix or data.frame row- or column-wise
@@ -561,27 +535,7 @@ genIndex <- function( X, base=0, add.levels=TRUE, do.sort=FALSE )
     levels(idx) <- if (is.null(levels(X))) unique(idx) else levels(X)
   idx
 }
-## depends on library(xlsx)
-##
-## write a list of matrices (or data.frames) to a multi-sheet excell workbook
-##
-#' @export
-multi.write.xlsx <- function
-(
- LIST,       # named list of data.frames; list names will be used as sheet names
- file,       # output file
- xlsx2=TRUE, # efficient (xlsx2) vs. inefficient (xlsx) with large data frames
- ...
- )
-{
-  for ( i in 1:length(LIST) )
-  {
-    if (xlsx2)
-      write.xlsx2(LIST[[i]],sheetName=names(LIST)[i],file=file,append=i>1,...)
-    else
-      write.xlsx(LIST[[i]],sheetName=names(LIST)[i],file=file,append=i>1,...)
-  }
-}
+
 ## reads a multi-sheet excel workbook into a list of data.frames
 ## presumes the names of the sheets are known (snames)
 ##
@@ -594,6 +548,7 @@ multi.write.xlsx <- function
 ## hierarchical clustering with optimal leaf ordering (needs package 'cba')
 ## require(cba)
 ##
+#' @import cba
 hcopt <- function(d, HC=NULL, method = "ward.D", members = NULL)
 {
   if ( is.null(HC) ) {

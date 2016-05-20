@@ -8,17 +8,17 @@ require(devtools)
 require(staticdocs)
 
 #package.dir <- normalizePath("../../../Gistic2GE")
-package.dir <-"/Users/amyli/Desktop/git_projects/Gistic2GE"
+package.dir <-"/Users/amyli/Desktop/git_projects/iEDGE"
 
 cat("documenting package...\n")
 document(package.dir) #creates help pages
 cat("checking package...\n")
-#check(package.dir) #package checking
-check(package.dir, args = "--no-examples")
+check(package.dir) #package checking
+#check(package.dir, args = "--no-examples")
 cat("loading package...\n")
 load_all(package.dir) #building package
 cat("library package...\n")
-library(Gistic2GE)
+library(iEDGE)
 
 #generate html pages
 setwd(package.dir)

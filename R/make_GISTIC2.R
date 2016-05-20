@@ -1,6 +1,7 @@
-require(Biobase)
-require(biomaRt)
+#require(Biobase)
+#require(biomaRt)
 
+#' @import Biobase
 to.eSet<-function(mat, pdat, fdat){
 	#require(Biobase)
 	mat<-as.matrix(mat)
@@ -54,6 +55,7 @@ read_GISTIC2_focal<-function(all_lesions){
 	return(eset)
 }
 
+#' @import Biobase
 read_GISTIC2_focal_with_thres<-function(all_lesions, amp_thres =0.3, del_thres = -0.3){
 	x<-read.table(all_lesions,sep = "\t", header =T)
 	x<-x[, !apply(x, 2, function(i){all(is.na(i))})]
@@ -101,6 +103,8 @@ read_GISTIC2_broad<-function(broad_lesions){
 	return(eset)
 }
 
+
+#' @import Biobase
 read_GISTIC2_broad_with_thres<-function(broad_lesions, 
 	broad_lesions_threshold,
 	amp_qvalue = 0.25, del_qvalue = 0.25,
@@ -123,13 +127,8 @@ read_GISTIC2_broad_with_thres<-function(broad_lesions,
 	broad_thres<-read.csv(broad_lesions_threshold, sep = "\t", header = T)
 	
 	eset.amp<-eset
-#	eset.amp.ind<-which(fData(eset.amp)$Descriptor %in% broad_thres$Arm[broad_thres$Amp.q.value < amp_qvalue])
-#	eset.amp<-eset.amp[eset.amp.ind,]
-	
 	eset.del<-eset
-	#eset.del.ind<-which(fData(eset.del)$Descriptor %in% broad_thres$Arm[broad_thres$Del.q.value < del_qvalue])
-	#eset.del<-eset.del[eset.del.ind,]
-	
+
 	if(!is.na(broad_lesions_threshold)){
 		broad_thres<-read.csv(broad_lesions_threshold, sep = "\t", header = T)
 		eset.amp.ind<-which(fData(eset.amp)$Descriptor %in% broad_thres$Arm[broad_thres$Amp.q.value < amp_qvalue])
@@ -252,6 +251,7 @@ add_direction<-function(cn, remove.cols = TRUE){
 }
 
 #wrapper for make_GISTIC2
+#' @import biomaRt
 make_GISTIC2<-function(f.dir.in, binarize = TRUE, my.symbols){
 
 	cat("Reading GISTIC2 data..\n")
@@ -389,6 +389,7 @@ make_GISTIC2<-function(f.dir.in, binarize = TRUE, my.symbols){
 
 
 #wrapper for make_GISTIC2
+#' @import biomaRt
 make_GISTIC2_with_thres_arm<-function(gistic_in, all_genes, 
 	amp_thres_arm, del_thres_arm, 
 	amp_qvalue_arm, del_qvalue_arm, all_lesions = NA, f.amp = NA, f.del = NA, 
@@ -473,6 +474,7 @@ make_GISTIC2_with_thres_arm<-function(gistic_in, all_genes,
 
 
 #wrapper for make_GISTIC2
+#' @import biomaRt
 make_GISTIC2_with_thres_focal_and_arm<-function(gistic_in, all_genes, 
 	amp_thres_arm, del_thres_arm, 
 	amp_qvalue_arm, del_qvalue_arm, 
@@ -559,11 +561,8 @@ make_GISTIC2_with_thres_focal_and_arm<-function(gistic_in, all_genes,
 	return(res)
 }
 
-
-
-
-
 #wrapper for make_GISTIC2
+#' @import biomaRt
 make_GISTIC2_with_thres<-function(gistic_in, all_genes, 
 	amp_thres_focal, amp_thres_arm, del_thres_focal, del_thres_arm, 
 	amp_qvalue_arm, del_qvalue_arm, all_lesions = NA, f.amp = NA, f.del = NA){
@@ -642,8 +641,6 @@ make_GISTIC2_with_thres<-function(gistic_in, all_genes,
 	return(res)
 }
 
-
-
 #wrapper for make_GISTIC2
 make_GISTIC2_with_thres_nocisgenes<-function(gistic_in, all_genes, 
 	amp_thres_focal, amp_thres_arm, del_thres_focal, del_thres_arm, 
@@ -678,87 +675,3 @@ make_GISTIC2_with_thres_nocisgenes<-function(gistic_in, all_genes,
 }
 
 
-
-###get GISTIC2 data from TCGA brca dataset
-
-make_TCGA_brca_gistic<-function(f.header, f.dir.in, f.dir.out) {
-
-	all_lesions<-paste(f.dir.in, "/", "all_lesions.conf_99.txt", sep = "")
-	broad_lesions<-paste(f.dir.in, "/", "broad_values_by_arm.txt", sep = "")
-	eset.focal<-read_GISTIC2_focal(all_lesions = all_lesions)
-	eset.arm<-read_GISTIC2_broad(broad_lesions = broad_lesions)
-
-	fdat<-fData(eset.focal)
-	amp.thres<-fdat$Amplitude.Threshold[grepl("Amplification", fdat$Unique.Name)][1]
-	amp.thres<-sapply(strsplit(amp.thres, split = ";")[[1]], 
-		function(x) strsplit(x, split = ":")[[1]][2])[2]
-	amp.breaks<-c(-100, as.numeric(unlist(strsplit(gsub("<t<", ",", amp.thres), ","))), 100)
-	eset.arm.amp<-eset.arm
-	arm.amp.mat<-t(apply(exprs(eset.arm.amp), 1, 
-		function(x) 
-			as.numeric(as.character(cut(x = x, breaks = amp.breaks, labels = c(0, 1, 2))))))
-	exprs(eset.arm.amp)<-arm.amp.mat
-
-	del.thres<-fdat$Amplitude.Threshold[grepl("Deletion", fdat$Unique.Name)][1]
-	del.thres<-sapply(strsplit(del.thres, split = ";")[[1]], 
-		function(x) strsplit(x, split = ":")[[1]][2])[2]
-	del.breaks<-rev(c(100, as.numeric(unlist(strsplit(gsub(">t>", ",", del.thres), ","))), -100))
-	eset.arm.del<-eset.arm
-	arm.del.mat<-t(apply(exprs(eset.arm.del), 1, 
-		function(x) 
-			as.numeric(as.character(cut(x = x, breaks = del.breaks, labels = c(2, 1, 0))))))
-	exprs(eset.arm.del)<-arm.del.mat
-
-	amp.arm.uniquename<-paste("AmplificationPeakArm", 1:nrow( fData(eset.arm.amp)), sep = "")
-	del.arm.uniquename<-paste("DeletionPeakArm", 1:nrow( fData(eset.arm.del)), sep = "")
-	fdat.arm<-rbind(cbind(Unique.Name = amp.arm.uniquename, fData(eset.arm.amp)),
-		cbind(Unique.Name = del.arm.uniquename, fData(eset.arm.del)))
-	exprs.arm<-rbind(exprs(eset.arm.amp), exprs(eset.arm.del))
-	rownames(exprs.arm)<-rownames(fdat.arm)
-	colnames(exprs.arm)<-pData(eset.arm)[,1]
-	eset.arm<-to.eSet(mat = exprs.arm, pdat = pData(eset.arm), fdat = fdat.arm)
-
-	eset.or<-focal_or_arm(eset.focal, eset.arm)
-	#save gistic files as R objects (RDS)
-	saveRDS(eset.focal, file = paste(f.dir.out, "/", f.header, "_gistic_all_focal.RDS", sep = ""))
-	saveRDS(eset.arm, file = paste(f.dir.out, "/", f.header,  "_gistic_all_arm.RDS", sep = ""))
-	saveRDS(eset.or, file = paste(f.dir.out, "/", f.header, "_gistic_all_or.RDS", sep = ""))
-
-	#binary phenotype
-
-	mat<-exprs(eset.focal)
-	mat[mat == 2]<-1
-	exprs(eset.focal)<-mat
-
-	mat<-exprs(eset.arm)
-	mat[mat == 2]<-1
-	exprs(eset.arm)<-mat
-
-	mat<-exprs(eset.or)
-	mat[mat == 2]<-1
-	exprs(eset.or)<-mat
-
-	#save gistic files as R objects (RDS)
-	saveRDS(eset.focal, file = paste(f.dir.out, "/", f.header, "_gistic_all_focal_binary.RDS", sep = ""))
-	saveRDS(eset.arm, file = paste(f.dir.out, "/", f.header, "_gistic_all_arm_binary.RDS", sep = ""))
-	saveRDS(eset.or, file = paste(f.dir.out, "/", f.header, "_gistic_all_or_binary.RDS", sep = ""))
-
-	##get cis genes
-	eset.focal<-readRDS(paste(f.dir.out, "/", f.header, "_gistic_all_focal_binary.RDS", sep = ""))
-
-	f.amp<-paste(f.dir.in, "/", "amp_genes.conf_99.txt", sep = "")
-	f.del<-paste(f.dir.in, "/", "del_genes.conf_99.txt", sep = "")
-	genes.amp<-get_cis_genes(f.genes = f.amp, eset.focal, direction = "Amplification")
-	genes.del<-get_cis_genes(f.genes = f.del, eset.focal, direction = "Deletion")
-	
-	genes.both<-list(meta = rbind(genes.amp[["meta"]], genes.del[["meta"]]),
-		genes = c(genes.amp[["genes"]], genes.del[["genes"]]))
-	sample_meta<-fData(eset.focal)
-	sample_meta$wide.peak.boundaries<-as.character(sapply(sample_meta$Wide.Peak.Limits, 
-		function(x) strsplit(x, split = "\\(")[[1]][1]))
-	gene_meta<-genes.both[['meta']]
-	idx<-match(sample_meta$wide.peak.boundaries, gene_meta$wide.peak.boundaries)
-	genes.both[['meta']]<-genes.both[['meta']][idx,]
-	genes.both[['genes']]<-genes.both[['genes']][idx]
-	saveRDS(genes.both, file = paste(f.dir.out, "/", f.header, "_gistic_cisgenes.RDS", sep = ""))
-}

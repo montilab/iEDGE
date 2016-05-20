@@ -1,112 +1,9 @@
-library(limma)
-library(plyr)
-library(infotheo)
-library(ggplot2)
+#library(limma)
+#library(plyr)
+#library(infotheo)
+#library(Biobase)
 
-library(RColorBrewer)
-
-to.hex<-function(x){
-	cols<-col2rgb(x)
-	red<-cols[1]
-	green<-cols[2]
-	blue<-cols[3]
-	return(rgb(red, green, blue, maxColorValue = 255))
-}
-
-get_colors<-function(){
-	colors1<-brewer.pal(8,"Set1")
-	qual_col_pals<-brewer.pal.info[brewer.pal.info$category == 'qual',]
-	colors2<-unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
-	set.seed(1)
-	colors3<-as.character(sapply(unique(sample(colors(),500)), to.hex))
-	colorsall<-union(colors1, union(colors2, colors3))
-	return(colorsall)
-}
-
-cis_order<-function(dat){
-	cat("Performing cis ordering...\n")
-	cis_in<-unique(as.character(dat$cis))
-	trans_in<-unique(as.character(dat$trans))
-
-	n_edges<-as.numeric(sapply(cis_in, function(i){
-		nrow(subset(dat, cis == i))
-		}))
-
-	res<-cis_in[order(n_edges, decreasing = TRUE)]
-	return(res)
-}
-
-trans_order<-function(dat){
-	cis_in<-unique(as.character(dat[,1]))
-	trans_in<-unique(as.character(dat[,2]))	
-	n<-length(trans_in)
-	cat(paste("Performing trans ordering on ", n, " sets...\n", sep =""))
-	if(n<3) return(trans_in)
-	mat<-matrix(0,n,n)
-	dat.2<-dat[,2]
-	dat.1<-dat[,1]
-	in_i<-list()
-
-	#in-edges for each right node
-	for(i in 1:n) {
-		in_i[[i]]<-as.character(dat.1[dat.2 %in% trans_in[i]])
-	}
-	for(i in 1:n){
-		for(j in 1:i){
-			a<-intersect(in_i[[i]], in_i[[j]])
-			b<-union(in_i[[i]], in_i[[j]])
-			mat[i,j]<-length(a)/length(b)
-			mat[j,i]<-mat[i,j]
-		}
-	}
-	mat_dist<-1-mat
-	mat_dist_obj<-as.dist(mat_dist)
-	trans_ord<-hclust(mat_dist_obj, method = "complete")
-	trans_ord<-order.dendrogram(as.dendrogram(trans_ord))
-	res<-trans_in[order(trans_ord)]
-	return(res)
-}
-
-
-write_JSON_df<-function(df, df.name){
-	if(is.null(df)) return("")
-	res.header<-paste(df.name, " = ", sep = "")
-	res<-paste(res.header, "[", paste("[", apply(df, 1, function(i){
-				paste(paste("\"", i, "\"", sep =""), collapse =",")}), "]", collapse = ","), "]", sep = "")
-	res<-paste(res, ";", "\n", sep = "")
-	return(res)
-}
-
-get_hyper_wrapper<-function(f.tab.hyper){
-
-	colors<-get_colors()
-	colors.max<-length(colors)
-	if(nrow(f.tab.hyper) > 0){
-		f.tab.hyper.edges<-get_hyper_edges(f.tab.hyper)
-		nhyper<-length(unique(f.tab.hyper.edges$enrichsets))
-		hyper_ord<-trans_order(f.tab.hyper.edges)
-		hyper_df<-data.frame(genes=hyper_ord, 
-		numEdges=sapply(hyper_ord, 
-			function(i){
-				sum(f.tab.hyper.edges$enrich %in% i)
-			}),
-		color = rep(colors, ceiling(nhyper/colors.max))[1:nhyper], 
-		pval = as.numeric(sapply(hyper_ord, 
-			function(i){
-				f.tab.hyper[which(f.tab.hyper$category %in% i),"pval"]
-			})),
-		fdr = as.numeric(sapply(hyper_ord, 
-			function(i){
-				f.tab.hyper[which(f.tab.hyper$category %in% i),"fdr"]
-			})))
-		
-	return(list(hypergsets = hyper_df, hyperedges = f.tab.hyper.edges))
-
-	} else {
-		return(list(hypergsets = NULL, hyperedges = NULL))
-	}	
-}
-
+#' @import Biobase
 run_limma_accessory<-function(eset, design){
 	eset.sub.cond1<-eset[,design[,1] == 1]
 	eset.sub.cond2<-eset[,design[,2] == 1]
@@ -150,6 +47,7 @@ run_limma_accessory<-function(eset, design){
 	return(res)
 }
 
+#' @import limma Biobase plyr
 run_limma<-function(eset, design, 
 	 onesided = TRUE,
 	 cndir = "alteration_direction", 
@@ -163,7 +61,7 @@ run_limma<-function(eset, design,
 	contrast.matrix<-eval(parse(text =command_str)) 
 	fit2 <- contrasts.fit(fit, contrast.matrix)
 	fit2 <- eBayes(fit2)
-	fit2.table<-topTable(fit2, coef=1, adjust="BH", number =length(fit2) ,
+	fit2.table<-topTable(fit2, coef=1, adjust.method="BH", number =length(fit2) ,
 		sort.by = "none")
 
 	if (onesided){
@@ -198,6 +96,7 @@ run_limma<-function(eset, design,
 	return(fit2.table)
 }
 
+#' @export
 iEDGE_combine<-function(alt, gep, mapping, mapping.cn = "CN", mapping.gep = "GEP", uppercase = TRUE){
 
 	cn <- alt$cn
@@ -224,6 +123,8 @@ iEDGE_combine<-function(alt, gep, mapping, mapping.cn = "CN", mapping.gep = "GEP
 	return(dat)
 }
 
+#' @import Biobase
+#' @export
 make_iEDGE<-function(gep, #eset containing log2 gene expression
  cn, #eset containing copy number by sample, must be sorted with respect to columns in gep
  cisgenes, #list of cisgenes in in gep with respect to cn ordered by rows in cn
@@ -304,13 +205,16 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	close(pb)
 	res.df<-do.call(rbind, res[!is.na(res)])
 	
-	res.df$adj.P.Val.all<-p.adjust(res.df$P.Value, method = "fdr")
+	res.df[, "adj.P.Val.all"]<-p.adjust(res.df$P.Value, method = "fdr")
+	
 	res.list<-list()
 	res.list$full<-res.df	
-	res.list$sig<-subset(res.df, adj.P.Val.all < fdr.cutoff)
+	res.list$sig<-res.df[res.df[, "adj.P.Val.all"]<fdr.cutoff,]
+#	res.list$sig<-subset(res.df, adj.P.Val.all < fdr.cutoff)
 	return(res.list)
 }
 
+#' @export
 make_iEDGE_wrapper<-function(cn, gep, cisgenes,
 	header,
 	gepid, cnid,  	
@@ -442,6 +346,8 @@ make_iEDGE_wrapper<-function(cn, gep, cisgenes,
 		hyper.trans=hyper.trans, hyper.trans.split=hyper.trans.split))
 }
 
+#' @import infotheo
+#' @export
 calc_mutinfo<-function(x, #alt
 	y,#cis 
 	z,#trans
@@ -495,80 +401,8 @@ run_cmi_hyperenrichment<-function(tab, tab.name, gs, ngenes,
 	return(list(hyperunion = hyperunion, hyperbyalt = hyperbyalt))
 }
 
-
-write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
-	
-	library(RColorBrewer)
-	dir.create(f.dir.out)
-
-	colors<-get_colors()
-	colors.max<-length(colors)
-
-	ncis<-length(unique(tab$cis))
-	ntrans<-length(unique(tab$trans))
-
-	cis_ord<-cis_order(tab)
-	trans_ord<-trans_order(tab)
-	
-	cis_df<-data.frame(genes=cis_ord, 
-		numEdges=sapply(cis_ord, 
-			function(i){
-				sum(tab$cis %in% i)
-			}), 
-		color = rep(colors, ceiling(ncis/colors.max))[1:ncis])
-	
-	trans_df<-data.frame(genes=trans_ord, 
-		numEdges=sapply(trans_ord, 
-			function(i){
-				sum(tab$trans %in% i)
-			}),
-		color = rep(colors, ceiling(ntrans/colors.max))[1:ntrans])
-
-	cis.write<-write_JSON_df(df = cis_df, df.name = "var cis")
-	trans.write<-write_JSON_df(df = trans_df, df.name = "var trans")
-	f.tab.ord<-tab[order(match(tab$trans, trans_ord)),]
-	edges.write<-write_JSON_df(df = f.tab.ord, df.name = "var edges")
-
-	if(hasArg(hyper)){
-		hyper.union<-get_hyper_wrapper(hyper$hyperunion)
-		hyper.union.hypergsets<-write_JSON_df(df =hyper.union$hypergsets, df.name = "var hypergsets")
-		hyper.union.hyperedges<-write_JSON_df(df =hyper.union$hyperedges, df.name = "var hyperedges")
-
-
-		hyper.byalt.hypergsets<-list()
-		hyper.byalt.hyperedges<-list()
-
-		for(i in names(hyper$hyperbyalt)){
-			hyper.byalt<-get_hyper_wrapper(hyper$hyperbyalt[[i]])
-			hyper.byalt.hypergsets[[i]]<-write_JSON_df(df =hyper.byalt$hypergsets, 
-				df.name = paste("hypergsetscis","['", i, "']", sep = ""))
-			hyper.byalt.hyperedges[[i]]<-write_JSON_df(df =hyper.byalt$hyperedges, 
-				df.name =  paste("hyperedgescis","['", i, "']", sep = ""))
-		}
-
-		hyper.byalt.hypergsets<-hyper.byalt.hypergsets[hyper.byalt.hypergsets != ""]
-		hyper.byalt.hyperedges<-hyper.byalt.hyperedges[hyper.byalt.hyperedges != ""]
-
-		w1<-"var hypergsetscis = {};"
-		w2<-"var hyperedgescis = {};"
-
-		all.write<-paste(cis.write, trans.write, edges.write, 
-			hyper.union.hypergsets, hyper.union.hyperedges, 
-			w1, paste(hyper.byalt.hypergsets, collapse = "\n"), 
-			w2, paste(hyper.byalt.hyperedges, collapse = "\n"), 
-			sep = "\n")
-
-		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
-		
-	} else {
-
-		all.write<-paste(cis.write, trans.write, edges.write,
-			sep = "\n")
-		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
-
-	}
-}
-
+#' @import Biobase
+#' @export
 run_mutinfo_wrapper<-function(f_cis_tab, 
 	f_trans_tab, 
 	cn, 
@@ -605,7 +439,7 @@ run_mutinfo_wrapper<-function(f_cis_tab,
 	dir.create(cmi_dir_tables, recursive = TRUE)
 	dir.create(cmi_dir_plots, recursive = TRUE)
 
-	if(hasArg(gs)){
+	if(hasArg("gs")){
 		cmi_dir_hyper<-paste(cmi_dir, "/hyperEnrichment", sep = "")
 		dir.create(cmi_dir_hyper, recursive = TRUE)
 		hyper<-list()
@@ -688,16 +522,16 @@ run_mutinfo_wrapper<-function(f_cis_tab,
 			col.names = TRUE, row.names = FALSE, sep = "\t")
 
 
-		actual<-res.actual[[i]]$cmi
-		null<-res.null[[i]]$cmi
+	#	actual<-res.actual[[i]]$cmi
+	#	null<-res.null[[i]]$cmi
 
-		dat <- rbind(data.frame(label = "actual", value = actual), 
-				data.frame(label = "null", value = null))
-		sig_thres<-quantile(null, 0.05)
-		p[[i]]<-ggplot(dat,aes(x=value, fill = label)) + geom_density(alpha = 0.2)+
-			geom_vline(xintercept = sig_thres, colour = "red") + ggtitle(i)
+	#	dat <- rbind(data.frame(label = "actual", value = actual), 
+	#			data.frame(label = "null", value = null))
+	#	sig_thres<-quantile(null, 0.05)
+	#	p[[i]]<-ggplot(dat,aes(x=value, fill = label)) + geom_density(alpha = 0.2)+
+	#		geom_vline(xintercept = sig_thres, colour = "red") + ggtitle(i)
 
-		if(hasArg(gs)){
+		if(hasArg("gs")){
 			cat("Running hyperenrichment...\n")
 			hyper[[i]]<-run_cmi_hyperenrichment(tab = res.sig[[i]], tab.name = i, ngenes = ngenes,
 			f.dir.out = cmi_dir_hyper, ...)
@@ -716,11 +550,11 @@ run_mutinfo_wrapper<-function(f_cis_tab,
 	}
 
 	#initialize cmi plots
-	pdf(paste(cmi_dir_plots, "/cmi_plots.pdf", sep = ""), onefile = TRUE)
-	invisible(lapply(p, print))
-	dev.off()
+	#pdf(paste(cmi_dir_plots, "/cmi_plots.pdf", sep = ""), onefile = TRUE)
+	#invisible(lapply(p, print))
+	#dev.off()
 
-	if(hasArg(gs))
+	if(hasArg("gs"))
 	return(list(actual = res.actual, null = res.null, sig = res.sig, p = p, hyper = hyper))
 	else 
 	return(list(actual = res.actual, null = res.null, sig = res.sig, p = p))
