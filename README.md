@@ -8,3 +8,27 @@ iEDGE is a R-package for performing integrative analysis of epi-DNA and gene exp
 
 Reporting options are available in table (.txt) format as well as in html format, supported by interactive plots and tables
 
+# Installing iEDGE
+
+(1) Please install the following Bioconductor packages first before installing iEDGE:
+
+```
+source("https://bioconductor.org/biocLite.R")
+biocLite(c("Biobase", "biomaRt", "limma"))
+
+```
+
+(2) Installing iEDGE
+
+```
+
+library(devtools)
+
+PAT <- "04fe676593e46b6bda5a5d09431156e8a500349a"
+
+install_github("montilab/iEDGE",auth_token = PAT)
+
+library(iEDGE)
+
+```
+
