@@ -14,7 +14,7 @@ Reporting options are available in table (.txt) format as well as in html format
 
 ```
 source("http://bioconductor.org/biocLite.R")
-biocLite(c("Biobase", "biomaRt", "limma", "org.Hs.eg.db", "AnnotationDbi"))
+biocLite(c("Biobase", "limma", "org.Hs.eg.db"))
 
 ```
 
