@@ -2,6 +2,7 @@
 #' \code{read_gmt} read from gmt file
 #' @param f name of gmt file
 #' @param split.char delimiter
+#' export
 read_gmt<-function(f, split.char = '\t'){
 
   con <- file(f, open = 'r') 

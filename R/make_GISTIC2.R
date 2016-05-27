@@ -1,5 +1,4 @@
 #require(Biobase)
-#require(biomaRt)
 
 #' @import Biobase
 to.eSet<-function(mat, pdat, fdat){
@@ -231,8 +230,27 @@ get_cis_genes<-function(f.genes,direction){
 }
 
 
-get_genes_in_arm<-function(x,y){
-	return(y$hgnc_symbol[which(y$arm == x)])
+#get_genes_in_arm<-function(x,y){
+#	return(y$hgnc_symbol[which(y$arm == x)])
+#}
+
+#' @import org.Hs.eg.db AnnotationDbi
+#' @export
+get_genes_in_arm<-function(x){
+	#library("org.Hs.eg.db")
+	db<-as.list( revmap(org.Hs.eg.db::org.Hs.egMAP) )
+
+	res<-lapply(x, function(i){	
+		inds<-grep(paste("^", i, sep = ""), names(db))
+		ids<-as.character(unlist(db[inds]))
+		symbols<-select(org.Hs.eg.db,
+	       keys = ids,
+	       columns=c("ENSEMBL","ENTREZID","SYMBOL","GENENAME"),
+	       keytype="ENTREZID")
+		return(unique(symbols[, "SYMBOL"]))
+		})
+
+	return(res)
 }
 
 add_direction<-function(cn, remove.cols = TRUE){
@@ -250,231 +268,11 @@ add_direction<-function(cn, remove.cols = TRUE){
 	return(cn)
 }
 
-#wrapper for make_GISTIC2
-#' @import biomaRt
-make_GISTIC2<-function(f.dir.in, binarize = TRUE, my.symbols){
-
-	cat("Reading GISTIC2 data..\n")
-	all_lesions<-paste(f.dir.in, "/", "all_lesions.conf_99.txt", sep = "")
-	broad_lesions<-paste(f.dir.in, "/", "broad_values_by_arm.txt", sep = "")
-	eset.focal<-read_GISTIC2_focal(all_lesions = all_lesions)
-	eset.arm<-read_GISTIC2_broad(broad_lesions = broad_lesions)
-
-	fdat<-fData(eset.focal)
-	amp.thres<-fdat$Amplitude.Threshold[grepl("Amplification", fdat$Unique.Name)][1]
-	amp.thres<-sapply(strsplit(amp.thres, split = ";")[[1]], 
-		function(x) strsplit(x, split = ":")[[1]][2])[2]
-	amp.breaks<-c(-100, as.numeric(unlist(strsplit(gsub("<t<", ",", amp.thres), ","))), 100)
-	eset.arm.amp<-eset.arm
-	arm.amp.mat<-t(apply(exprs(eset.arm.amp), 1, 
-		function(x) 
-			as.numeric(as.character(cut(x = x, breaks = amp.breaks, labels = c(0, 1, 2))))))
-	exprs(eset.arm.amp)<-arm.amp.mat
-
-	del.thres<-fdat$Amplitude.Threshold[grepl("Deletion", fdat$Unique.Name)][1]
-	del.thres<-sapply(strsplit(del.thres, split = ";")[[1]], 
-		function(x) strsplit(x, split = ":")[[1]][2])[2]
-	del.breaks<-rev(c(100, as.numeric(unlist(strsplit(gsub(">t>", ",", del.thres), ","))), -100))
-	eset.arm.del<-eset.arm
-	arm.del.mat<-t(apply(exprs(eset.arm.del), 1, 
-		function(x) 
-			as.numeric(as.character(cut(x = x, breaks = del.breaks, labels = c(2, 1, 0))))))
-	exprs(eset.arm.del)<-arm.del.mat
-
-	amp.arm.uniquename<-paste("AmplificationArm", 1:nrow( fData(eset.arm.amp)), sep = "")
-	del.arm.uniquename<-paste("DeletionArm", 1:nrow( fData(eset.arm.del)), sep = "")
-	
-	fdat.arm<-rbind(cbind(Unique.Name = amp.arm.uniquename, fData(eset.arm.amp)),
-		cbind(Unique.Name = del.arm.uniquename, fData(eset.arm.del)))
-	exprs.arm<-rbind(exprs(eset.arm.amp), exprs(eset.arm.del))
-	rownames(exprs.arm)<-rownames(fdat.arm)
-	colnames(exprs.arm)<-pData(eset.arm)[,1]
-	eset.arm<-to.eSet(mat = exprs.arm, pdat = pData(eset.arm), fdat = fdat.arm)
-
-	eset.or<-focal_or_arm(eset.focal, eset.arm)
-
-	#binary phenotype
-	if(binarize == TRUE){
-		cat("Binarizing alterations..\n")
-		mat<-exprs(eset.focal)
-		mat[mat == 2]<-1
-		exprs(eset.focal)<-mat
-		mat<-exprs(eset.arm)
-		mat[mat == 2]<-1
-		exprs(eset.arm)<-mat
-		mat<-exprs(eset.or)
-		mat[mat == 2]<-1
-		exprs(eset.or)<-mat
-	}
-
-	##get cis genes
-	cat("Fetching cis genes in focal..\n")
-	f.amp<-paste(f.dir.in, "/", "amp_genes.conf_99.txt", sep = "")
-	f.del<-paste(f.dir.in, "/", "del_genes.conf_99.txt", sep = "")
-	genes.amp<-get_cis_genes(f.genes = f.amp, direction = "Amplification")
-	genes.del<-get_cis_genes(f.genes = f.del, direction = "Deletion")
-	
-	genes.both<-list(meta = rbind(genes.amp[["meta"]], genes.del[["meta"]]),
-		genes = c(genes.amp[["genes"]], genes.del[["genes"]]))
-
-	#cisgenes<-c(genes.amp[["genes"]], genes.del[["genes"]])
-
-	sample_meta<-fData(eset.focal)
-	sample_meta$wide.peak.boundaries<-as.character(sapply(sample_meta$Wide.Peak.Limits, 
-		function(x) strsplit(x, split = "\\(")[[1]][1]))
-	gene_meta<-genes.both[['meta']]
-	idx<-match(sample_meta$wide.peak.boundaries, gene_meta$wide.peak.boundaries)
-	#cisgenes[['meta']]<-cisgenes[['meta']][idx,]
-	cisgenes<-genes.both[['genes']][idx]
-
-
-	##get cis genes in arm
-	# Filter on HGNC symbol and chromosome, retrieve genomic location and band
-	cat("Fetching cis genes in arm..\n")
-		#ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-	ensembl<- useMart(host="www.ensembl.org", "ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl")
-
-	# Only use standard human chromosomes
-	normal.chroms <- c(1:22, "X", "Y", "M")
-	my.regions <- getBM(c("hgnc_symbol", "chromosome_name", "start_position", "end_position", "band"),
-                    filters = c("hgnc_symbol", "chromosome_name"),
-                    values = list(hgnc_symbol=my.symbols, chromosome_name=normal.chroms),
-                                  mart = ensembl)
-	my.regions$arm<-paste(my.regions$chromosome_name,  
-		sapply(my.regions$band, function(x) substr(x, 1, 1)), sep ="")
-
-
-	cisgenes.arm<-lapply(1:nrow(fData(eset.arm)), 
-		function(i){
-			get_genes_in_arm(x=fData(eset.arm)$Descriptor[i], y = my.regions)
-		})
-	##get cis genes in arm and in focal
-	cat("Fetching cis genes in arm and in focal..\n")
-	dir.focal<-sapply(fData(eset.focal)$Unique.Name, function(x){
-		if (grepl("Amp", x)) return("Amplification") else return("Deletion")
-	})
-	arm.focal<-sapply(fData(eset.focal)$Descriptor, function(x){
-		if(grepl("p", x))
-			paste(strsplit(x, split = "p")[[1]][1], "p", sep = "")
-		else 
-			paste(strsplit(x, split = "q")[[1]][1], "q", sep = "")
-		})
-	both.focal<-paste(dir.focal, arm.focal, sep = "_")
-
-	dir.arm<-sapply(fData(eset.arm)$Unique.Name, function(x){
-		if (grepl("Amp", x)) return("Amplification") else return("Deletion")
-		})
-	arm.arm<-sapply(fData(eset.arm)$Descriptor, function(x){
-		if(grepl("p", x))
-			paste(strsplit(x, split = "p")[[1]][1], "p", sep = "")
-		else 
-			paste(strsplit(x, split = "q")[[1]][1], "q", sep = "")
-		})
-	both.arm<-paste(dir.arm, arm.arm, sep = "_")
-
-	match.focal<-match(both.focal, both.arm)
-	ind.focal<-which(!is.na(match.focal))
-	cisgenes.arm.infocal<-cisgenes[ind.focal]
-
-	eset.focal<-add_direction(eset.focal)
-	eset.arm<-add_direction(eset.arm)
-	eset.or<-add_direction(eset.or)
-
-	res<-list(focal = list(cn=eset.focal, cis=cisgenes), 
-		arm = list(cn=eset.arm, cis=cisgenes.arm),
-		or = list(cn=eset.or, cis=cisgenes.arm.infocal))
-	return(res)
-}
-
 
 
 #wrapper for make_GISTIC2
-#' @import biomaRt
-make_GISTIC2_with_thres_arm<-function(gistic_in, all_genes, 
-	amp_thres_arm, del_thres_arm, 
-	amp_qvalue_arm, del_qvalue_arm, all_lesions = NA, f.amp = NA, f.del = NA, 
-	broad_thres = TRUE){
-
-	cat("Reading GISTIC2 data..\n")
-
-	if(is.na(all_lesions))
-	all_lesions<-paste(gistic_in, "/", "all_lesions.conf_99.txt", sep = "")
-
-	cat("Reading focal alterations...\n")
-	eset.focal<-read_GISTIC2_focal(all_lesions = all_lesions)
-
-	cat("Reading arm alterations...\n")
-	broad_lesions<-paste(gistic_in, "/", "broad_values_by_arm.txt", sep = "")
-	if(broad_thres){
-		broad_lesions_threshold<-paste(gistic_in, "/", "broad_significance_results.txt", sep = "")
-	} else {
-		broad_lesions_threshold<-NA
-	}	
-	eset.arm<-read_GISTIC2_broad_with_thres(broad_lesions = broad_lesions, 
-	broad_lesions_threshold = broad_lesions_threshold,
-	amp_qvalue = amp_qvalue_arm, del_qvalue = del_qvalue_arm, 
-	amp_thres = amp_thres_arm, del_thres = del_thres_arm)
-
-	eset.or<-focal_or_arm(eset.focal, eset.arm)
-
-	##get cis genes
-	cat("Fetching cis genes in focal..\n")
-
-	if(is.na(f.amp))
-	f.amp<-paste(gistic_in, "/", "amp_genes.conf_99.txt", sep = "")
-
-	if(is.na(f.del))
-	f.del<-paste(gistic_in, "/", "del_genes.conf_99.txt", sep = "")
-
-	genes.amp<-get_cis_genes(f.genes = f.amp, direction = "Amplification")
-	genes.del<-get_cis_genes(f.genes = f.del, direction = "Deletion")
-	
-	genes.both<-list(meta = rbind(genes.amp[["meta"]], genes.del[["meta"]]),
-		genes = c(genes.amp[["genes"]], genes.del[["genes"]]))
-
-	#cisgenes<-c(genes.amp[["genes"]], genes.del[["genes"]])
-
-	sample_meta<-fData(eset.focal)
-	sample_meta$wide.peak.boundaries<-as.character(sapply(sample_meta$Wide.Peak.Limits, 
-		function(x) strsplit(x, split = "\\(")[[1]][1]))
-	gene_meta<-genes.both[['meta']]
-	idx<-match(sample_meta$wide.peak.boundaries, gene_meta$wide.peak.boundaries)
-	cisgenes<-genes.both[['genes']][idx]
-
-	##get cis genes in arm
-	# Filter on HGNC symbol and chromosome, retrieve genomic location and band
-	cat("Fetching cis genes in arm..\n")
-		#ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-	ensembl<- useMart(host="www.ensembl.org", "ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl")
-
-	# Only use standard human chromosomes
-	normal.chroms <- c(1:22, "X", "Y", "M")
-	my.regions <- getBM(c("hgnc_symbol", "chromosome_name", "start_position", "end_position", "band"),
-                    filters = c("hgnc_symbol", "chromosome_name"),
-                    values = list(hgnc_symbol=all_genes, chromosome_name=normal.chroms),
-                                  mart = ensembl)
-	my.regions$arm<-paste(my.regions$chromosome_name,  
-		sapply(my.regions$band, function(x) substr(x, 1, 1)), sep ="")
-
-
-	cisgenes.arm<-lapply(1:nrow(fData(eset.arm)), 
-		function(i){
-			get_genes_in_arm(x=fData(eset.arm)$Descriptor[i], y = my.regions)
-		})
-	
-	eset.focal<-add_direction(eset.focal)
-	eset.arm<-add_direction(eset.arm)
-	eset.or<-add_direction(eset.or)
-
-	res<-list(focal = list(cn=eset.focal, cis=cisgenes), 
-		arm = list(cn=eset.arm, cis=cisgenes.arm),
-		or = list(cn=eset.or, cis=cisgenes))
-	return(res)
-}
-
-
-#wrapper for make_GISTIC2
-#' @import biomaRt
+#' @import org.Hs.eg.db
+#' @export
 make_GISTIC2_with_thres_focal_and_arm<-function(gistic_in, all_genes, 
 	amp_thres_arm, del_thres_arm, 
 	amp_qvalue_arm, del_qvalue_arm, 
@@ -489,7 +287,6 @@ make_GISTIC2_with_thres_focal_and_arm<-function(gistic_in, all_genes,
 
 	cat("Reading focal alterations...\n")
 	eset.focal<-read_GISTIC2_focal(all_lesions = all_lesions)
-
 	eset.focal<-eset.focal[as.numeric(fData(eset.focal)$q.values)<qvalue_focal,]
 
 	cat("Reading arm alterations...\n")
@@ -521,8 +318,6 @@ make_GISTIC2_with_thres_focal_and_arm<-function(gistic_in, all_genes,
 	genes.both<-list(meta = rbind(genes.amp[["meta"]], genes.del[["meta"]]),
 		genes = c(genes.amp[["genes"]], genes.del[["genes"]]))
 
-	#cisgenes<-c(genes.amp[["genes"]], genes.del[["genes"]])
-
 	sample_meta<-fData(eset.focal)
 	sample_meta$wide.peak.boundaries<-as.character(sapply(sample_meta$Wide.Peak.Limits, 
 		function(x) strsplit(x, split = "\\(")[[1]][1]))
@@ -530,27 +325,8 @@ make_GISTIC2_with_thres_focal_and_arm<-function(gistic_in, all_genes,
 	idx<-match(sample_meta$wide.peak.boundaries, gene_meta$wide.peak.boundaries)
 	cisgenes<-genes.both[['genes']][idx]
 
-	##get cis genes in arm
-	# Filter on HGNC symbol and chromosome, retrieve genomic location and band
-	cat("Fetching cis genes in arm..\n")
-		#ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-	ensembl<- useMart(host="www.ensembl.org", "ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl")
+	cisgenes.arm<-get_genes_in_arm(fData(eset.arm)[, "Descriptor"])
 
-	# Only use standard human chromosomes
-	normal.chroms <- c(1:22, "X", "Y", "M")
-	my.regions <- getBM(c("hgnc_symbol", "chromosome_name", "start_position", "end_position", "band"),
-                    filters = c("hgnc_symbol", "chromosome_name"),
-                    values = list(hgnc_symbol=all_genes, chromosome_name=normal.chroms),
-                                  mart = ensembl)
-	my.regions$arm<-paste(my.regions$chromosome_name,  
-		sapply(my.regions$band, function(x) substr(x, 1, 1)), sep ="")
-
-
-	cisgenes.arm<-lapply(1:nrow(fData(eset.arm)), 
-		function(i){
-			get_genes_in_arm(x=fData(eset.arm)$Descriptor[i], y = my.regions)
-		})
-	
 	eset.focal<-add_direction(eset.focal)
 	eset.arm<-add_direction(eset.arm)
 	eset.or<-add_direction(eset.or)
@@ -560,118 +336,4 @@ make_GISTIC2_with_thres_focal_and_arm<-function(gistic_in, all_genes,
 		or = list(cn=eset.or, cis=cisgenes))
 	return(res)
 }
-
-#wrapper for make_GISTIC2
-#' @import biomaRt
-make_GISTIC2_with_thres<-function(gistic_in, all_genes, 
-	amp_thres_focal, amp_thres_arm, del_thres_focal, del_thres_arm, 
-	amp_qvalue_arm, del_qvalue_arm, all_lesions = NA, f.amp = NA, f.del = NA){
-
-	cat("Reading GISTIC2 data..\n")
-
-	if(is.na(all_lesions))
-	all_lesions<-paste(gistic_in, "/", "all_lesions.conf_99.txt", sep = "")
-
-	eset.focal<-read_GISTIC2_focal_with_thres(all_lesions, 
-		amp_thres = amp_thres_focal, del_thres = del_thres_focal)
-
-	broad_lesions<-paste(gistic_in, "/", "broad_values_by_arm.txt", sep = "")
-	broad_lesions_threshold<-paste(gistic_in, "/", "broad_significance_results.txt", sep = "")
-
-	eset.arm<-read_GISTIC2_broad_with_thres(broad_lesions = broad_lesions, 
-	broad_lesions_threshold = broad_lesions_threshold,
-	amp_qvalue = amp_qvalue_arm, del_qvalue = del_qvalue_arm, 
-	amp_thres = amp_thres_arm, del_thres = del_thres_arm)
-
-	eset.or<-focal_or_arm(eset.focal, eset.arm)
-
-	##get cis genes
-	cat("Fetching cis genes in focal..\n")
-
-	if(is.na(f.amp))
-	f.amp<-paste(gistic_in, "/", "amp_genes.conf_99.txt", sep = "")
-
-	if(is.na(f.del))
-	f.del<-paste(gistic_in, "/", "del_genes.conf_99.txt", sep = "")
-
-	genes.amp<-get_cis_genes(f.genes = f.amp, direction = "Amplification")
-	genes.del<-get_cis_genes(f.genes = f.del, direction = "Deletion")
-	
-	genes.both<-list(meta = rbind(genes.amp[["meta"]], genes.del[["meta"]]),
-		genes = c(genes.amp[["genes"]], genes.del[["genes"]]))
-
-	#cisgenes<-c(genes.amp[["genes"]], genes.del[["genes"]])
-
-	sample_meta<-fData(eset.focal)
-	sample_meta$wide.peak.boundaries<-as.character(sapply(sample_meta$Wide.Peak.Limits, 
-		function(x) strsplit(x, split = "\\(")[[1]][1]))
-	gene_meta<-genes.both[['meta']]
-	idx<-match(sample_meta$wide.peak.boundaries, gene_meta$wide.peak.boundaries)
-	#cisgenes[['meta']]<-cisgenes[['meta']][idx,]
-	cisgenes<-genes.both[['genes']][idx]
-
-	##get cis genes in arm
-	# Filter on HGNC symbol and chromosome, retrieve genomic location and band
-	cat("Fetching cis genes in arm..\n")
-		#ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-	ensembl<- useMart(host="www.ensembl.org", "ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl")
-
-	# Only use standard human chromosomes
-	normal.chroms <- c(1:22, "X", "Y", "M")
-	my.regions <- getBM(c("hgnc_symbol", "chromosome_name", "start_position", "end_position", "band"),
-                    filters = c("hgnc_symbol", "chromosome_name"),
-                    values = list(hgnc_symbol=all_genes, chromosome_name=normal.chroms),
-                                  mart = ensembl)
-	my.regions$arm<-paste(my.regions$chromosome_name,  
-		sapply(my.regions$band, function(x) substr(x, 1, 1)), sep ="")
-
-
-	cisgenes.arm<-lapply(1:nrow(fData(eset.arm)), 
-		function(i){
-			get_genes_in_arm(x=fData(eset.arm)$Descriptor[i], y = my.regions)
-		})
-	
-	eset.focal<-add_direction(eset.focal)
-	eset.arm<-add_direction(eset.arm)
-	eset.or<-add_direction(eset.or)
-
-	res<-list(focal = list(cn=eset.focal, cis=cisgenes), 
-		arm = list(cn=eset.arm, cis=cisgenes.arm),
-		or = list(cn=eset.or, cis=cisgenes))
-	return(res)
-}
-
-#wrapper for make_GISTIC2
-make_GISTIC2_with_thres_nocisgenes<-function(gistic_in, all_genes, 
-	amp_thres_focal, amp_thres_arm, del_thres_focal, del_thres_arm, 
-	amp_qvalue_arm, del_qvalue_arm, all_lesions = NA, f.amp = NA, f.del = NA){
-
-	cat("Reading GISTIC2 data..\n")
-
-	if(is.na(all_lesions))
-	all_lesions<-paste(gistic_in, "/", "all_lesions.conf_99.txt", sep = "")
-
-	eset.focal<-read_GISTIC2_focal_with_thres(all_lesions, 
-		amp_thres = amp_thres_focal, del_thres = del_thres_focal)
-
-	broad_lesions<-paste(gistic_in, "/", "broad_values_by_arm.txt", sep = "")
-	broad_lesions_threshold<-paste(gistic_in, "/", "broad_significance_results.txt", sep = "")
-
-	eset.arm<-read_GISTIC2_broad_with_thres(broad_lesions = broad_lesions, 
-	broad_lesions_threshold = broad_lesions_threshold,
-	amp_qvalue = amp_qvalue_arm, del_qvalue = del_qvalue_arm, 
-	amp_thres = amp_thres_arm, del_thres = del_thres_arm)
-
-	eset.or<-focal_or_arm(eset.focal, eset.arm)
-
-	eset.focal<-add_direction(eset.focal)
-	eset.arm<-add_direction(eset.arm)
-	eset.or<-add_direction(eset.or)
-
-	res<-list(focal = list(cn=eset.focal), 
-		arm = list(cn=eset.arm),
-		or = list(cn=eset.or))
-	return(res)
-}
-
 

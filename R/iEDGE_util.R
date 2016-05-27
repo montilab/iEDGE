@@ -1,8 +1,3 @@
-#library(limma)
-#library(plyr)
-#library(infotheo)
-#library(Biobase)
-
 #' @import Biobase
 run_limma_accessory<-function(eset, design){
 	eset.sub.cond1<-eset[,design[,1] == 1]

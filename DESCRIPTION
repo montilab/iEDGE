@@ -19,7 +19,8 @@ Imports:
     XML,
     knitr,
     RColorBrewer,
-    biomaRt,
+    org.Hs.eg.db,
+    AnnotationDbi,
     cba
 License: MIT + file LICENSE
 LazyData: true

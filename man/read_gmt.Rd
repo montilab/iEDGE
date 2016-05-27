@@ -9,7 +9,8 @@ read_gmt(f, split.char = "\\t")
 \arguments{
 \item{f}{name of gmt file}
 
-\item{split.char}{delimiter}
+\item{split.char}{delimiter
+export}
 }
 \description{
 \code{read_gmt} read from gmt file

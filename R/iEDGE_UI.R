@@ -478,7 +478,7 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 
 #' @export
 make_iEDGE_ui<-function(cistab, transtab, cn, gep, cisgenes,
-	outdir, jsdir, cmijsdir, cmi, altid = "Unique.Name", geneid = "accession"){
+	outdir, jsdir = file.path(path.package("iEDGE"), "javascript"), cmijsdir, cmi, altid = "Unique.Name", geneid = "accession"){
 
 	dir.create(outdir)
 

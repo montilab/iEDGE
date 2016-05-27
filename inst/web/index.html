@@ -60,6 +60,28 @@
 
 <p>Reporting options are available in table (.txt) format as well as in html format, supported by interactive plots and tables</p>
 
+<h1>Installing iEDGE</h1>
+
+<p>(1) Please install the following Bioconductor packages first before installing iEDGE:</p>
+
+<pre><code>source(&quot;http://bioconductor.org/biocLite.R&quot;)
+biocLite(c(&quot;Biobase&quot;, &quot;biomaRt&quot;, &quot;limma&quot;))
+
+</code></pre>
+
+<p>(2) Installing iEDGE</p>
+
+<pre><code>
+library(devtools)
+
+PAT &lt;- &quot;04fe676593e46b6bda5a5d09431156e8a500349a&quot;
+
+install_github(&quot;montilab/iEDGE&quot;,auth_token = PAT)
+
+library(iEDGE)
+
+</code></pre>
+
 
     <h2>Help topics</h2>
 
@@ -85,7 +107,7 @@
     <h2>Dependencies</h2>
     <ul>
       
-      <li><strong>Imports</strong>: Biobase, limma, plyr, infotheo, XML, knitr, RColorBrewer, biomaRt, cba</li>
+      <li><strong>Imports</strong>: Biobase, limma, plyr, infotheo, XML, knitr, RColorBrewer, org.Hs.eg.db, AnnotationDbi, cba</li>
       
       
     </ul>
