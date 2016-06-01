@@ -65,7 +65,7 @@
 <p>(1) Please install the following Bioconductor packages first before installing iEDGE:</p>
 
 <pre><code>source(&quot;http://bioconductor.org/biocLite.R&quot;)
-biocLite(c(&quot;Biobase&quot;, &quot;biomaRt&quot;, &quot;limma&quot;))
+biocLite(c(&quot;Biobase&quot;, &quot;limma&quot;, &quot;org.Hs.eg.db&quot;))
 
 </code></pre>
 
@@ -91,6 +91,18 @@ library(iEDGE)
     <ul class="index">
         
       <li>
+        <code><a href="iEDGE_combine.html">iEDGE_combine</a></code><br />iEDGE_combine combines alteration data (e.g. GISTIC2) and gene expression data, using a mapping data frame for matching samples</li>
+            
+      <li>
+        <code><a href="iEDGE_DE.html">iEDGE_DE</a></code><br />iEDGE_DE performs differential expression analysis and pathway enrichment and saves to text tables</li>
+            
+      <li>
+        <code><a href="iEDGE_UI.html">iEDGE_UI</a></code><br />iEDGE_UI makes the user interface for iEDGE reports</li>
+            
+      <li>
+        <code><a href="make_GISTIC2.html">make_GISTIC2</a></code><br />make_GISTIC2 preprocess GISTIC2 data</li>
+            
+      <li>
         <code><a href="read_gmt.html">read_gmt</a></code><br />read_gmt</li>
             
       <li>
@@ -98,6 +110,9 @@ library(iEDGE)
             
       <li>
         <code><a href="run_hyperEnrichment_wrapper.html">run_hyperEnrichment_wrapper</a></code><br />run_hyperEnrichment_wrapper</li>
+            
+      <li>
+        <code><a href="run_iEDGE.html">run_iEDGE</a></code><br />run_iEDGE is the main wrapper for iEDGE, assumes processed data</li>
     
     </ul>
   </div>

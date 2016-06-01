@@ -270,10 +270,10 @@ add_direction<-function(cn, remove.cols = TRUE){
 
 
 
-#wrapper for make_GISTIC2
+#' make_GISTIC2 preprocess GISTIC2 data
 #' @import org.Hs.eg.db
 #' @export
-make_GISTIC2_with_thres_focal_and_arm<-function(gistic_in, all_genes, 
+make_GISTIC2<-function(gistic_in, all_genes, 
 	amp_thres_arm, del_thres_arm, 
 	amp_qvalue_arm, del_qvalue_arm, 
 	qvalue_focal,

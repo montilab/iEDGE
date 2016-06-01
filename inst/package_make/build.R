@@ -34,8 +34,4 @@ setwd(package.dir)
 cat("creating html help pages for package...\n")
 build_site(pkg = package.dir, examples = TRUE, launch = TRUE)
 
-##install package
-cat("installing package...\n")
-install.packages(package.dir, repos = NULL, type = "source")
-
 

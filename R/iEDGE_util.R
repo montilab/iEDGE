@@ -91,6 +91,7 @@ run_limma<-function(eset, design,
 	return(fit2.table)
 }
 
+#' iEDGE_combine combines alteration data (e.g. GISTIC2) and gene expression data, using a mapping data frame for matching samples
 #' @export
 iEDGE_combine<-function(alt, gep, mapping, mapping.cn = "CN", mapping.gep = "GEP", uppercase = TRUE){
 
@@ -202,6 +203,12 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	
 	res.df[, "adj.P.Val.all"]<-p.adjust(res.df$P.Value, method = "fdr")
 	
+	#reorder columns
+	col.first<-c(gepid, "fold.change", "adj.P.Val.all", "t", 
+		"high.class", "mean1.unlog", "mean0.unlog", "sd0.unlog", "sd1.unlog")
+	col.ord<-c(col.first, setdiff(colnames(res.df), col.first))
+	res.df<-res.df[, col.ord]
+
 	res.list<-list()
 	res.list$full<-res.df	
 	res.list$sig<-res.df[res.df[, "adj.P.Val.all"]<fdr.cutoff,]
@@ -209,13 +216,14 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	return(res.list)
 }
 
+#' iEDGE_DE performs differential expression analysis and pathway enrichment and saves to text tables
 #' @export
-make_iEDGE_wrapper<-function(cn, gep, cisgenes,
+iEDGE_DE<-function(cn, gep, cisgenes,
 	header,
 	gepid, cnid,  	
 	f.dir.out, 
-	gs, #genset for hyper
-	gs.name,
+	gs.file, #genset for hyper
+	gs.file.name,
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, 
 	min.group = 3,
 	min.drawsize = 3,  
@@ -276,10 +284,10 @@ make_iEDGE_wrapper<-function(cn, gep, cisgenes,
  	#run hyperenrichment with all sig cis genes in one geneset
  	drawnList<-list(cis.sig = unique(as.character(res.cis$sig[, gepid])))
  	hyper.cis<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
+	    categories=gs.file,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.name,"_cis.txt", sep = "")	
+ 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_cis.txt", sep = "")	
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(hyper.cis, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
@@ -288,10 +296,10 @@ make_iEDGE_wrapper<-function(cn, gep, cisgenes,
 	#run hyperenrichment with all sig trans genes in one geneset
 	drawnList<-list(trans.sig = unique(as.character(res.trans$sig[, gepid])))
  	hyper.trans<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
+	    categories=gs.file,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.name,"_trans.txt", sep = "")
+ 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_trans.txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(hyper.trans, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)	
@@ -307,11 +315,11 @@ make_iEDGE_wrapper<-function(cn, gep, cisgenes,
 	
 	names(drawnList)<-unique(res.cis$sig[, cnid])
  	hyper.cis.split<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
+	    categories=gs.file,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
 
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.name,"_cis_splitbyalteration.txt", sep = "")
+ 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_cis_splitbyalteration.txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(hyper.cis.split, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)		
@@ -327,11 +335,11 @@ make_iEDGE_wrapper<-function(cn, gep, cisgenes,
 	names(drawnList)<-unique(res.trans$sig[, cnid])
 
  	hyper.trans.split<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
+	    categories=gs.file,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
 
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.name,"_trans_splitbyalteration.txt", sep = "")
+ 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_trans_splitbyalteration.txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(hyper.trans.split, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
@@ -353,7 +361,199 @@ calc_mutinfo<-function(x, #alt
 	return(I)
 }
 
-run_cmi_hyperenrichment<-function(tab, tab.name, gs, ngenes, 
+
+
+
+calc_sobel_y_z1<-function(x,y,z){
+
+	m1<-lm(t(z) ~ x)
+	m2<-lm(t(y) ~ x)
+	m3<-lapply(1:nrow(y), function(i){
+		lm(t(z) ~ x+y[i, ])
+		})
+
+	m2.summary<-summary(m2)
+	ny<-nrow(y)
+	
+
+	tau0<-m1$coefficients[2]
+
+	tau1<-lapply(1:ny, function(i) m3[[i]]$coefficients[2])
+	beta<-lapply(1:ny, function(i) m3[[i]]$coefficients[3])
+	alpha<-m2$coefficients[2,]
+	taudiff<-lapply(1:ny, function(i) tau0 - tau1[[i]])
+	sa<-unlist(lapply(1:ny, function(i) m2.summary[[i]]$coefficients[2, "Std. Error"]))
+
+	sb<-lapply(1:ny, function(i) {
+			m3_i<-summary(m3[[i]])
+			return( m3_i$coefficients[3, "Std. Error"])
+		})
+
+	S<-lapply(1:ny, function(i) {
+			sqrt(beta[[i]]^2 * sa[i]^2 + alpha[i]^2*sb[[i]]^2)
+		})
+
+	Z<-lapply(1:ny, function(i) {
+			taudiff[[i]]/S[[i]]
+		})
+
+	P.twosided<-lapply(1:ny, function(i) {
+			2*pnorm(-abs(Z[[i]]))
+		})
+
+	res<-data.frame(yind = vector(), zind = vector(), value = vector())
+	for(i in 1:ny){
+		res.add<-c(yind = i, zind = j, 
+			taudiff = taudiff[[i]][j],
+			Z = Z[[i]][j],
+			S = S[[i]][j],
+			pvalue = P.twosided[[i]][j])
+		res<-rbind(res, res.add)
+	}
+
+	colnames(res)<-c("yind", "zind", "taudiff", "Z", "S", "pvalue")
+	return(res)
+}
+
+
+
+calc_sobel_y1_z<-function(x,y,z){
+
+	m1<-lm(t(z) ~ x)
+	m2<-lm(t(y) ~ x)
+	m3<-lm(t(z) ~ x+t(y))
+	
+	m2.summary<-summary(m2)
+	nz<-nrow(z)
+	tau0 <- m1$coefficients[2,]
+
+	tau1<-m3$coefficients[2,]
+	beta<-m3$coefficients[3,]
+	alpha<-m2$coefficients[2]
+
+	taudiff<-tau0 - tau1
+	sa<-m2.summary$coefficients[2, "Std. Error"]
+
+	m3.summary<-summary(m3)
+	sb<-unlist(lapply(1:nz, function(j) m3.summary[[j]]$coefficients[3, "Std. Error"]))
+
+	S<-sqrt(beta^2 * sa^2 + alpha^2*sb^2)
+	Z<-taudiff/S
+	
+	P.twosided<-2*pnorm(-abs(Z))
+	res<-data.frame(yind = vector(), zind = vector(), value = vector())
+
+	for(j in 1:nz){
+		res.add<-c(yind = 1, zind = j, 
+			taudiff = taudiff[j],
+			Z = Z[j],
+			S = S[j],
+			pvalue = P.twosided[j])
+		res<-rbind(res, res.add)
+	}
+	colnames(res)<-c("yind", "zind", "taudiff", "Z", "S", "pvalue")
+	return(res)
+}
+
+calc_sobel_y1_z1<-function(x,y,z){
+	y<-as.numeric(y)
+	z<-as.numeric(z)
+	m1<-lm(z ~ x)
+	tau0<-m1$coefficients[2]
+	m2<-lm(y ~ x)
+	alpha<-m2$coefficients[2]
+	m3<-lm(z ~ x + y)
+	tau1<-m3$coefficients[2]
+	beta<-m3$coefficients[3]
+	taudiff<-tau0-tau1
+	
+	sa<-summary(m2)$coefficients[2, "Std. Error"]
+	sb<-summary(m3)$coefficients[3, "Std. Error"]
+		
+	S<-sqrt(beta^2 * sa^2 + alpha^2*sb^2)
+	Z<-taudiff/S
+	pvalue<-2*pnorm(-abs(Z))
+
+	res<-data.frame(yind = 1, zind = 1, 
+			taudiff = taudiff,
+			Z = Z,
+			S = S,
+			pvalue = pvalue)
+
+	return(res)
+}
+
+calc_sobel_mat<-function(x,y,z){
+
+	m1<-lm(t(z) ~ x)
+	m2<-lm(t(y) ~ x)
+	m3<-lapply(1:nrow(y), function(i){
+		lm(t(z) ~ x+y[i, ])
+		})
+
+	m2.summary<-summary(m2)
+	ny<-nrow(y)
+	nz<-nrow(z)
+
+	tau0<-m1$coefficients[2,]
+
+	tau1<-lapply(1:ny, function(i) m3[[i]]$coefficients[2,])
+	beta<-lapply(1:ny, function(i) m3[[i]]$coefficients[3,])
+	alpha<-m2$coefficients[2,]
+	taudiff<-lapply(1:ny, function(i) tau0 - tau1[[i]])
+	sa<-unlist(lapply(1:ny, function(i) m2.summary[[i]]$coefficients[2, "Std. Error"]))
+
+	sb<-lapply(1:ny, function(i) {
+			m3_i<-summary(m3[[i]])
+			return(unlist(lapply(1:nz, function(j) m3_i[[j]]$coefficients[3, "Std. Error"])))
+		})
+
+	S<-lapply(1:ny, function(i) {
+			sqrt(beta[[i]]^2 * sa[i]^2 + alpha[i]^2*sb[[i]]^2)
+		})
+
+	Z<-lapply(1:ny, function(i) {
+			taudiff[[i]]/S[[i]]
+		})
+
+	P.twosided<-lapply(1:ny, function(i) {
+			2*pnorm(-abs(Z[[i]]))
+		})
+
+	res<-data.frame(yind = vector(), zind = vector(), value = vector())
+	for(i in 1:ny){
+		for(j in 1:nz){
+			res.add<-c(yind = i, zind = j, 
+				taudiff = taudiff[[i]][j],
+				Z = Z[[i]][j],
+				S = S[[i]][j],
+				pvalue = P.twosided[[i]][j])
+			res<-rbind(res, res.add)
+		}
+	}
+
+	colnames(res)<-c("yind", "zind", "taudiff", "Z", "S", "pvalue")
+	return(res)
+}
+
+calc_sobel<-function(x,y,z, y.names, z.names){
+	ny<-nrow(y)
+	nz<-nrow(z)
+	res<-NULL
+	if(ny>1 & nz>1){
+		res<-calc_sobel_mat(x,y,z)
+	} else if (ny>1 & nz == 1){
+		res<-calc_sobel_y_z1(x,y,z)
+	} else if (ny == 1 & nz > 1){
+		res<-calc_sobel_y1_z(x,y,z)
+	} else if (ny == 1 & nz == 1){
+		res<-calc_sobel_y1_z1(x,y,z)
+	}
+	res<-data.frame(cis = y.names[res[, "yind"]], trans = z.names[res[, "zind"]], res)
+	return(res)
+}
+
+run_cmi_hyperenrichment<-function(tab, tab.name, gs.file, ngenes, 
 	min.drawsize = 3, 
 	hypercol = "fdr", 
 	hyperthres = 0.25, 
@@ -361,7 +561,7 @@ run_cmi_hyperenrichment<-function(tab, tab.name, gs, ngenes,
 
 	drawnList<-list(drawn = unique(tab$trans))
 	hyperunion<-run_hyperEnrichment(drawn=drawnList,
-		categories=gs,
+		categories=gs.file,
 		ntotal=ngenes,
 		min.drawsize = min.drawsize, 
 		mht = TRUE, 
@@ -378,7 +578,7 @@ run_cmi_hyperenrichment<-function(tab, tab.name, gs, ngenes,
 			i.sub<-tab[tab$cis %in% j,]
 			drawnList <- list(drawn = unique(i.sub$trans))
 			hyper<-run_hyperEnrichment(drawn=drawnList,
-	    		categories=gs,
+	    		categories=gs.file,
 	    		ntotal=ngenes,
 	    		min.drawsize = min.drawsize, 
 	    		mht = TRUE, 
@@ -396,9 +596,10 @@ run_cmi_hyperenrichment<-function(tab, tab.name, gs, ngenes,
 	return(list(hyperunion = hyperunion, hyperbyalt = hyperbyalt))
 }
 
+
 #' @import Biobase
 #' @export
-run_mutinfo_wrapper<-function(f_cis_tab, 
+prune<-function(f_cis_tab, 
 	f_trans_tab, 
 	cn, 
 	gep,
@@ -408,10 +609,15 @@ run_mutinfo_wrapper<-function(f_cis_tab,
 	nsamples = 1000, 
 	nbins = 5,  
 	cmi_dir,
-	cmicol = "pvalue", cmithres = 0.25,
-	... #other args in run_cmi_hyperenrichment
+	prunecol = "pvalue", prunethres = 0.25,
+	method = "cmi", #cmi or sobel
+	... #other args.file in run_cmi_hyperenrichment
 	) {
 	
+	if(!(method %in% c("cmi", "sobel"))){
+		stop("method must be one of \"cmi\" or \"sobel\"")
+	}
+
 	alt_id<-unique(as.character(f_cis_tab[, alteration_id]))
 	cn.fdat<-fData(cn)
 	cn.exprs<-exprs(cn)
@@ -434,7 +640,7 @@ run_mutinfo_wrapper<-function(f_cis_tab,
 	dir.create(cmi_dir_tables, recursive = TRUE)
 	dir.create(cmi_dir_plots, recursive = TRUE)
 
-	if(hasArg("gs")){
+	if(hasArg("gs.file")){
 		cmi_dir_hyper<-paste(cmi_dir, "/hyperEnrichment", sep = "")
 		dir.create(cmi_dir_hyper, recursive = TRUE)
 		hyper<-list()
@@ -462,60 +668,80 @@ run_mutinfo_wrapper<-function(f_cis_tab,
 
 		}
 		else {
-		set.seed(seed)
-		sample_cg<-ge.fdat.genes[sample(1:ngenes, nsamples, replace = T)]
-		set.seed(seed+10)
-		sample_tg<-sample(trans_genes, min(nsamples, trans_genes_n), replace = T)
+
 
 		cis_vec<-ge.exprs[match(cis_genes, ge.fdat.genes),, drop = FALSE]
 		trans_vec<-ge.exprs[match(trans_genes, ge.fdat.genes),, drop = FALSE]
-	
-		cis_null_vec<-ge.exprs[match(sample_cg, ge.fdat.genes),, drop = FALSE]
-		trans_null_vec<-ge.exprs[match(sample_tg, ge.fdat.genes),, drop = FALSE]
+
+		if(method == "cmi"){
+
+			set.seed(seed)
+			sample_cg<-ge.fdat.genes[sample(1:ngenes, nsamples, replace = T)]
+			set.seed(seed+10)
+			sample_tg<-sample(trans_genes, min(nsamples, trans_genes_n), replace = T)
 		
-		cat("Running actual model...\n")
-		res.actual[[i]]<-lapply(1:nrow(cis_vec),
-				function(k){
-					y<- cis_vec[k,]
-					y.name<-rownames(cis_vec)[k]
-					res<-sapply(1:nrow(trans_vec), function(j)
-							calc_mutinfo( x = x,y = y, z = trans_vec[j,], 
-								nbins = nbins))
+			cis_null_vec<-ge.exprs[match(sample_cg, ge.fdat.genes),, drop = FALSE]
+			trans_null_vec<-ge.exprs[match(sample_tg, ge.fdat.genes),, drop = FALSE]
 
-					res.df<-data.frame(cis = y.name, trans = rownames(trans_vec), cmi = as.numeric(res))
-					return(res.df)	
-				})
+			cat("Running actual model...\n")
+			res.actual[[i]]<-lapply(1:nrow(cis_vec),
+					function(k){
+						y<- cis_vec[k,]
+						y.name<-rownames(cis_vec)[k]
+						res<-sapply(1:nrow(trans_vec), function(j)
+								calc_mutinfo( x = x,y = y, z = trans_vec[j,], 
+									nbins = nbins))
 
-		res.actual[[i]]<-do.call(rbind, res.actual[[i]])
+						res.df<-data.frame(cis = y.name, trans = rownames(trans_vec), cmi = as.numeric(res))
+						return(res.df)	
+					})
 
-		cat("Running null model...\n")
-		res.null[[i]]<-lapply(1:nrow(cis_null_vec),
-				function(k){
-					y<- cis_null_vec[k,]
-					y.name<-rownames(cis_null_vec)[k]
-					res<-sapply(1:nrow(trans_null_vec), function(j)
-							calc_mutinfo( x = x,y = y, z = trans_null_vec[j,], 
-								nbins = nbins))
-					res.df<-data.frame(cis = y.name, trans = rownames(trans_null_vec), cmi = as.numeric(res))
-					return(res.df)	
-				})
+			res.actual[[i]]<-do.call(rbind, res.actual[[i]])
 
-		res.null[[i]]<-do.call(rbind, res.null[[i]])	
+			cat("Running null model...\n")
+			res.null[[i]]<-lapply(1:nrow(cis_null_vec),
+					function(k){
+						y<- cis_null_vec[k,]
+						y.name<-rownames(cis_null_vec)[k]
+						res<-sapply(1:nrow(trans_null_vec), function(j)
+								calc_mutinfo( x = x,y = y, z = trans_null_vec[j,], 
+									nbins = nbins))
+						res.df<-data.frame(cis = y.name, trans = rownames(trans_null_vec), cmi = as.numeric(res))
+						return(res.df)	
+					})
 
-		write.table(res.null[[i]], file = paste(cmi_dir_tables, "/null_", i, ".txt", sep = ""),
-			col.names = TRUE, row.names = FALSE, sep = "\t")
-		
-		nullecdf<-ecdf(res.null[[i]]$cmi)
-		res.actual[[i]]$pvalue<-nullecdf(res.actual[[i]]$cmi)
+			res.null[[i]]<-do.call(rbind, res.null[[i]])	
 
-		write.table(res.actual[[i]], file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
-			col.names = TRUE, row.names = FALSE, sep = "\t")
+			write.table(res.null[[i]], file = paste(cmi_dir_tables, "/null_", i, ".txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
+			
+			nullecdf<-ecdf(res.null[[i]]$cmi)
+			res.actual[[i]]$pvalue<-nullecdf(res.actual[[i]]$cmi)
 
-		tab<-res.actual[[i]]
-		res.sig[[i]]<-tab[tab[, cmicol] < cmithres,]
-		write.table(res.sig[[i]], file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
-			col.names = TRUE, row.names = FALSE, sep = "\t")
+			write.table(res.actual[[i]], file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
 
+			tab<-res.actual[[i]]
+			res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
+			write.table(res.sig[[i]], file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
+
+		} else { #method = sobel
+
+			cat("Running actual model...\n")
+
+			res.actual[[i]]<-calc_sobel(x =x,y = cis_vec,z = trans_vec, 
+				y.names = rownames(cis_vec), z.names = rownames(trans_vec))
+
+			write.table(res.actual[[i]], file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
+
+			tab<-res.actual[[i]]
+			res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
+			write.table(res.sig[[i]], file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
+
+		}
 
 	#	actual<-res.actual[[i]]$cmi
 	#	null<-res.null[[i]]$cmi
@@ -526,7 +752,7 @@ run_mutinfo_wrapper<-function(f_cis_tab,
 	#	p[[i]]<-ggplot(dat,aes(x=value, fill = label)) + geom_density(alpha = 0.2)+
 	#		geom_vline(xintercept = sig_thres, colour = "red") + ggtitle(i)
 
-		if(hasArg("gs")){
+		if(hasArg("gs.file")){
 			cat("Running hyperenrichment...\n")
 			hyper[[i]]<-run_cmi_hyperenrichment(tab = res.sig[[i]], tab.name = i, ngenes = ngenes,
 			f.dir.out = cmi_dir_hyper, ...)
@@ -549,8 +775,106 @@ run_mutinfo_wrapper<-function(f_cis_tab,
 	#invisible(lapply(p, print))
 	#dev.off()
 
-	if(hasArg("gs"))
+	if(hasArg("gs.file"))
 	return(list(actual = res.actual, null = res.null, sig = res.sig, p = p, hyper = hyper))
 	else 
 	return(list(actual = res.actual, null = res.null, sig = res.sig, p = p))
+
+}
+
+#' run_iEDGE is the main wrapper for iEDGE, assumes processed data
+#' @param datlist named list of iEDGE data
+#' @param outdir output directory
+#' @export
+run_iEDGE<-function(datlist, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Unique.Name", cndir = "alteration_direction",
+	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, min.drawsize = 3, onesided.cis = TRUE, 
+	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "c2.cp.v5.0",
+	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
+	prune.method = "cmi", prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25){
+
+	if(is.na(gs.file)){ #use default gmt file c2 cp
+		HOMEDIR<-file.path(path.package("iEDGE"), "genesets")
+		gs.file<-paste(HOMEDIR, "/c2.cp.v5.0.symbols.gmt", sep =  "")
+	}
+
+	cat("Reading genesets..\n")
+	c2<-read_gmt(gs.file)$genesets
+	c2<-sapply(c2, function(x){
+		a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
+		return(unique(do.call(c,a)))
+	})
+
+
+	for(i in names(datlist)){
+		dat<-datlist[[i]]
+		cn<-dat$cn
+		gep<-dat$gep
+		cisgenes<-dat$cisgenes
+		cat(paste("Running iEDGE for data set: ", i, "\n",sep = ""))
+		header<-i
+		#gepid<-"SYMBOL"
+		#cnid<-"Unique.Name"
+		#cndir<-"alteration_direction"
+		#fdr.cis.cutoff<-0.25
+		#fdr.trans.cutoff<-0.05
+
+		#min.drawsize<-3
+		#onesided.cis<-TRUE
+		#onesided.trans<-FALSE
+		#uptest<-"Amplification"
+		#downtest<-"Deletion"
+		#base_dir_root<-"../results"
+
+		dir.create(outdir, recursive = TRUE)
+		base_dir<-paste(outdir,"/", i, sep = "")
+
+		dir.create(base_dir, recursive = TRUE)
+		de_dir<-paste(base_dir, "/tables", sep = "")
+
+		cat("Making Differential Expression tables...\n")
+		res<-iEDGE_DE(cn, gep, cisgenes,
+			header,
+			gepid, cnid,  	
+			f.dir.out = de_dir, 
+			gs.file = c2, #geneset for hyper
+			gs.file.name = gs.file.name,
+			fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
+			min.group = min.group,
+			min.drawsize = min.drawsize,  
+			cis.onesided = TRUE, 
+			trans.onesided = FALSE,
+			uptest = "Amplification",
+			downtest = "Deletion")
+
+
+		cmi_dir<-paste(base_dir, "/cmi", sep = "")
+		res.cis.sig<-res[["cis"]][["sig"]]
+		res.trans.sig<-res[["trans"]][["sig"]]
+		cmi<-prune(f_cis_tab =  res.cis.sig, 
+			f_trans_tab= res.trans.sig, 
+			cn = cn, 
+			gep = gep,
+			alteration_id = cnid,
+			gene_id = gepid,
+			seed =mutinfo.seed,
+			nsamples = mutinfo.nsamples, 
+			cmi_dir = cmi_dir, 
+			nbins = mutinfo.bins,
+			gs.file = c2,
+			prunecol = prune.col, prunethres = prune.thres, 
+			method = prune.method,
+			min.drawsize = min.drawsize, 
+			hypercol = "fdr", 
+			hyperthres = hyperthres)
+
+		html_dir<-paste(base_dir, "/html", sep = "")
+		jsdir<-file.path(path.package("iEDGE"), "javascript")
+
+		make_iEDGE_ui(cistab = res.cis.sig, 
+			transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
+			outdir = html_dir, jsdir = jsdir, cmi = cmi, cmijsdir = paste(cmi_dir, "/js", sep = ""),
+			altid = cnid, geneid = gepid)
+	}
+
+
 }

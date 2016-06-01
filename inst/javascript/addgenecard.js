@@ -8,7 +8,7 @@ function addGeneCardToDoc(tableName){
         var str2 = str1.concat(" thead tr th:eq(0)");
         column_name  = $(str2);
   
-        //selection: element of second column
+        //selection: element of first column
         //row_name: text of element of first column
         function addGeneCard(selection, row_name, tableName) {
         	//console.log(selection);
@@ -27,8 +27,8 @@ function addGeneCardToDoc(tableName){
         rows.each( function(index, element){
         	fst = $(element).children(0);
         	fst_name = fst.eq(0).text();
-            snd = fst.eq(1);
-            addGeneCard(snd , fst_name, tableName);
+            fst_ele = fst.eq(0);
+            addGeneCard(fst_ele , fst_name, tableName);
         });
     }
 

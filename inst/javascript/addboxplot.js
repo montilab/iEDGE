@@ -31,7 +31,8 @@ function addBoxplotToDoc(tableName, dir_out){
 
         rows.each( function(index, element){
         	fst = $(element).children(0);
-        	r_name = fst.eq(0);
+            // select second column
+        	r_name = fst.eq(1);
             addBoxplot(r_name, r_name.text(), tableName, dir_out);
         });
     }

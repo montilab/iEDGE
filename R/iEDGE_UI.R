@@ -24,8 +24,7 @@ cis_order<-function(dat){
 	cis_in<-unique(as.character(dat[,1]))
 	trans_in<-unique(as.character(dat[,2]))
 	n_edges<-as.numeric(sapply(cis_in, function(i){
-		sum(dat[,2] == i)
-		#nrow(subset(dat, cis == i))
+		sum(dat[,1] == i)
 		}))
 
 	res<-cis_in[order(n_edges, decreasing = TRUE)]
@@ -475,9 +474,9 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 }
 
 
-
+#' iEDGE_UI makes the user interface for iEDGE reports
 #' @export
-make_iEDGE_ui<-function(cistab, transtab, cn, gep, cisgenes,
+iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	outdir, jsdir = file.path(path.package("iEDGE"), "javascript"), cmijsdir, cmi, altid = "Unique.Name", geneid = "accession"){
 
 	dir.create(outdir)
@@ -490,13 +489,22 @@ make_iEDGE_ui<-function(cistab, transtab, cn, gep, cisgenes,
 		          copy.mode = TRUE)
 	}
 
-	cat("Writing by alteration cis DE tables...\n")
+	cat("Writing by alteration cis sig DE tables...\n")
 	##writing by alteration DE tables
 	if(nrow(cistab)>0)
 	write_byalt_html(cistab,#data frame to write
 	 tabid = altid, #column name to split table by
 	 outdir = outdir, #output directory name
 	 header = "byalteration_cis", 
+	 hidecol = FALSE
+	 )
+
+	cat("Writing by alteration cis full DE tables...\n")
+	if(nrow(cisfulltab)>0)
+	write_byalt_html(cisfulltab,#data frame to write
+	 tabid = altid, #column name to split table by
+	 outdir = outdir, #output directory name
+	 header = "byalteration_num_genes_in_alteration", 
 	 hidecol = FALSE
 	 )
 
@@ -546,12 +554,14 @@ make_iEDGE_ui<-function(cistab, transtab, cn, gep, cisgenes,
 		ind.cis<-which(fData(cn)[,altid] == x)
 		cytoband<-fData(cn)$Descriptor[ind.cis]
 		cislist <- cisgenes[[ind.cis]]
-		cislist <- paste(cislist, collapse = ",")
+		cislist <- paste(cislist, collapse = ", ")
 		numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
 		numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
 
 		numbipartitecis<-0
 		numbipartitetrans<-0
+
+		numcisfull<-length(which(cisfulltab[, altid] == x))
 
 		if(x %in% names(cmi$sig)){
 			numbipartitecis<-length(unique(cmi$sig[[x]]$cis))
@@ -565,6 +575,7 @@ make_iEDGE_ui<-function(cistab, transtab, cn, gep, cisgenes,
 			bipartite= paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = ""),
 			samples_altered = numAlt,
 			samples_normal = numNormal,
+			num_genes_in_alteration = numcisfull,
 			genes_in_alteration = cislist)
 		)
 		})
