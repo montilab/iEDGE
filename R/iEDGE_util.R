@@ -204,7 +204,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	res.df[, "adj.P.Val.all"]<-p.adjust(res.df$P.Value, method = "fdr")
 	
 	#reorder columns
-	col.first<-c(gepid, "fold.change", "adj.P.Val.all", "t", 
+	col.first<-c(cnid, gepid, "fold.change", "adj.P.Val.all", "t", 
 		"high.class", "mean1.unlog", "mean0.unlog", "sd0.unlog", "sd1.unlog")
 	col.ord<-c(col.first, setdiff(colnames(res.df), col.first))
 	res.df<-res.df[, col.ord]

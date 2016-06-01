@@ -4,7 +4,7 @@
 \alias{run_iEDGE}
 \title{run_iEDGE is the main wrapper for iEDGE, assumes processed data}
 \usage{
-run_iEDGE(datlist, outdir, gs.file = NA, gepid = "SYMBOL",
+run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   cnid = "Unique.Name", cndir = "alteration_direction",
   fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, min.drawsize = 3,
   onesided.cis = TRUE, onesided.trans = FALSE, uptest = "Amplification",
@@ -14,9 +14,9 @@ run_iEDGE(datlist, outdir, gs.file = NA, gepid = "SYMBOL",
   hyperthres = 0.25)
 }
 \arguments{
-\item{datlist}{named list of iEDGE data}
-
 \item{outdir}{output directory}
+
+\item{iEDGE}{datalist consisting of cn (alteration), gep (gene expression), and cisgenes (list of genes in each alt)}
 }
 \description{
 run_iEDGE is the main wrapper for iEDGE, assumes processed data
