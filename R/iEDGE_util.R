@@ -783,10 +783,10 @@ prune<-function(f_cis_tab,
 }
 
 #' run_iEDGE is the main wrapper for iEDGE, assumes processed data
-#' @param datlist named list of iEDGE data
+#' @param iEDGE datalist consisting of cn (alteration), gep (gene expression), and cisgenes (list of genes in each alt)
 #' @param outdir output directory
 #' @export
-run_iEDGE<-function(datlist, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Unique.Name", cndir = "alteration_direction",
+run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Unique.Name", cndir = "alteration_direction",
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, min.drawsize = 3, onesided.cis = TRUE, 
 	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "c2.cp.v5.0",
 	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
@@ -805,76 +805,59 @@ run_iEDGE<-function(datlist, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Uni
 	})
 
 
-	for(i in names(datlist)){
-		dat<-datlist[[i]]
-		cn<-dat$cn
-		gep<-dat$gep
-		cisgenes<-dat$cisgenes
-		cat(paste("Running iEDGE for data set: ", i, "\n",sep = ""))
-		header<-i
-		#gepid<-"SYMBOL"
-		#cnid<-"Unique.Name"
-		#cndir<-"alteration_direction"
-		#fdr.cis.cutoff<-0.25
-		#fdr.trans.cutoff<-0.05
-
-		#min.drawsize<-3
-		#onesided.cis<-TRUE
-		#onesided.trans<-FALSE
-		#uptest<-"Amplification"
-		#downtest<-"Deletion"
-		#base_dir_root<-"../results"
-
-		dir.create(outdir, recursive = TRUE)
-		base_dir<-paste(outdir,"/", i, sep = "")
-
-		dir.create(base_dir, recursive = TRUE)
-		de_dir<-paste(base_dir, "/tables", sep = "")
-
-		cat("Making Differential Expression tables...\n")
-		res<-iEDGE_DE(cn, gep, cisgenes,
-			header,
-			gepid, cnid,  	
-			f.dir.out = de_dir, 
-			gs.file = c2, #geneset for hyper
-			gs.file.name = gs.file.name,
-			fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
-			min.group = min.group,
-			min.drawsize = min.drawsize,  
-			cis.onesided = TRUE, 
-			trans.onesided = FALSE,
-			uptest = "Amplification",
-			downtest = "Deletion")
+	cn<-dat$cn
+	gep<-dat$gep
+	cisgenes<-dat$cisgenes
+	cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
 
 
-		cmi_dir<-paste(base_dir, "/cmi", sep = "")
-		res.cis.sig<-res[["cis"]][["sig"]]
-		res.trans.sig<-res[["trans"]][["sig"]]
-		cmi<-prune(f_cis_tab =  res.cis.sig, 
-			f_trans_tab= res.trans.sig, 
-			cn = cn, 
-			gep = gep,
-			alteration_id = cnid,
-			gene_id = gepid,
-			seed =mutinfo.seed,
-			nsamples = mutinfo.nsamples, 
-			cmi_dir = cmi_dir, 
-			nbins = mutinfo.bins,
-			gs.file = c2,
-			prunecol = prune.col, prunethres = prune.thres, 
-			method = prune.method,
-			min.drawsize = min.drawsize, 
-			hypercol = "fdr", 
-			hyperthres = hyperthres)
+	dir.create(outdir, recursive = TRUE)
+	base_dir<-paste(outdir,"/", header, sep = "")
 
-		html_dir<-paste(base_dir, "/html", sep = "")
-		jsdir<-file.path(path.package("iEDGE"), "javascript")
+	dir.create(base_dir, recursive = TRUE)
+	de_dir<-paste(base_dir, "/tables", sep = "")
 
-		make_iEDGE_ui(cistab = res.cis.sig, 
-			transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
-			outdir = html_dir, jsdir = jsdir, cmi = cmi, cmijsdir = paste(cmi_dir, "/js", sep = ""),
-			altid = cnid, geneid = gepid)
-	}
+	cat("Making Differential Expression tables...\n")
+	res<-iEDGE_DE(cn, gep, cisgenes,
+		header,
+		gepid, cnid,  	
+		f.dir.out = de_dir, 
+		gs.file = c2, #geneset for hyper
+		gs.file.name = gs.file.name,
+		fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
+		min.group = min.group,
+		min.drawsize = min.drawsize,  
+		cis.onesided = TRUE, 
+		trans.onesided = FALSE,
+		uptest = "Amplification",
+		downtest = "Deletion")
 
 
+	cmi_dir<-paste(base_dir, "/cmi", sep = "")
+	res.cis.sig<-res[["cis"]][["sig"]]
+	res.trans.sig<-res[["trans"]][["sig"]]
+	cmi<-prune(f_cis_tab =  res.cis.sig, 
+		f_trans_tab= res.trans.sig, 
+		cn = cn, 
+		gep = gep,
+		alteration_id = cnid,
+		gene_id = gepid,
+		seed =mutinfo.seed,
+		nsamples = mutinfo.nsamples, 
+		cmi_dir = cmi_dir, 
+		nbins = mutinfo.bins,
+		gs.file = c2,
+		prunecol = prune.col, prunethres = prune.thres, 
+		method = prune.method,
+		min.drawsize = min.drawsize, 
+		hypercol = "fdr", 
+		hyperthres = hyperthres)
+
+	html_dir<-paste(base_dir, "/html", sep = "")
+	jsdir<-file.path(path.package("iEDGE"), "javascript")
+
+	make_iEDGE_ui(cistab = res.cis.sig, 
+		transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
+		outdir = html_dir, jsdir = jsdir, cmi = cmi, cmijsdir = paste(cmi_dir, "/js", sep = ""),
+		altid = cnid, geneid = gepid)
 }
