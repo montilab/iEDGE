@@ -1,5 +1,5 @@
 #' @import Biobase
-run_limma_accessory<-function(eset, design){
+run_limma_accessory<-function(eset, design, log_offset = 1, log_base = 2){
 	eset.sub.cond1<-eset[,design[,1] == 1]
 	eset.sub.cond2<-eset[,design[,2] == 1]
 
@@ -15,7 +15,7 @@ run_limma_accessory<-function(eset, design){
 	n.cond2<-apply(exprs.cond2, 1, function(i) sum(!is.na(i)))
 
 	eset.unlog<-eset
-	exprs(eset.unlog)<-2^exprs(eset.unlog) -1
+	exprs(eset.unlog)<-log_base^exprs(eset.unlog) - log_offset
 
 	eset.sub.cond1<-eset.unlog[,design[,1] == 1]
 	eset.sub.cond2<-eset.unlog[,design[,2] == 1]
@@ -204,7 +204,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	res.df[, "adj.P.Val.all"]<-p.adjust(res.df$P.Value, method = "fdr")
 	
 	#reorder columns
-	col.first<-c(cnid, gepid, "fold.change", "adj.P.Val.all", "t", 
+	col.first<-c(gepid, "fold.change", "adj.P.Val.all", "t", 
 		"high.class", "mean1.unlog", "mean0.unlog", "sd0.unlog", "sd1.unlog")
 	col.ord<-c(col.first, setdiff(colnames(res.df), col.first))
 	res.df<-res.df[, col.ord]

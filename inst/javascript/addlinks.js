@@ -49,7 +49,7 @@ function addLinksToDoc(){
                 if(c_name == 'bipartite'){
                     addLinkBipartite(elt, c_name, r_name);
                     
-                } else if (c_name == 'cis' || c_name == 'trans' || c_name == 'num_genes_in_alteration'){
+                } else if (c_name == 'cis.sig' || c_name == 'trans' || c_name == 'cis.all'){
         		  addLink(elt, c_name, r_name);
                 }
         	}

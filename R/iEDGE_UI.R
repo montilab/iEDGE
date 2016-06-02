@@ -495,7 +495,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	write_byalt_html(cistab,#data frame to write
 	 tabid = altid, #column name to split table by
 	 outdir = outdir, #output directory name
-	 header = "byalteration_cis", 
+	 header = "byalteration_cis.sig", 
 	 hidecol = FALSE
 	 )
 
@@ -504,7 +504,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	write_byalt_html(cisfulltab,#data frame to write
 	 tabid = altid, #column name to split table by
 	 outdir = outdir, #output directory name
-	 header = "byalteration_num_genes_in_alteration", 
+	 header = "byalteration_cis.all", 
 	 hidecol = FALSE
 	 )
 
@@ -570,12 +570,12 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 
 		return(data.frame(alteration_id = x, 
 			cytoband = cytoband,
-			cis = numcis, 
+			cis.sig = numcis, 
+			cis.all = numcisfull,
 			trans = numtrans, 
 			bipartite= paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = ""),
-			samples_altered = numAlt,
-			samples_normal = numNormal,
-			num_genes_in_alteration = numcisfull,
+			num_altered = numAlt,
+			num_normal = numNormal,
 			genes_in_alteration = cislist)
 		)
 		})
