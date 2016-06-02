@@ -856,7 +856,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	html_dir<-paste(base_dir, "/html", sep = "")
 	jsdir<-file.path(path.package("iEDGE"), "javascript")
 
-	make_iEDGE_ui(cistab = res.cis.sig, 
+	iEDGE_UI(cistab = res.cis.sig, 
 		transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
 		outdir = html_dir, jsdir = jsdir, cmi = cmi, cmijsdir = paste(cmi_dir, "/js", sep = ""),
 		altid = cnid, geneid = gepid)
