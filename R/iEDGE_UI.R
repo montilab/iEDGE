@@ -561,7 +561,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 
 		return(data.frame(alteration_id = x, 
 			cytoband = cytoband,
-			cis = paste(numcis, "/", numcisfull, sep = ""), 
+			cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
 			trans = numtrans, 
 			bipartite= paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = ""),
 			num_altered = numAlt,
