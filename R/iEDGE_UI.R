@@ -489,22 +489,13 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 		          copy.mode = TRUE)
 	}
 
-	cat("Writing by alteration cis sig DE tables...\n")
-	##writing by alteration DE tables
-	if(nrow(cistab)>0)
-	write_byalt_html(cistab,#data frame to write
-	 tabid = altid, #column name to split table by
-	 outdir = outdir, #output directory name
-	 header = "byalteration_cis.sig", 
-	 hidecol = FALSE
-	 )
 
 	cat("Writing by alteration cis full DE tables...\n")
 	if(nrow(cisfulltab)>0)
 	write_byalt_html(cisfulltab,#data frame to write
 	 tabid = altid, #column name to split table by
 	 outdir = outdir, #output directory name
-	 header = "byalteration_cis.all", 
+	 header = "byalteration_cis", 
 	 hidecol = FALSE
 	 )
 
@@ -521,7 +512,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	cat("Writing cis boxplots...\n")
 	outdirfig<-paste(outdir, "/", "boxplots", sep = "")
 	dir.create(outdirfig)
-	write_byalt_boxplot(cistab,#data frame to write
+	write_byalt_boxplot(cisfulltab,#data frame to write
 	 tabid = altid, #column name to split table by
 	 geneid = geneid, #column name for gene id
 	 outdir = outdirfig,
@@ -554,7 +545,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 		ind.cis<-which(fData(cn)[,altid] == x)
 		cytoband<-fData(cn)$Descriptor[ind.cis]
 		cislist <- cisgenes[[ind.cis]]
-		cislist <- paste(cislist, collapse = ", ")
+		cislist <- paste(cislist, collapse = ",")
 		numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
 		numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
 
@@ -570,8 +561,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 
 		return(data.frame(alteration_id = x, 
 			cytoband = cytoband,
-			cis.sig = numcis, 
-			cis.all = numcisfull,
+			cis = paste(numcis, "/", numcisfull, sep = ""), 
 			trans = numtrans, 
 			bipartite= paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = ""),
 			num_altered = numAlt,
