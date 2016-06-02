@@ -835,6 +835,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 
 	cmi_dir<-paste(base_dir, "/cmi", sep = "")
 	res.cis.sig<-res[["cis"]][["sig"]]
+	res.cis.full<-res[["cis"]][["full"]]
 	res.trans.sig<-res[["trans"]][["sig"]]
 	cmi<-prune(f_cis_tab =  res.cis.sig, 
 		f_trans_tab= res.trans.sig, 
@@ -856,7 +857,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	html_dir<-paste(base_dir, "/html", sep = "")
 	jsdir<-file.path(path.package("iEDGE"), "javascript")
 
-	iEDGE_UI(cistab = res.cis.sig, 
+	iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
 		transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
 		outdir = html_dir, jsdir = jsdir, cmi = cmi, cmijsdir = paste(cmi_dir, "/js", sep = ""),
 		altid = cnid, geneid = gepid)
