@@ -10,7 +10,8 @@ Description: iEDGE performs integrative analysis of (epi-)DNA data (methylation,
     samples.
 URL: https://github.com/montilab/iEDGE
 Depends:
-    R (>= 2.11.0)
+    R (>= 2.11.0),
+    Biobase
 Imports:
     Biobase,
     limma,
