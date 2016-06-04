@@ -14,9 +14,9 @@ function addBoxplotToDoc(tableName, dir_out){
         	row_name = row_name.replace(/\ /gi,'');
     
         	//prev_value = selection.text();
-            prev_value = row_name;
+            prev_value = selection.text();
            
-            link_name = tableName + "_" + prev_value + ".html";
+            link_name = tableName + "_" + row_name + ".html";
 
             link_name = link_name.replace(/ /g, "");
             link_name = link_name.replace(/\//g, ".");
