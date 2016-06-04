@@ -38,7 +38,7 @@ to.eSet<-function(mat, pdat, fdat){
 	return(eSet)
 }
 
-read_GISTIC2_focal<-function(all_lesions){
+read_GISTIC2_focal<-function(all_lesions, binarize = TRUE){
 	x<-read.table(all_lesions,sep = "\t", header =T)
 	x<-x[, !apply(x, 2, function(i){all(is.na(i))})]
 	x.meta.ind<-1:which(colnames(x) == "Amplitude.Threshold")
@@ -48,7 +48,9 @@ read_GISTIC2_focal<-function(all_lesions){
 		fdat[, i]<-gsub(" ", "", fdat[,i])
 	}
 	dat<-x[, -x.meta.ind]
-	dat[dat == 2]<-1
+	if(binarize == TRUE){
+		dat[dat == 2]<-1
+	}
 	pdat<-data.frame(sample_id = colnames(dat))
 	eset<-to.eSet(mat = dat, pdat = pdat, fdat = fdat)
 	return(eset)

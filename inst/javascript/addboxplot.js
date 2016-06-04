@@ -13,7 +13,8 @@ function addBoxplotToDoc(tableName, dir_out){
         	
         	row_name = row_name.replace(/\ /gi,'');
     
-        	prev_value = selection.text();
+        	//prev_value = selection.text();
+            prev_value = row_name;
            
             link_name = tableName + "_" + prev_value + ".html";
 
@@ -33,7 +34,8 @@ function addBoxplotToDoc(tableName, dir_out){
         	fst = $(element).children(0);
             // select second column
         	r_name = fst.eq(1);
-            addBoxplot(r_name, r_name.text(), tableName, dir_out);
+            r_text = fst.eq(0).text();
+            addBoxplot(r_name, r_text, tableName, dir_out);
         });
     }
 
