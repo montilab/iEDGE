@@ -827,8 +827,8 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 		fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
 		min.group = min.group,
 		min.drawsize = min.drawsize,  
-		cis.onesided = TRUE, 
-		trans.onesided = FALSE,
+		cis.onesided = onesided.cis, 
+		trans.onesided = onesided.trans,
 		uptest = "Amplification",
 		downtest = "Deletion")
 
