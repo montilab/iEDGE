@@ -68,6 +68,8 @@ write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
 	
 	dir.create(f.dir.out)
 
+	ntab<-nrow(tab)
+	if(ntab<=1){
 	colors<-get_colors()
 	colors.max<-length(colors)
 
@@ -132,6 +134,8 @@ write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
 		all.write<-paste(cis.write, trans.write, edges.write,
 			sep = "\n")
 		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
+
+	}
 
 	}
 }
