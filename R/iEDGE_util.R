@@ -165,7 +165,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 			gep.keep<-gep[gep.keep.ind,]
 			fdat<-fData(gep.keep)
 			
-			fdat.add<-fData(cn)[i, ]
+			fdat.add<-fData(cn)[i, ,drop = FALSE]
 			fdat.combined<-cbind(fdat, fdat.add)
 
 			if (interaction_type == "cis")	fdat.combined$interaction_type <-"cis"
