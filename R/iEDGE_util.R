@@ -257,7 +257,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 
 	if(is.na(fc.cis)) fc_cis_header <- ""
 	else fc_cis_header<-paste("_fc_", fc.cis, sep = "")
-	f.out<-paste(f.dir.out, "/", header, "_cis_sig_fdr_", fdr.cis.cutoff, fc_header, ".txt", sep = "")
+	f.out<-paste(f.dir.out, "/", header, "_cis_sig_fdr_", fdr.cis.cutoff, fc_cis_header, ".txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(res.cis$sig, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
