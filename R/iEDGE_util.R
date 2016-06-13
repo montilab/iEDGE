@@ -743,15 +743,6 @@ prune<-function(f_cis_tab,
 
 		}
 
-	#	actual<-res.actual[[i]]$cmi
-	#	null<-res.null[[i]]$cmi
-
-	#	dat <- rbind(data.frame(label = "actual", value = actual), 
-	#			data.frame(label = "null", value = null))
-	#	sig_thres<-quantile(null, 0.05)
-	#	p[[i]]<-ggplot(dat,aes(x=value, fill = label)) + geom_density(alpha = 0.2)+
-	#		geom_vline(xintercept = sig_thres, colour = "red") + ggtitle(i)
-
 		if(hasArg("gs.file")){
 			cat("Running hyperenrichment...\n")
 			hyper[[i]]<-run_cmi_hyperenrichment(tab = res.sig[[i]], tab.name = i, ngenes = ngenes,
@@ -770,11 +761,6 @@ prune<-function(f_cis_tab,
 
 	}
 
-	#initialize cmi plots
-	#pdf(paste(cmi_dir_plots, "/cmi_plots.pdf", sep = ""), onefile = TRUE)
-	#invisible(lapply(p, print))
-	#dev.off()
-
 	if(hasArg("gs.file"))
 	return(list(actual = res.actual, null = res.null, sig = res.sig, p = p, hyper = hyper))
 	else 
@@ -790,7 +776,8 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, min.drawsize = 3, onesided.cis = TRUE, 
 	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "c2.cp.v5.0",
 	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
-	prune.method = "cmi", prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25){
+	prune.method = "cmi", prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
+	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
 	if(is.na(gs.file)){ #use default gmt file c2 cp
 		HOMEDIR<-file.path(path.package("iEDGE"), "genesets")
@@ -837,22 +824,27 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	res.cis.sig<-res[["cis"]][["sig"]]
 	res.cis.full<-res[["cis"]][["full"]]
 	res.trans.sig<-res[["trans"]][["sig"]]
-	cmi<-prune(f_cis_tab =  res.cis.sig, 
-		f_trans_tab= res.trans.sig, 
-		cn = cn, 
-		gep = gep,
-		alteration_id = cnid,
-		gene_id = gepid,
-		seed =mutinfo.seed,
-		nsamples = mutinfo.nsamples, 
-		cmi_dir = cmi_dir, 
-		nbins = mutinfo.bins,
-		gs.file = c2,
-		prunecol = prune.col, prunethres = prune.thres, 
-		method = prune.method,
-		min.drawsize = min.drawsize, 
-		hypercol = "fdr", 
-		hyperthres = hyperthres)
+
+	if(bipartite){
+		cmi<-prune(f_cis_tab =  res.cis.sig, 
+			f_trans_tab= res.trans.sig, 
+			cn = cn, 
+			gep = gep,
+			alteration_id = cnid,
+			gene_id = gepid,
+			seed =mutinfo.seed,
+			nsamples = mutinfo.nsamples, 
+			cmi_dir = cmi_dir, 
+			nbins = mutinfo.bins,
+			gs.file = c2,
+			prunecol = prune.col, prunethres = prune.thres, 
+			method = prune.method,
+			min.drawsize = min.drawsize, 
+			hypercol = "fdr", 
+			hyperthres = hyperthres)
+	} else {
+		cmi <-NA
+	}
 
 	html_dir<-paste(base_dir, "/html", sep = "")
 	jsdir<-file.path(path.package("iEDGE"), "javascript")
@@ -860,5 +852,6 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
 		transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
 		outdir = html_dir, jsdir = jsdir, cmi = cmi, cmijsdir = paste(cmi_dir, "/js", sep = ""),
-		altid = cnid, geneid = gepid)
+		altid = cnid, geneid = gepid, 
+		cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
 }

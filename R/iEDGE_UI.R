@@ -328,9 +328,14 @@ write_byalt_html<-function(tab,#data frame to write
 	names(in_table)<-paste(header, "_", alts, sep = "")
 
 	##addboxplots js reference
-	boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>",sep = "")
 
-	in_table_headers1<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addboxplot.js\"></script>"
+	if(is.na(boxplot_link)){
+		boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>",sep = "")
+		in_table_headers1<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addboxplot.js\"></script>"
+
+	} else {
+		in_table_headers1<-""
+	}
 	in_table_headers2<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addgenecard.js\"></script>"
 	in_table_headers<-paste(boxplot_link,in_table_headers1, in_table_headers2, sep = "\n")
 	in_table_headers<-rep(in_table_headers, length(in_table))
@@ -340,7 +345,6 @@ write_byalt_html<-function(tab,#data frame to write
 
 	##write by-alteration DE tables to html
 	res<-mapply(to_table_html, in_table, names(in_table), in_table_headers, jsdir, hidecol)
-	out_dir<-"../test2/html"
 	sapply(names(res), 
 		function(x){
 		write(res[[x]], file = paste(outdir, "/", x, ".html", sep = ""))
@@ -481,7 +485,9 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 #' iEDGE_UI makes the user interface for iEDGE reports
 #' @export
 iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
-	outdir, jsdir = file.path(path.package("iEDGE"), "javascript"), cmijsdir, cmi, altid = "Unique.Name", geneid = "accession"){
+	outdir, jsdir = file.path(path.package("iEDGE"), "javascript"), cmijsdir, cmi, 
+	altid = "Unique.Name", geneid = "accession", 
+	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
 	dir.create(outdir)
 
@@ -495,11 +501,47 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 
 
 	cat("Writing by alteration cis full DE tables...\n")
+
+	if(cis.boxplot){
+		boxplot_link_cis <- "./boxplots"
+		cat("Writing cis boxplots...\n")
+		outdirfig<-paste(outdir, "/", "boxplots", sep = "")
+		dir.create(outdirfig)
+		write_byalt_boxplot(cisfulltab,#data frame to write
+		 tabid = altid, #column name to split table by
+		 geneid = geneid, #column name for gene id
+		 outdir = outdirfig,
+		 header = "byalteration_cis",
+		 cn = cn,
+		 gep = gep, 
+		 basedir = outdir
+		 )
+	} else{
+		boxplot_link_cis <- NA
+	}
+
+	if(trans.boxplot){
+		boxplot_link_trans <- "./boxplots"
+		cat("Writing trans boxplots...\n")
+		write_byalt_boxplot(transtab,#data frame to write
+		 tabid = altid, #column name to split table by
+		 geneid = geneid, #column name for gene id
+		 outdir = outdirfig,
+		 header = "byalteration_trans",
+		 cn = cn,
+		 gep = gep, 
+		 basedir = outdir
+		 )
+	} else{
+		boxplot_link_trans <- NA
+	}
+
 	if(nrow(cisfulltab)>0)
 	write_byalt_html(cisfulltab,#data frame to write
 	 tabid = altid, #column name to split table by
 	 outdir = outdir, #output directory name
 	 header = "byalteration_cis", 
+	 boxplot_link = boxplot_link_cis,
 	 hidecol = FALSE
 	 )
 
@@ -509,79 +551,86 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	 tabid = altid, #column name to split table by
 	 outdir = outdir, #output directory name
 	 header = "byalteration_trans",
+	 boxplot_link = boxplot_link_trans,
 	 hidecol = FALSE
 	 )
 	##writing by alteration and by gene boxplots
 
-	cat("Writing cis boxplots...\n")
-	outdirfig<-paste(outdir, "/", "boxplots", sep = "")
-	dir.create(outdirfig)
-	write_byalt_boxplot(cisfulltab,#data frame to write
-	 tabid = altid, #column name to split table by
-	 geneid = geneid, #column name for gene id
-	 outdir = outdirfig,
-	 header = "byalteration_cis",
-	 cn = cn,
-	 gep = gep, 
-	 basedir = outdir
-	 )
-
-	cat("Writing trans boxplots...\n")
-	write_byalt_boxplot(transtab,#data frame to write
-	 tabid = altid, #column name to split table by
-	 geneid = geneid, #column name for gene id
-	 outdir = outdirfig,
-	 header = "byalteration_trans",
-	 cn = cn,
-	 gep = gep, 
-	 basedir = outdir
-	 )
-
-
 	cat("Writing summary table...\n")
+
 	#alterations<-unique(as.character(cistab[, altid]))
 	alterations<-unique(as.character(fData(cn)[, altid]))
-	summarytab<-lapply(alterations, function(x){
+	
+	if(bipartite){
+		summarytab<-lapply(alterations, function(x){
 
-		numcis <- length(which(cistab[, altid] == x))
-		numtrans <- length(which(transtab[, altid] == x))
-		
-		ind.cis<-which(fData(cn)[,altid] == x)
-		cytoband<-fData(cn)$Descriptor[ind.cis]
-		cislist <- cisgenes[[ind.cis]]
-		cislist <- paste(cislist, collapse = ",")
-		numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
-		numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
+			numcis <- length(which(cistab[, altid] == x))
+			numtrans <- length(which(transtab[, altid] == x))
+			
+			ind.cis<-which(fData(cn)[,altid] == x)
+			cytoband<-fData(cn)$Descriptor[ind.cis]
+			cislist <- cisgenes[[ind.cis]]
+			cislist <- paste(cislist, collapse = ",")
+			numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
+			numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
 
-		numbipartitecis<-0
-		numbipartitetrans<-0
+			numbipartitecis<-0
+			numbipartitetrans<-0
 
-		numcisfull<-length(which(cisfulltab[, altid] == x))
+			numcisfull<-length(which(cisfulltab[, altid] == x))
 
-		if(x %in% names(cmi$sig)){
-			numbipartitecis<-length(unique(cmi$sig[[x]]$cis))
-			numbipartitetrans<-length(unique(cmi$sig[[x]]$trans))
-		}
+			if(x %in% names(cmi$sig)){
+				numbipartitecis<-length(unique(cmi$sig[[x]]$cis))
+				numbipartitetrans<-length(unique(cmi$sig[[x]]$trans))
+			}
 
-		return(data.frame(alteration_id = x, 
-			cytoband = cytoband,
-			cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
-			trans = numtrans, 
-			bipartite= paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = ""),
-			num_altered = numAlt,
-			num_normal = numNormal,
-			genes_in_alteration = cislist)
-		)
-		})
+			return(data.frame(alteration_id = x, 
+				cytoband = cytoband,
+				cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
+				trans = numtrans, 
+				bipartite= paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = ""),
+				num_altered = numAlt,
+				num_normal = numNormal,
+				genes_in_alteration = cislist)
+			)
+			})
 
+		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinks.js\"></script>", sep = "")
+
+	} else {
+		summarytab<-lapply(alterations, function(x){
+
+			numcis <- length(which(cistab[, altid] == x))
+			numtrans <- length(which(transtab[, altid] == x))
+			
+			ind.cis<-which(fData(cn)[,altid] == x)
+			cytoband<-fData(cn)$Descriptor[ind.cis]
+			cislist <- cisgenes[[ind.cis]]
+			cislist <- paste(cislist, collapse = ",")
+			numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
+			numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
+
+			numcisfull<-length(which(cisfulltab[, altid] == x))
+
+			return(data.frame(alteration_id = x, 
+				cytoband = cytoband,
+				cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
+				trans = numtrans, 
+				num_altered = numAlt,
+				num_normal = numNormal,
+				genes_in_alteration = cislist)
+			)
+			})
+		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinksnobipartite.js\"></script>", sep = "")
+
+	}
 	summarytab<-do.call(rbind, summarytab)
 	summarytab<-data.frame(index = 1:nrow(summarytab), summarytab)
 
 	row.names(summarytab)<-NULL
-	addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinks.js\"></script>", sep = "")
-
+	
 	#add links
-	cat("Adding links...\n")
+	cat("Adding links to main table...\n")
 	summarytable.html<-to_table_html(x = summarytab, 
 		x.name = "summarytable", 
 		header = addlinksheader,
@@ -590,12 +639,13 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	write(summarytable.html, file = paste(outdir, "/", "index.html", sep = ""))
 
 	##writing bipartite
-	cat("Writing bipartite graphs...\n")
-	make_bipartite_html(f.dir.in = cmijsdir, 
-		f.dir.out = paste(outdir, "/bipartiteplots", sep = ""), 
-		header = "", headeradd = "", 
-		template = paste(outdir, "/", "template_bipartite.html", sep = ""))
-
+	if(bipartite){
+		cat("Writing bipartite graphs...\n")
+		make_bipartite_html(f.dir.in = cmijsdir, 
+			f.dir.out = paste(outdir, "/bipartiteplots", sep = ""), 
+			header = "", headeradd = "", 
+			template = paste(outdir, "/", "template_bipartite.html", sep = ""))
+	}
 }
 
 

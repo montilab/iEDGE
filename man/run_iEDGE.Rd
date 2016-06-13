@@ -11,7 +11,8 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   downtest = "Deletion", gs.file.name = "c2.cp.v5.0", min.group = 2,
   mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,
   prune.method = "cmi", prune.col = "pvalue", prune.thres = 0.05,
-  hyperthres = 0.25)
+  hyperthres = 0.25, cis.boxplot = TRUE, trans.boxplot = TRUE,
+  bipartite = TRUE)
 }
 \arguments{
 \item{outdir}{output directory}
