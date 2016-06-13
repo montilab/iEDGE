@@ -133,7 +133,8 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
  min.group = 3,
  onesided = TRUE,
  uptest = "Amplification", 
- downtest = "Deletion"
+ downtest = "Deletion", 
+ fc = NA
 ){
 
 	if(onesided & !(cndir %in% colnames(fData(cn)))){
@@ -210,8 +211,13 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	res.df<-res.df[, col.ord]
 
 	res.list<-list()
-	res.list$full<-res.df	
-	res.list$sig<-res.df[res.df[, "adj.P.Val.all"]<fdr.cutoff,]
+	res.list$full<-res.df
+	if(is.na(fc)){	
+		res.list$sig<-res.df[res.df[, "adj.P.Val.all"]<fdr.cutoff,]
+	} else {
+		fc.low<-2^(-log2(fc))
+		res.list$sig <- res.df[res.df[, "adj.P.Val.all"]<fdr.cutoff & (res.df[, "fold.change"] > fc | res.df[, "fold.change"] < fc.low),]
+	}
 #	res.list$sig<-subset(res.df, adj.P.Val.all < fdr.cutoff)
 	return(res.list)
 }
@@ -230,6 +236,8 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	cndir = "alteration_direction",
 	cis.onesided = TRUE, 
 	trans.onesided = FALSE,
+	fc.cis = NA,
+	fc.trans = NA,
 	... #other parameters in make_iEDGE
 	){
 	dir.create(f.dir.out, recursive =TRUE)
@@ -244,10 +252,12 @@ iEDGE_DE<-function(cn, gep, cisgenes,
  		fdr.cutoff = fdr.cis.cutoff, 
  		onesided = cis.onesided,
  		min.group = min.group,
+ 		fc = fc.cis,
  		...)
 
-
-	f.out<-paste(f.dir.out, "/", header, "_cis_sig_fdr_", fdr.cis.cutoff, ".txt", sep = "")
+	if(is.na(fc.cis)) fc_cis_header <- ""
+	else fc_cis_header<-paste("_fc_", fc.cis, sep = "")
+	f.out<-paste(f.dir.out, "/", header, "_cis_sig_fdr_", fdr.cis.cutoff, fc_header, ".txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(res.cis$sig, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
@@ -268,9 +278,13 @@ iEDGE_DE<-function(cn, gep, cisgenes,
  		fdr.cutoff = fdr.trans.cutoff, 
  		onesided = trans.onesided,
  		min.group = min.group,
+ 		fc = fc.trans,
  		...)
 
-	f.out<-paste(f.dir.out, "/", header, "_trans_sig_fdr_", fdr.trans.cutoff, ".txt", sep = "")
+	if(is.na(fc.trans)) fc_trans_header <- ""
+	else fc_trans_header<-paste("_fc_", fc.trans, sep = "")
+
+	f.out<-paste(f.dir.out, "/", header, "_trans_sig_fdr_", fdr.trans.cutoff, fc_trans_header, ".txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(res.trans$sig, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
@@ -773,7 +787,7 @@ prune<-function(f_cis_tab,
 #' @param outdir output directory
 #' @export
 run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Unique.Name", cndir = "alteration_direction",
-	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, min.drawsize = 3, onesided.cis = TRUE, 
+	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
 	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "c2.cp.v5.0",
 	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
 	prune.method = "cmi", prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
@@ -816,8 +830,11 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 		min.drawsize = min.drawsize,  
 		cis.onesided = onesided.cis, 
 		trans.onesided = onesided.trans,
+		fc.cis = fc.cis,
+		fc.trans = fc.trans,
 		uptest = "Amplification",
-		downtest = "Deletion")
+		downtest = "Deletion"
+		)
 
 
 	cmi_dir<-paste(base_dir, "/cmi", sep = "")
