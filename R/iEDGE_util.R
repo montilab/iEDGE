@@ -150,8 +150,6 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	pb <- txtProgressBar(style = 3)
 	setTxtProgressBar(pb, 0)
 
-	cnpdat<-pData(cn)
-
 	n<-nrow(cn)
 	for (i in 1:n){ 	#for each alteration
 		setTxtProgressBar(pb, i/n)
@@ -197,7 +195,6 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 				res[[i]]<-run_limma(eset = gep.keep, design = design, 
 					cndir = cndir, onesided = onesided, 
 					uptest = uptest, downtest = downtest)
-				res[[i]][, "cnid"]<-cnpdat[i, cnid]
 		}
 	}
 
@@ -212,8 +209,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 		"high.class", "mean1.unlog", "mean0.unlog", "sd0.unlog", "sd1.unlog")
 	col.ord<-c(col.first, setdiff(colnames(res.df), col.first))
 	res.df<-res.df[, col.ord]
-	colnames(res.df)[which(colnames(res.df) == "cnid")]<-cnid
-
+	
 	res.list<-list()
 	res.list$full<-res.df
 	if(is.na(fc)){	
@@ -378,9 +374,6 @@ calc_mutinfo<-function(x, #alt
 	I <- condinformation(x,discretize(z),discretize(y),method="emp")
 	return(I)
 }
-
-
-
 
 calc_sobel_y_z1<-function(x,y,z){
 
@@ -790,7 +783,7 @@ prune<-function(f_cis_tab,
 #' @param iEDGE datalist consisting of cn (alteration), gep (gene expression), and cisgenes (list of genes in each alt)
 #' @param outdir output directory
 #' @export
-run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Unique.Name", cndir = "alteration_direction",
+run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Unique.Name", cndesc = "Descriptor", cndir = "alteration_direction",
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
 	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "h.all.v5.1",
 	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
@@ -873,6 +866,6 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
 		transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
 		outdir = html_dir, jsdir = jsdir, cmi = cmi, cmijsdir = paste(cmi_dir, "/js", sep = ""),
-		altid = cnid, geneid = gepid, 
+		altid = cnid, altdesc = cndesc, geneid = gepid, 
 		cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
 }

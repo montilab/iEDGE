@@ -468,11 +468,58 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 }
 
 
+get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cmi){
+
+	numcis <- 0
+	numtrans <- 0
+	if (nrow(cistab)>=1) numcis <- length(which(cistab[, altid] == x))
+	if (nrow(transtab)>=1) numtrans <- length(which(transtab[, altid] == x))
+	
+	ind.cis<-which(fData(cn)[,altid] == x)
+	if(is.na(altdesc)) descriptor<-NA
+	else descriptor<-fData(cn)[, altdesc][ind.cis]
+	
+	cislist <- cisgenes[[ind.cis]]
+	cislist <- paste(cislist, collapse = ",")
+
+	numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
+	numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
+
+	numbipartitecis<-0
+	numbipartitetrans<-0
+
+	numcisfull<-0
+	if (nrow(cisfulltab)>=1)
+	numcisfull<-length(which(cisfulltab[, altid] == x))
+
+	numbipart<-NA
+	if(!is.na(cmi)){
+		if(x %in% names(cmi$sig)){
+			numbipartitecis<-length(unique(cmi$sig[[x]]$cis))
+			numbipartitetrans<-length(unique(cmi$sig[[x]]$trans))
+			numbipart<-paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = "")
+		}
+	} else {
+		numbipart<-NA
+	}
+
+
+	res<-data.frame(alteration_id = x, 
+		alteration_description = descriptor,
+		cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
+		trans = numtrans, 
+		bipartite= numbipart,
+		num_altered = numAlt,
+		num_normal = numNormal,
+		genes_in_alteration = cislist)
+	return(res)
+}
+
 #' iEDGE_UI makes the user interface for iEDGE reports
 #' @export
 iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	outdir, jsdir = file.path(path.package("iEDGE"), "javascript"), cmijsdir, cmi, 
-	altid = "Unique.Name", geneid = "accession", 
+	altid = "Unique.Name", altdesc = "Descriptor", geneid = "accession", 
 	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
 	dir.create(outdir)
@@ -547,84 +594,24 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	#alterations<-unique(as.character(cistab[, altid]))
 	alterations<-unique(as.character(fData(cn)[, altid]))
 	
+
 	if(bipartite){
 		summarytab<-lapply(alterations, function(x){
-
-			numcis <- 0
-			numtrans <- 0
-			if (nrow(cistab)>=1)
-			numcis <- length(which(cistab[, altid] == x))
-			if (nrow(transtab)>=1)
-			numtrans <- length(which(transtab[, altid] == x))
-			
-			ind.cis<-which(fData(cn)[,altid] == x)
-			cytoband<-fData(cn)$Descriptor[ind.cis]
-			cislist <- cisgenes[[ind.cis]]
-			cislist <- paste(cislist, collapse = ",")
-			numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
-			numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
-
-			numbipartitecis<-0
-			numbipartitetrans<-0
-
-			numcisfull<-0
-			if (nrow(cisfulltab)>=1)
-			numcisfull<-length(which(cisfulltab[, altid] == x))
-
-			if(x %in% names(cmi$sig)){
-				numbipartitecis<-length(unique(cmi$sig[[x]]$cis))
-				numbipartitetrans<-length(unique(cmi$sig[[x]]$trans))
-			}
-
-			return(data.frame(alteration_id = x, 
-				cytoband = cytoband,
-				cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
-				trans = numtrans, 
-				bipartite= paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = ""),
-				num_altered = numAlt,
-				num_normal = numNormal,
-				genes_in_alteration = cislist)
-			)
+			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cmi = cmi))
 			})
-
 		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinks.js\"></script>", sep = "")
 
 	} else {
 		summarytab<-lapply(alterations, function(x){
-
-			numcis <- 0
-			numtrans <- 0
-			if (nrow(cistab)>=1)
-			numcis <- length(which(cistab[, altid] == x))
-			if (nrow(transtab)>=1)
-			numtrans <- length(which(transtab[, altid] == x))
-			
-			ind.cis<-which(fData(cn)[,altid] == x)
-			cytoband<-fData(cn)$Descriptor[ind.cis]
-			cislist <- cisgenes[[ind.cis]]
-			cislist <- paste(cislist, collapse = ",")
-			numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
-			numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
-
-			numcisfull<-0
-			if (nrow(cisfulltab)>=1)
-			numcisfull<-length(which(cisfulltab[, altid] == x))
-
-			return(data.frame(alteration_id = x, 
-				cytoband = cytoband,
-				cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
-				trans = numtrans, 
-				num_altered = numAlt,
-				num_normal = numNormal,
-				genes_in_alteration = cislist)
-			)
+			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cmi = NA))
 			})
 		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinksnobipartite.js\"></script>", sep = "")
 
 	}
+	
 	summarytab<-do.call(rbind, summarytab)
 	summarytab<-data.frame(index = 1:nrow(summarytab), summarytab)
-
+	summarytab<-summarytab[, !apply(summarytab, 2, function(i) all(is.na(i)))]
 	row.names(summarytab)<-NULL
 	
 	#add links
