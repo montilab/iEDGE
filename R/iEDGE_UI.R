@@ -335,9 +335,11 @@ write_byalt_html<-function(tab,#data frame to write
 
 	} else {
 		boxplot_link<-""
-		boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>")
 		in_table_headers1<-""
 	}
+
+	boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>")
+
 	in_table_headers2<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addgenecard.js\"></script>"
 	in_table_headers<-paste(boxplot_link, in_table_headers1, in_table_headers2, sep = "\n")
 	in_table_headers<-rep(in_table_headers, length(in_table))
