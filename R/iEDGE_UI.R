@@ -338,7 +338,7 @@ write_byalt_html<-function(tab,#data frame to write
 		in_table_headers1<-""
 	}
 
-	boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>")
+	boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>", sep = "")
 
 	in_table_headers2<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addgenecard.js\"></script>"
 	in_table_headers<-paste(boxplot_link, in_table_headers1, in_table_headers2, sep = "\n")
