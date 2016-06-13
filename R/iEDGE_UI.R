@@ -63,76 +63,71 @@ trans_order<-function(dat){
 }
 
 write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
-	
 	dir.create(f.dir.out)
 	ntab<-nrow(tab)
 
-	if(ntab>=1){
+	if(ntab>=1){	
+		colors<-get_colors()
+		colors.max<-length(colors)
 
-	colors<-get_colors()
-	colors.max<-length(colors)
+		ncis<-length(unique(tab$cis))
+		ntrans<-length(unique(tab$trans))
 
-	ncis<-length(unique(tab$cis))
-	ntrans<-length(unique(tab$trans))
-
-	cis_ord<-cis_order(tab)
-	trans_ord<-trans_order(tab)	
-	cis_df<-data.frame(genes=cis_ord, 
-		numEdges=sapply(cis_ord, 
-			function(i){
-				sum(tab$cis %in% i)
-			}), 
-		color = rep(colors, ceiling(ncis/colors.max))[1:ncis])
-	
-	trans_df<-data.frame(genes=trans_ord, 
-		numEdges=sapply(trans_ord, 
-			function(i){
-				sum(tab$trans %in% i)
-			}),
-		color = rep(colors, ceiling(ntrans/colors.max))[1:ntrans])
-
-	cis.write<-write_JSON_df(df = cis_df, df.name = "var cis")
-	trans.write<-write_JSON_df(df = trans_df, df.name = "var trans")
-	f.tab.ord<-tab[order(match(tab$trans, trans_ord)),]
-	edges.write<-write_JSON_df(df = f.tab.ord, df.name = "var edges")
-
-	
-	if(hasArg(hyper)){
-		hyper.union<-get_hyper_wrapper(hyper$hyperunion)
-		hyper.union.hypergsets<-write_JSON_df(df =hyper.union$hypergsets, df.name = "var hypergsets")
-		hyper.union.hyperedges<-write_JSON_df(df =hyper.union$hyperedges, df.name = "var hyperedges")
-		hyper.byalt.hypergsets<-list()
-		hyper.byalt.hyperedges<-list()
-
-		for(i in names(hyper$hyperbyalt)){
-			hyper.byalt<-get_hyper_wrapper(hyper$hyperbyalt[[i]])
-			hyper.byalt.hypergsets[[i]]<-write_JSON_df(df =hyper.byalt$hypergsets, 
-				df.name = paste("hypergsetscis","['", i, "']", sep = ""))
-			hyper.byalt.hyperedges[[i]]<-write_JSON_df(df =hyper.byalt$hyperedges, 
-				df.name =  paste("hyperedgescis","['", i, "']", sep = ""))
-		}
-
-		hyper.byalt.hypergsets<-hyper.byalt.hypergsets[hyper.byalt.hypergsets != ""]
-		hyper.byalt.hyperedges<-hyper.byalt.hyperedges[hyper.byalt.hyperedges != ""]
-
-		w1<-"var hypergsetscis = {};"
-		w2<-"var hyperedgescis = {};"
-
-		all.write<-paste(cis.write, trans.write, edges.write, 
-			hyper.union.hypergsets, hyper.union.hyperedges, 
-			w1, paste(hyper.byalt.hypergsets, collapse = "\n"), 
-			w2, paste(hyper.byalt.hyperedges, collapse = "\n"), 
-			sep = "\n")
-
-		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
+		cis_ord<-cis_order(tab)
+		trans_ord<-trans_order(tab)	
+		cis_df<-data.frame(genes=cis_ord, 
+			numEdges=sapply(cis_ord, 
+				function(i){
+					sum(tab$cis %in% i)
+				}), 
+			color = rep(colors, ceiling(ncis/colors.max))[1:ncis])
 		
-	} else {
-		all.write<-paste(cis.write, trans.write, edges.write,
-			sep = "\n")
-		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
+		trans_df<-data.frame(genes=trans_ord, 
+			numEdges=sapply(trans_ord, 
+				function(i){
+					sum(tab$trans %in% i)
+				}),
+			color = rep(colors, ceiling(ntrans/colors.max))[1:ntrans])
 
-	}
-	cat(all.write)
+		cis.write<-write_JSON_df(df = cis_df, df.name = "var cis")
+		trans.write<-write_JSON_df(df = trans_df, df.name = "var trans")
+		f.tab.ord<-tab[order(match(tab$trans, trans_ord)),]
+		edges.write<-write_JSON_df(df = f.tab.ord, df.name = "var edges")
+
+		if(hasArg(hyper)){
+			hyper.union<-get_hyper_wrapper(hyper$hyperunion)
+			hyper.union.hypergsets<-write_JSON_df(df =hyper.union$hypergsets, df.name = "var hypergsets")
+			hyper.union.hyperedges<-write_JSON_df(df =hyper.union$hyperedges, df.name = "var hyperedges")
+			hyper.byalt.hypergsets<-list()
+			hyper.byalt.hyperedges<-list()
+
+			for(i in names(hyper$hyperbyalt)){
+				hyper.byalt<-get_hyper_wrapper(hyper$hyperbyalt[[i]])
+				hyper.byalt.hypergsets[[i]]<-write_JSON_df(df =hyper.byalt$hypergsets, 
+					df.name = paste("hypergsetscis","['", i, "']", sep = ""))
+				hyper.byalt.hyperedges[[i]]<-write_JSON_df(df =hyper.byalt$hyperedges, 
+					df.name =  paste("hyperedgescis","['", i, "']", sep = ""))
+			}
+
+			hyper.byalt.hypergsets<-hyper.byalt.hypergsets[hyper.byalt.hypergsets != ""]
+			hyper.byalt.hyperedges<-hyper.byalt.hyperedges[hyper.byalt.hyperedges != ""]
+
+			w1<-"var hypergsetscis = {};"
+			w2<-"var hyperedgescis = {};"
+
+			all.write<-paste(cis.write, trans.write, edges.write, 
+				hyper.union.hypergsets, hyper.union.hyperedges, 
+				w1, paste(hyper.byalt.hypergsets, collapse = "\n"), 
+				w2, paste(hyper.byalt.hyperedges, collapse = "\n"), 
+				sep = "\n")
+
+			write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
+			
+		} else {
+			all.write<-paste(cis.write, trans.write, edges.write,
+				sep = "\n")
+			write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
+		}
 	}
 }
 
@@ -157,7 +152,6 @@ get_hyper_edges<-function(df){
 }
 
 get_hyper_wrapper<-function(f.tab.hyper){
-
 	colors<-get_colors()
 	colors.max<-length(colors)
 	if(nrow(f.tab.hyper) > 0){

@@ -788,14 +788,14 @@ prune<-function(f_cis_tab,
 #' @export
 run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Unique.Name", cndir = "alteration_direction",
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
-	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "c2.cp.v5.0",
+	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "h.all.v5.1",
 	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
 	prune.method = "cmi", prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
 	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
 	if(is.na(gs.file)){ #use default gmt file c2 cp
 		HOMEDIR<-file.path(path.package("iEDGE"), "genesets")
-		gs.file<-paste(HOMEDIR, "/c2.cp.v5.0.symbols.gmt", sep =  "")
+		gs.file<-paste(HOMEDIR, "/h.all.v5.1.symbols.gmt", sep =  "")
 	}
 
 	cat("Reading genesets..\n")
