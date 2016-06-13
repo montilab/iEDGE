@@ -468,7 +468,7 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 }
 
 
-get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cmi){
+get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes,cmi){
 
 	numcis <- 0
 	numtrans <- 0
@@ -597,13 +597,13 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 
 	if(bipartite){
 		summarytab<-lapply(alterations, function(x){
-			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cmi = cmi))
+			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = cmi))
 			})
 		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinks.js\"></script>", sep = "")
 
 	} else {
 		summarytab<-lapply(alterations, function(x){
-			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cmi = NA))
+			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = NA))
 			})
 		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinksnobipartite.js\"></script>", sep = "")
 
