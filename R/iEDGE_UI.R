@@ -198,7 +198,6 @@ data2html<-function(df){
 
 ##turns data frame into html code 
 ##appends js headers
-
 #' @import knitr
 to_table_html<-function(x, 
 	x.name, 
@@ -318,18 +317,13 @@ write_byalt_html<-function(tab,#data frame to write
 	names(in_table)<-paste(header, "_", alts, sep = "")
 
 	##addboxplots js reference
-
 	if(!is.na(boxplot_link)){
-		#boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>",sep = "")
 		in_table_headers1<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addboxplot.js\"></script>"
-
 	} else {
 		boxplot_link<-""
 		in_table_headers1<-""
 	}
-
 	boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>", sep = "")
-
 	in_table_headers2<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addgenecard.js\"></script>"
 	in_table_headers<-paste(boxplot_link, in_table_headers1, in_table_headers2, sep = "\n")
 	in_table_headers<-rep(in_table_headers, length(in_table))
@@ -356,8 +350,6 @@ make_boxplotdataset<-function(cn,
 	geneid = "accession",
 	loggep = TRUE
 	){
-
-
 	altstatus_rowid<-which(fData(cn)[, tabid] == alterationid)
 	if (length(altstatus_rowid) == 0){
 		return(NULL)
