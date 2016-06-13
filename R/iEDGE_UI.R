@@ -550,7 +550,11 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	if(bipartite){
 		summarytab<-lapply(alterations, function(x){
 
+			numcis <- 0
+			numtrans <- 0
+			if (nrow(cistab)>=1)
 			numcis <- length(which(cistab[, altid] == x))
+			if (nrow(transtab)>=1)
 			numtrans <- length(which(transtab[, altid] == x))
 			
 			ind.cis<-which(fData(cn)[,altid] == x)
@@ -563,6 +567,8 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 			numbipartitecis<-0
 			numbipartitetrans<-0
 
+			numcisfull<-0
+			if (nrow(cisfulltab)>=1)
 			numcisfull<-length(which(cisfulltab[, altid] == x))
 
 			if(x %in% names(cmi$sig)){
@@ -586,7 +592,11 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	} else {
 		summarytab<-lapply(alterations, function(x){
 
+			numcis <- 0
+			numtrans <- 0
+			if (nrow(cistab)>=1)
 			numcis <- length(which(cistab[, altid] == x))
+			if (nrow(transtab)>=1)
 			numtrans <- length(which(transtab[, altid] == x))
 			
 			ind.cis<-which(fData(cn)[,altid] == x)
@@ -596,6 +606,8 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 			numAlt<-length(which(exprs(cn)[ind.cis,] == 1))
 			numNormal<-length(which(exprs(cn)[ind.cis,] == 0))
 
+			numcisfull<-0
+			if (nrow(cisfulltab)>=1)
 			numcisfull<-length(which(cisfulltab[, altid] == x))
 
 			return(data.frame(alteration_id = x, 
