@@ -95,7 +95,7 @@ run_hyperEnrichment_wrapper<-function(gs.tab, #gistic2ge_sig
 #' @return limma topTable data frame
 #' @export
 #'
-run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE, verbose = TRUE, order = TRUE,
+run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE, verbose = FALSE, order = TRUE,
   hypercol = "fdr", hyperthres = NULL){
 
   if(length(drawn) == 0){
@@ -134,7 +134,7 @@ run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht =
 }
 
 hyperEnrichment<-function (drawn, categories, ntotal = length(unique(unlist(categories))), 
-    min.drawsize = 4, mht = TRUE, verbose = TRUE) {
+    min.drawsize = 4, mht = TRUE, verbose = FALSE) {
     if (!is(categories, "list")) {
         stop("categories expected to be a list of gene sets")
     }

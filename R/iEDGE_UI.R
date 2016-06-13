@@ -62,14 +62,13 @@ trans_order<-function(dat){
 	return(res)
 }
 
-
-
 write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
 	
 	dir.create(f.dir.out)
-
 	ntab<-nrow(tab)
-	if(ntab<=1){
+
+	if(ntab>=1){
+
 	colors<-get_colors()
 	colors.max<-length(colors)
 
@@ -77,8 +76,7 @@ write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
 	ntrans<-length(unique(tab$trans))
 
 	cis_ord<-cis_order(tab)
-	trans_ord<-trans_order(tab)
-	
+	trans_ord<-trans_order(tab)	
 	cis_df<-data.frame(genes=cis_ord, 
 		numEdges=sapply(cis_ord, 
 			function(i){
@@ -98,12 +96,11 @@ write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
 	f.tab.ord<-tab[order(match(tab$trans, trans_ord)),]
 	edges.write<-write_JSON_df(df = f.tab.ord, df.name = "var edges")
 
+	
 	if(hasArg(hyper)){
 		hyper.union<-get_hyper_wrapper(hyper$hyperunion)
 		hyper.union.hypergsets<-write_JSON_df(df =hyper.union$hypergsets, df.name = "var hypergsets")
 		hyper.union.hyperedges<-write_JSON_df(df =hyper.union$hyperedges, df.name = "var hyperedges")
-
-
 		hyper.byalt.hypergsets<-list()
 		hyper.byalt.hyperedges<-list()
 
@@ -130,13 +127,12 @@ write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
 		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
 		
 	} else {
-
 		all.write<-paste(cis.write, trans.write, edges.write,
 			sep = "\n")
 		write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
 
 	}
-
+	cat(all.write)
 	}
 }
 
