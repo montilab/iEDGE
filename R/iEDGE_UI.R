@@ -330,7 +330,7 @@ write_byalt_html<-function(tab,#data frame to write
 	##addboxplots js reference
 
 	if(!is.na(boxplot_link)){
-		boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>",sep = "")
+		#boxplot_link<-paste("<script> var dir_out = \"", boxplot_link, "\"; </script>",sep = "")
 		in_table_headers1<-"<script type=\"text/javascript\" charset=\"utf8\" src=\"addboxplot.js\"></script>"
 
 	} else {
