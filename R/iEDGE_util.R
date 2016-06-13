@@ -150,6 +150,8 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	pb <- txtProgressBar(style = 3)
 	setTxtProgressBar(pb, 0)
 
+	cnpdat<-pData(cn)
+
 	n<-nrow(cn)
 	for (i in 1:n){ 	#for each alteration
 		setTxtProgressBar(pb, i/n)
@@ -195,6 +197,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 				res[[i]]<-run_limma(eset = gep.keep, design = design, 
 					cndir = cndir, onesided = onesided, 
 					uptest = uptest, downtest = downtest)
+				res[[i]][, "cnid"]<-cnpdat[i, cnid]
 		}
 	}
 
@@ -209,6 +212,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 		"high.class", "mean1.unlog", "mean0.unlog", "sd0.unlog", "sd1.unlog")
 	col.ord<-c(col.first, setdiff(colnames(res.df), col.first))
 	res.df<-res.df[, col.ord]
+	colnames(res.df)[which(colnames(res.df) == "cnid")]<-cnid
 
 	res.list<-list()
 	res.list$full<-res.df
