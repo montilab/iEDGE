@@ -40,7 +40,7 @@
 
   var x1 = 200;
   var x2 = 400;
-  var x3 = 800;
+  var x3 = 600;
   var width = 40;
 
   var x1label1 = x1-180;
@@ -52,10 +52,10 @@
   var x2label3 = x2+100+width;
 
   var x3label1 = x3+10+width;
-  var x3label2 = x3+160+width;
-  var x3label3 = x3+190+width;
-  var x3label4 = x3+240+width;
-  var x3label5 = x3+290+width;
+  var x3label2 = x3+260+width;
+  var x3label3 = x3+290+width;
+  var x3label4 = x3+340+width;
+  var x3label5 = x3+390+width;
 
   //formats data input for sidebars
   function formatBarData(data) {
@@ -258,8 +258,8 @@
 
             var oldStr = i[3][0];
             var newStr =oldStr;
-            if(oldStr.length > 20){
-              var newStr = oldStr.substring(0, 19)+ '...'
+            if(oldStr.length > 40){
+              var newStr = oldStr.substring(0, 39)+ '...'
             } 
           return(newStr);});
 
