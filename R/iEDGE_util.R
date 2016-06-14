@@ -837,7 +837,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	res.trans.sig<-res[["trans"]][["sig"]]
 
 	if(bipartite == TRUE){
-		cat(paste("Running pruning using method: ", prune.method, "\n", sep = "")
+		cat(paste("Running pruning using method: ", prune.method, "\n", sep = ""))
 		pruning<-prune(f_cis_tab =  res.cis.sig, 
 			f_trans_tab= res.trans.sig, 
 			cn = cn, 
