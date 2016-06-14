@@ -575,22 +575,22 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	}
 
 	if(nrow(cisfulltab)>0)
-	write_byalt_html(cisfulltab,#data frame to write
-	 tabid = altid, #column name to split table by
-	 outdir = outdir, #output directory name
-	 header = "byalteration_cis", 
-	 boxplot_link = boxplot_link_cis,
-	 hidecol = FALSE
+		write_byalt_html(cisfulltab,#data frame to write
+		 tabid = altid, #column name to split table by
+		 outdir = outdir, #output directory name
+		 header = "byalteration_cis", 
+		 boxplot_link = boxplot_link_cis,
+		 hidecol = FALSE
 	 )
 
 	cat("Writing by alteration trans DE tables...\n")
 	if(nrow(transtab)>0)
-	write_byalt_html(transtab,#data frame to write
-	 tabid = altid, #column name to split table by
-	 outdir = outdir, #output directory name
-	 header = "byalteration_trans",
-	 boxplot_link = boxplot_link_trans,
-	 hidecol = FALSE
+		write_byalt_html(transtab,#data frame to write
+		 tabid = altid, #column name to split table by
+		 outdir = outdir, #output directory name
+		 header = "byalteration_trans",
+		 boxplot_link = boxplot_link_trans,
+		 hidecol = FALSE
 	 )
 	##writing by alteration and by gene boxplots
 
@@ -599,6 +599,8 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	alterations<-unique(as.character(fData(cn)[, altid]))
 	
 	if(bipartite){
+		print("bipartite reached")
+		print(cmi)
 		summarytab<-lapply(alterations, function(x){
 			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = cmi))
 			})
@@ -614,6 +616,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	
 	summarytab<-do.call(rbind, summarytab)
 	summarytab<-data.frame(index = 1:nrow(summarytab), summarytab)
+	print(summarytab)
 	summarytab<-summarytab[, !apply(summarytab, 2, function(i) all(is.na(i)))]
 	row.names(summarytab)<-NULL
 	
@@ -627,7 +630,8 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	write(summarytable.html, file = paste(outdir, "/", "index.html", sep = ""))
 
 	##writing bipartite
-	if(bipartite){
+	if(bipartite == TRUE){
+		
 		cat("Writing bipartite graphs...\n")
 		make_bipartite_html(f.dir.in = cmijsdir, 
 			f.dir.out = paste(outdir, "/bipartiteplots", sep = ""), 

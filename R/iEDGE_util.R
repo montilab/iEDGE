@@ -839,7 +839,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	res.cis.full<-res[["cis"]][["full"]]
 	res.trans.sig<-res[["trans"]][["sig"]]
 
-	if(bipartite){
+	if(bipartite == TRUE){
 		cmi<-prune(f_cis_tab =  res.cis.sig, 
 			f_trans_tab= res.trans.sig, 
 			cn = cn, 
@@ -856,6 +856,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 			min.drawsize = min.drawsize, 
 			hypercol = "fdr", 
 			hyperthres = hyperthres)
+		print(cmi)
 	} else {
 		cmi <-NA
 	}
