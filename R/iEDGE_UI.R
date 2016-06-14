@@ -469,7 +469,6 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 
 
 get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes,cmi){
-
 	numcis <- 0
 	numtrans <- 0
 	if (nrow(cistab)>=1) numcis <- length(which(cistab[, altid] == x))
@@ -494,19 +493,15 @@ get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisge
 
 	numbipart<-NA
 	if(!is.na(cmi)){
+		numbipartitecis<-0
+		numbipartitetrans<-0
 		cmi.sig<-cmi[["sig"]]
 		cmi.actual<-cmi[["actual"]]
-		if(x %in% names(cmi.actual)){
-			numbipartitecis<-0
-			numbipartitetrans<-0
-			if(x %in% names(cmi.sig)){
-				numbipartitecis<-length(unique(cmi.sig[[x]][,"cis"]))
-				numbipartitetrans<-length(unique(cmi.sig[[x]][,"trans"]))
-			}
-			numbipart<-paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = "")
+		if(x %in% names(cmi.sig)){
+			numbipartitecis<-length(unique(cmi.sig[[x]][,"cis"]))
+			numbipartitetrans<-length(unique(cmi.sig[[x]][,"trans"]))
 		}
-	} else {
-		numbipart<-NA
+		numbipart<-paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = "")	
 	}
 
 	res<-data.frame(alteration_id = x, 
@@ -537,8 +532,9 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 		          copy.mode = TRUE)
 	}
 
-
 	cat("Writing by alteration cis full DE tables...\n")
+	boxplot_link_cis <- NA
+	boxplot_link_trans <- NA
 
 	if(cis.boxplot){
 		boxplot_link_cis <- "./boxplots"
@@ -554,8 +550,6 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 		 gep = gep, 
 		 basedir = outdir
 		 )
-	} else{
-		boxplot_link_cis <- NA
 	}
 
 	if(trans.boxplot){
@@ -570,10 +564,9 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 		 gep = gep, 
 		 basedir = outdir
 		 )
-	} else{
-		boxplot_link_trans <- NA
-	}
+	} 
 
+	cat("Writing by alteration cis DE tables...\n")
 	if(nrow(cisfulltab)>0)
 		write_byalt_html(cisfulltab,#data frame to write
 		 tabid = altid, #column name to split table by
@@ -592,31 +585,24 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 		 boxplot_link = boxplot_link_trans,
 		 hidecol = FALSE
 	 )
+
 	##writing by alteration and by gene boxplots
-
 	cat("Writing summary table...\n")
-
 	alterations<-unique(as.character(fData(cn)[, altid]))
-	
+
 	if(bipartite){
-		print("bipartite reached")
-		print(cmi)
-		summarytab<-lapply(alterations, function(x){
-			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = cmi))
-			})
+		summarytab<-lapply(alterations, 
+			function(x) get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = cmi))
 		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinks.js\"></script>", sep = "")
 
 	} else {
-		summarytab<-lapply(alterations, function(x){
-			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = NA))
-			})
+		summarytab<-lapply(alterations, 
+			function(x) get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = NA))
 		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinksnobipartite.js\"></script>", sep = "")
-
 	}
 	
 	summarytab<-do.call(rbind, summarytab)
 	summarytab<-data.frame(index = 1:nrow(summarytab), summarytab)
-	print(summarytab)
 	summarytab<-summarytab[, !apply(summarytab, 2, function(i) all(is.na(i)))]
 	row.names(summarytab)<-NULL
 	
@@ -630,8 +616,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	write(summarytable.html, file = paste(outdir, "/", "index.html", sep = ""))
 
 	##writing bipartite
-	if(bipartite == TRUE){
-		
+	if(bipartite){
 		cat("Writing bipartite graphs...\n")
 		make_bipartite_html(f.dir.in = cmijsdir, 
 			f.dir.out = paste(outdir, "/bipartiteplots", sep = ""), 

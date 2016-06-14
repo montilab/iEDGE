@@ -85,13 +85,15 @@ run_limma<-function(eset, design,
 		fit2.table$adj.P.Val <-p.val.onesided.adjust
 	}
 	fit2.accessary<-run_limma_accessory(eset, design)
-	fit2.table<-join(x=fit2.table, y=fit2.accessary, by = colnames(fData(eset)), type = "left", match = "first")
+	fit2.table<-join(x=fit2.table, y=fit2.accessary, 
+		by = colnames(fData(eset)), type = "left", match = "first")
 	fit2.table$fold.change<-2^fit2.table$logFC
 	fit2.table<-fit2.table[order(fit2.table$adj.P.Val, decreasing = FALSE),]
 	return(fit2.table)
 }
 
-#' iEDGE_combine combines alteration data (e.g. GISTIC2) and gene expression data, using a mapping data frame for matching samples
+#' iEDGE_combine combines alteration data (e.g. GISTIC2) 
+#' and gene expression data, using a mapping data frame for matching samples
 #' @export
 iEDGE_combine<-function(alt, gep, mapping, mapping.cn = "CN", mapping.gep = "GEP", uppercase = TRUE){
 
@@ -216,9 +218,9 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 		res.list$sig<-res.df[res.df[, "adj.P.Val.all"]<fdr.cutoff,]
 	} else {
 		fc.low<-2^(-log2(fc))
-		res.list$sig <- res.df[res.df[, "adj.P.Val.all"]<fdr.cutoff & (res.df[, "fold.change"] > fc | res.df[, "fold.change"] < fc.low),]
+		res.list$sig <- res.df[res.df[, "adj.P.Val.all"]<fdr.cutoff & 
+		(res.df[, "fold.change"] > fc | res.df[, "fold.change"] < fc.low),]
 	}
-#	res.list$sig<-subset(res.df, adj.P.Val.all < fdr.cutoff)
 	return(res.list)
 }
 
@@ -257,7 +259,8 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 
 	if(is.na(fc.cis)) fc_cis_header <- ""
 	else fc_cis_header<-paste("_fc_", fc.cis, sep = "")
-	f.out<-paste(f.dir.out, "/", header, "_cis_sig_fdr_", fdr.cis.cutoff, fc_cis_header, ".txt", sep = "")
+	f.out<-paste(f.dir.out, "/", header, "_cis_sig_fdr_", 
+		fdr.cis.cutoff, fc_cis_header, ".txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(res.cis$sig, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
@@ -284,7 +287,8 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	if(is.na(fc.trans)) fc_trans_header <- ""
 	else fc_trans_header<-paste("_fc_", fc.trans, sep = "")
 
-	f.out<-paste(f.dir.out, "/", header, "_trans_sig_fdr_", fdr.trans.cutoff, fc_trans_header, ".txt", sep = "")
+	f.out<-paste(f.dir.out, "/", header, "_trans_sig_fdr_", 
+		fdr.trans.cutoff, fc_trans_header, ".txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(res.trans$sig, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
@@ -301,7 +305,8 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	    categories=gs.file,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_cis.txt", sep = "")	
+ 	f.out<-paste(f.dir.out, "/", header, 
+ 		"_hyperEnrichment_",gs.file.name,"_cis.txt", sep = "")	
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(hyper.cis, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
@@ -610,10 +615,8 @@ run_cmi_hyperenrichment<-function(tab, tab.name, gs.file, ngenes,
 
 #' @import Biobase
 #' @export
-prune<-function(f_cis_tab, 
-	f_trans_tab, 
-	cn, 
-	gep,
+prune<-function(f_cis_tab, f_trans_tab, 
+	cn, gep,
 	alteration_id = "Unique.Name",
 	gene_id = "accession",
 	seed =7,
@@ -645,11 +648,9 @@ prune<-function(f_cis_tab,
 	res.sig<-list()
 
 	cmi_dir_tables<-paste(cmi_dir, "/tables", sep = "")
-	cmi_dir_plots<-paste(cmi_dir, "/plots", sep = "")
 	cmi_dir_js<-paste(cmi_dir, "/js", sep = "")
 
 	dir.create(cmi_dir_tables, recursive = TRUE)
-	dir.create(cmi_dir_plots, recursive = TRUE)
 
 	if(hasArg("gs.file")){
 		cmi_dir_hyper<-paste(cmi_dir, "/hyperEnrichment", sep = "")
@@ -660,122 +661,123 @@ prune<-function(f_cis_tab,
 	p<-list()
 
 	for(i in alt_id){
-
 		cat(paste("alteration: ", i, "\n", sep = " "))	
 		i_ind <-which(cn.fdat[, alteration_id] == i)
 		x <- as.numeric(cn.exprs[i_ind,])
-
-		cis_genes<-as.character(f_cis_tab[which(f_cis_tab[,alteration_id] == i),gene_id])
-		trans_genes<-as.character(f_trans_tab[which(f_trans_tab[,alteration_id] == i),gene_id])
+		cis_genes<-as.character(f_cis_tab[which(f_cis_tab[,alteration_id] == i), gene_id])
+		trans_genes<-as.character(f_trans_tab[which(f_trans_tab[,alteration_id] == i), gene_id])
 		cis_genes<-intersect(cis_genes, ge.fdat.genes)
 		trans_genes<-intersect(trans_genes, ge.fdat.genes)
-
 		cis_genes_n<-length(cis_genes)
 		trans_genes_n<-length(trans_genes)
 
+		if(cis_genes_n >0 & trans_genes_n > 0) {
 
-		cat(paste("cis genes: ", cis_genes_n, ", trans genes: ", trans_genes_n, "\n", sep = ""))	
-		if (cis_genes_n ==0 | trans_genes_n == 0){
+			cis_vec<-ge.exprs[match(cis_genes, ge.fdat.genes),, drop = FALSE]
+			trans_vec<-ge.exprs[match(trans_genes, ge.fdat.genes),, drop = FALSE]
 
-		}
-		else {
-
-
-		cis_vec<-ge.exprs[match(cis_genes, ge.fdat.genes),, drop = FALSE]
-		trans_vec<-ge.exprs[match(trans_genes, ge.fdat.genes),, drop = FALSE]
-
-		if(method == "cmi"){
-
-			set.seed(seed)
-			sample_cg<-ge.fdat.genes[sample(1:ngenes, nsamples, replace = T)]
-			set.seed(seed+10)
-			sample_tg<-sample(trans_genes, min(nsamples, trans_genes_n), replace = T)
-		
-			cis_null_vec<-ge.exprs[match(sample_cg, ge.fdat.genes),, drop = FALSE]
-			trans_null_vec<-ge.exprs[match(sample_tg, ge.fdat.genes),, drop = FALSE]
-
-			cat("Running actual model...\n")
-			res.actual[[i]]<-lapply(1:nrow(cis_vec),
-					function(k){
-						y<- cis_vec[k,]
-						y.name<-rownames(cis_vec)[k]
-						res<-sapply(1:nrow(trans_vec), function(j)
-								calc_mutinfo( x = x,y = y, z = trans_vec[j,], 
-									nbins = nbins))
-
-						res.df<-data.frame(cis = y.name, trans = rownames(trans_vec), cmi = as.numeric(res))
-						return(res.df)	
-					})
-
-			res.actual[[i]]<-do.call(rbind, res.actual[[i]])
-
-			cat("Running null model...\n")
-			res.null[[i]]<-lapply(1:nrow(cis_null_vec),
-					function(k){
-						y<- cis_null_vec[k,]
-						y.name<-rownames(cis_null_vec)[k]
-						res<-sapply(1:nrow(trans_null_vec), function(j)
-								calc_mutinfo( x = x,y = y, z = trans_null_vec[j,], 
-									nbins = nbins))
-						res.df<-data.frame(cis = y.name, trans = rownames(trans_null_vec), cmi = as.numeric(res))
-						return(res.df)	
-					})
-
-			res.null[[i]]<-do.call(rbind, res.null[[i]])	
-
-			write.table(res.null[[i]], file = paste(cmi_dir_tables, "/null_", i, ".txt", sep = ""),
-				col.names = TRUE, row.names = FALSE, sep = "\t")
+			if(method == "cmi"){
+				set.seed(seed)
+				sample_cg<-ge.fdat.genes[sample(1:ngenes, nsamples, replace = T)]
+				set.seed(seed+10)
+				sample_tg<-sample(trans_genes, min(nsamples, trans_genes_n), replace = T)
 			
-			nullecdf<-ecdf(res.null[[i]]$cmi)
-			res.actual[[i]]$pvalue<-nullecdf(res.actual[[i]]$cmi)
+				cis_null_vec<-ge.exprs[match(sample_cg, ge.fdat.genes),, drop = FALSE]
+				trans_null_vec<-ge.exprs[match(sample_tg, ge.fdat.genes),, drop = FALSE]
 
-			write.table(res.actual[[i]], file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
-				col.names = TRUE, row.names = FALSE, sep = "\t")
+				cat("Running actual model...\n")
+				res.actual[[i]]<-lapply(1:nrow(cis_vec),
+						function(k){
+							y<- cis_vec[k,]
+							y.name<-rownames(cis_vec)[k]
+							res<-sapply(1:nrow(trans_vec), function(j)
+									calc_mutinfo( x = x,y = y, z = trans_vec[j,], 
+										nbins = nbins))
 
-			tab<-res.actual[[i]]
-			res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
-			write.table(res.sig[[i]], file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
-				col.names = TRUE, row.names = FALSE, sep = "\t")
+							res.df<-data.frame(cis = y.name, 
+								trans = rownames(trans_vec), 
+								cmi = as.numeric(res))
+							return(res.df)	
+						})
 
-		} else { #method = sobel
+				res.actual[[i]]<-do.call(rbind, res.actual[[i]])
 
-			cat("Running actual model...\n")
+				cat("Running null model...\n")
+				res.null[[i]]<-lapply(1:nrow(cis_null_vec),
+						function(k){
+							y<- cis_null_vec[k,]
+							y.name<-rownames(cis_null_vec)[k]
+							res<-sapply(1:nrow(trans_null_vec), function(j)
+									calc_mutinfo( x = x,
+										y = y,
+										z = trans_null_vec[j,], 
+										nbins = nbins))
+							res.df<-data.frame(cis = y.name, 
+								trans = rownames(trans_null_vec), 
+								cmi = as.numeric(res))
+							return(res.df)	
+						})
 
-			res.actual[[i]]<-calc_sobel(x =x,y = cis_vec,z = trans_vec, 
-				y.names = rownames(cis_vec), z.names = rownames(trans_vec))
+				res.null[[i]]<-do.call(rbind, res.null[[i]])	
 
-			write.table(res.actual[[i]], file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
-				col.names = TRUE, row.names = FALSE, sep = "\t")
+				write.table(res.null[[i]], 
+					file = paste(cmi_dir_tables, "/null_", i, ".txt", sep = ""),
+					col.names = TRUE, row.names = FALSE, sep = "\t")
+				
+				nullecdf<-ecdf(res.null[[i]]$cmi)
+				res.actual[[i]]$pvalue<-nullecdf(res.actual[[i]]$cmi)
 
-			tab<-res.actual[[i]]
-			res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
-			write.table(res.sig[[i]], file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
-				col.names = TRUE, row.names = FALSE, sep = "\t")
+				write.table(res.actual[[i]], 
+					file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
+					col.names = TRUE, row.names = FALSE, sep = "\t")
 
-		}
+				tab<-res.actual[[i]]
+				res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
+				write.table(res.sig[[i]], 
+					file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
+					col.names = TRUE, row.names = FALSE, sep = "\t")
 
-		if(hasArg("gs.file")){
-			cat("Running hyperenrichment...\n")
-			hyper[[i]]<-run_cmi_hyperenrichment(tab = res.sig[[i]], tab.name = i, ngenes = ngenes,
-			f.dir.out = cmi_dir_hyper, ...)
+			} else { #method = sobel
 
-			cat("Writing cmi js file..\n")
-			write_bipartite_JSON(tab = res.sig[[i]], 
-				hyper = hyper[[i]], f.dir.out = cmi_dir_js, header = i)
+				cat("Running actual model...\n")
 
-		} else {
-			write_bipartite_JSON(tab = res.sig[[i]], 
-				f.dir.out = cmi_dir_js, header = i)
-		}
-		cat("\n")
+				res.actual[[i]]<-calc_sobel(x =x,y = cis_vec,z = trans_vec, 
+					y.names = rownames(cis_vec), z.names = rownames(trans_vec))
+
+				write.table(res.actual[[i]], 
+					file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
+					col.names = TRUE, row.names = FALSE, sep = "\t")
+
+				tab<-res.actual[[i]]
+				res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
+				write.table(res.sig[[i]], 
+					file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
+					col.names = TRUE, row.names = FALSE, sep = "\t")
+			}
+
+			if(hasArg("gs.file")){
+				cat("Running hyperenrichment...\n")
+				hyper[[i]]<-run_cmi_hyperenrichment(tab = res.sig[[i]], 
+					tab.name = i, ngenes = ngenes,
+					f.dir.out = cmi_dir_hyper, ...)
+
+				cat("Writing cmi js file..\n")
+				write_bipartite_JSON(tab = res.sig[[i]], 
+					hyper = hyper[[i]], f.dir.out = cmi_dir_js, header = i)
+
+			} else {
+				write_bipartite_JSON(tab = res.sig[[i]], 
+					f.dir.out = cmi_dir_js, header = i)
+			}
+			cat("\n")
 		}
 
 	}
 
 	if(hasArg("gs.file"))
-	return(list(actual = res.actual, null = res.null, sig = res.sig, p = p, hyper = hyper))
+		return(list(actual = res.actual, null = res.null, sig = res.sig, p = p, hyper = hyper))
 	else 
-	return(list(actual = res.actual, null = res.null, sig = res.sig, p = p))
+		return(list(actual = res.actual, null = res.null, sig = res.sig, p = p))
 
 }
 
@@ -796,18 +798,16 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	}
 
 	cat("Reading genesets..\n")
-	c2<-read_gmt(gs.file)$genesets
-	c2<-sapply(c2, function(x){
+	gs<-read_gmt(gs.file)$genesets
+	gs<-sapply(gs, function(x){
 		a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
 		return(unique(do.call(c,a)))
 	})
-
 
 	cn<-dat$cn
 	gep<-dat$gep
 	cisgenes<-dat$cisgenes
 	cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
-
 
 	dir.create(outdir, recursive = TRUE)
 	base_dir<-paste(outdir,"/", header, sep = "")
@@ -833,7 +833,6 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 		downtest = "Deletion"
 		)
 
-
 	cmi_dir<-paste(base_dir, "/cmi", sep = "")
 	res.cis.sig<-res[["cis"]][["sig"]]
 	res.cis.full<-res[["cis"]][["full"]]
@@ -850,13 +849,12 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 			nsamples = mutinfo.nsamples, 
 			cmi_dir = cmi_dir, 
 			nbins = mutinfo.bins,
-			gs.file = c2,
+			gs.file = gs.file,
 			prunecol = prune.col, prunethres = prune.thres, 
 			method = prune.method,
 			min.drawsize = min.drawsize, 
 			hypercol = "fdr", 
 			hyperthres = hyperthres)
-		print(cmi)
 	} else {
 		cmi <-NA
 	}
