@@ -230,7 +230,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	header,
 	gepid, cnid,  	
 	f.dir.out, 
-	gs.file, #genset for hyper
+	gs, #genset for hyper
 	gs.file.name,
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, 
 	min.group = 3,
@@ -242,6 +242,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	fc.trans = NA,
 	... #other parameters in make_iEDGE
 	){
+
 	dir.create(f.dir.out, recursive =TRUE)
 	cat("Performancing cis analysis...\n")
 	res.cis<-make_iEDGE(gep = gep, 
@@ -298,11 +299,10 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	cat("\nPerforming hyperEnrichment analysis...\n")
 
  	ngenes<-nrow(gep)
-
  	#run hyperenrichment with all sig cis genes in one geneset
  	drawnList<-list(cis.sig = unique(as.character(res.cis$sig[, gepid])))
  	hyper.cis<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs.file,
+	    categories=gs,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
  	f.out<-paste(f.dir.out, "/", header, 
@@ -315,7 +315,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	#run hyperenrichment with all sig trans genes in one geneset
 	drawnList<-list(trans.sig = unique(as.character(res.trans$sig[, gepid])))
  	hyper.trans<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs.file,
+	    categories=gs,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
  	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_trans.txt", sep = "")
@@ -328,13 +328,12 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	drawnList<-sapply(unique(res.cis$sig[, cnid]), 
 		function(x){
 			y<-res.cis$sig[res.cis$sig[, cnid] == x,]
-			#y<-subset(res.cis$sig, Unique.Name == x)
 			return(unique(as.character(y[, gepid])))
 			})
 	
 	names(drawnList)<-unique(res.cis$sig[, cnid])
  	hyper.cis.split<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs.file,
+	    categories=gs,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
 
@@ -347,14 +346,13 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	#run hyperenrichment with lists of sig trans genes separated by the alteration it is contained in
 	drawnList<-sapply(unique(res.trans$sig[, cnid]), 
 		function(x){
-			#y<-subset(res.trans$sig, Unique.Name == x)
 			y<-res.trans$sig[res.trans$sig[, cnid] == x,]
 			return(unique(as.character(y[, gepid])))
 			})	
 	names(drawnList)<-unique(res.trans$sig[, cnid])
 
  	hyper.trans.split<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs.file,
+	    categories=gs,
 	    ntotal=ngenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
 
@@ -569,7 +567,7 @@ calc_sobel<-function(x,y,z, y.names, z.names){
 	return(res)
 }
 
-run_cmi_hyperenrichment<-function(tab, tab.name, gs.file, ngenes, 
+run_cmi_hyperenrichment<-function(tab, tab.name, gs, ngenes, 
 	min.drawsize = 3, 
 	hypercol = "fdr", 
 	hyperthres = 0.25, 
@@ -577,7 +575,7 @@ run_cmi_hyperenrichment<-function(tab, tab.name, gs.file, ngenes,
 
 	drawnList<-list(drawn = unique(tab$trans))
 	hyperunion<-run_hyperEnrichment(drawn=drawnList,
-		categories=gs.file,
+		categories=gs,
 		ntotal=ngenes,
 		min.drawsize = min.drawsize, 
 		mht = TRUE, 
@@ -594,7 +592,7 @@ run_cmi_hyperenrichment<-function(tab, tab.name, gs.file, ngenes,
 			i.sub<-tab[tab$cis %in% j,]
 			drawnList <- list(drawn = unique(i.sub$trans))
 			hyper<-run_hyperEnrichment(drawn=drawnList,
-	    		categories=gs.file,
+	    		categories=gs,
 	    		ntotal=ngenes,
 	    		min.drawsize = min.drawsize, 
 	    		mht = TRUE, 
@@ -652,7 +650,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 	dir.create(cmi_dir_tables, recursive = TRUE)
 
-	if(hasArg("gs.file")){
+	if(hasArg("gs")){
 		cmi_dir_hyper<-paste(cmi_dir, "/hyperEnrichment", sep = "")
 		dir.create(cmi_dir_hyper, recursive = TRUE)
 		hyper<-list()
@@ -755,7 +753,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 			}
 
-			if(hasArg("gs.file")){
+			if(hasArg("gs")){
 				cat("Running hyperenrichment...\n")
 				hyper[[i]]<-run_cmi_hyperenrichment(tab = res.sig[[i]], 
 					tab.name = i, ngenes = ngenes,
@@ -774,7 +772,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 	}
 
-	if(hasArg("gs.file"))
+	if(hasArg("gs"))
 		return(list(actual = res.actual, null = res.null, sig = res.sig, p = p, hyper = hyper))
 	else 
 		return(list(actual = res.actual, null = res.null, sig = res.sig, p = p))
@@ -820,7 +818,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 		header,
 		gepid, cnid,  	
 		f.dir.out = de_dir, 
-		gs.file = gs.file, #geneset for hyper
+		gs = gs, 
 		gs.file.name = gs.file.name,
 		fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
 		min.group = min.group,
@@ -849,7 +847,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 			nsamples = mutinfo.nsamples, 
 			cmi_dir = cmi_dir, 
 			nbins = mutinfo.bins,
-			gs.file = gs.file,
+			gs = gs,
 			prunecol = prune.col, prunethres = prune.thres, 
 			method = prune.method,
 			min.drawsize = min.drawsize, 
