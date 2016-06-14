@@ -467,8 +467,7 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 	}
 }
 
-
-get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes,cmi){
+get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes,pruning){
 	numcis <- 0
 	numtrans <- 0
 	if (nrow(cistab)>=1) numcis <- length(which(cistab[, altid] == x))
@@ -490,20 +489,18 @@ get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisge
 	numcisfull<-0
 	if (nrow(cisfulltab)>=1)
 	numcisfull<-length(which(cisfulltab[, altid] == x))
-
 	numbipart<-NA
-	if(!is.na(cmi)){
+	if(!is.na(pruning)){
 		numbipartitecis<-0
 		numbipartitetrans<-0
-		cmi.sig<-cmi[["sig"]]
-		cmi.actual<-cmi[["actual"]]
-		if(x %in% names(cmi.sig)){
-			numbipartitecis<-length(unique(cmi.sig[[x]][,"cis"]))
-			numbipartitetrans<-length(unique(cmi.sig[[x]][,"trans"]))
+		pruning.sig<-pruning[["sig"]]
+		pruning.actual<-pruning[["actual"]]
+		if(x %in% names(pruning.sig)){
+			numbipartitecis<-length(unique(pruning.sig[[x]][,"cis"]))
+			numbipartitetrans<-length(unique(pruning.sig[[x]][,"trans"]))
 		}
 		numbipart<-paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = "")	
 	}
-
 	res<-data.frame(alteration_id = x, 
 		alteration_description = descriptor,
 		cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
@@ -518,7 +515,7 @@ get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisge
 #' iEDGE_UI makes the user interface for iEDGE reports
 #' @export
 iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
-	outdir, jsdir = file.path(path.package("iEDGE"), "javascript"), cmijsdir, cmi, 
+	outdir, jsdir = file.path(path.package("iEDGE"), "javascript"), pruning, pruningjsdir,
 	altid = "Unique.Name", altdesc = "Descriptor", geneid = "accession", 
 	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
@@ -592,12 +589,12 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 
 	if(bipartite){
 		summarytab<-lapply(alterations, 
-			function(x) get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = cmi))
+			function(x) get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, pruning = pruning))
 		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinks.js\"></script>", sep = "")
 
 	} else {
 		summarytab<-lapply(alterations, 
-			function(x) get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = NA))
+			function(x) get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, pruning = NA))
 		addlinksheader <-paste("<script type=\"text/javascript\" charset=\"utf8\" src=\"addlinksnobipartite.js\"></script>", sep = "")
 	}
 	
@@ -618,12 +615,9 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	##writing bipartite
 	if(bipartite){
 		cat("Writing bipartite graphs...\n")
-		make_bipartite_html(f.dir.in = cmijsdir, 
+		make_bipartite_html(f.dir.in = pruningjsdir, 
 			f.dir.out = paste(outdir, "/bipartiteplots", sep = ""), 
 			header = "", headeradd = "", 
 			template = paste(outdir, "/", "template_bipartite.html", sep = ""))
 	}
 }
-
-
-

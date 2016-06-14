@@ -567,7 +567,7 @@ calc_sobel<-function(x,y,z, y.names, z.names){
 	return(res)
 }
 
-run_cmi_hyperenrichment<-function(tab, tab.name, gs, ngenes, 
+run_pruning_hyperenrichment<-function(tab, tab.name, gs, ngenes, 
 	min.drawsize = 3, 
 	hypercol = "fdr", 
 	hyperthres = 0.25, 
@@ -620,10 +620,10 @@ prune<-function(f_cis_tab, f_trans_tab,
 	seed =7,
 	nsamples = 1000, 
 	nbins = 5,  
-	cmi_dir,
+	pruning_dir,
 	prunecol = "pvalue", prunethres = 0.25,
 	method = "cmi", #cmi or sobel
-	... #other args.file in run_cmi_hyperenrichment
+	... #other args.file in run_pruning_hyperenrichment
 	) {
 	
 	if(!(method %in% c("cmi", "sobel"))){
@@ -645,14 +645,14 @@ prune<-function(f_cis_tab, f_trans_tab,
 	res.null<-list()
 	res.sig<-list()
 
-	cmi_dir_tables<-paste(cmi_dir, "/tables", sep = "")
-	cmi_dir_js<-paste(cmi_dir, "/js", sep = "")
+	pruning_dir_tables<-paste(pruning_dir, "/tables", sep = "")
+	pruning_dir_js<-paste(pruning_dir, "/js", sep = "")
 
-	dir.create(cmi_dir_tables, recursive = TRUE)
+	dir.create(pruning_dir_tables, recursive = TRUE)
 
 	if(hasArg("gs")){
-		cmi_dir_hyper<-paste(cmi_dir, "/hyperEnrichment", sep = "")
-		dir.create(cmi_dir_hyper, recursive = TRUE)
+		pruning_dir_hyper<-paste(pruning_dir, "/hyperEnrichment", sep = "")
+		dir.create(pruning_dir_hyper, recursive = TRUE)
 		hyper<-list()
 	}
 
@@ -719,20 +719,20 @@ prune<-function(f_cis_tab, f_trans_tab,
 				res.null[[i]]<-do.call(rbind, res.null[[i]])	
 
 				write.table(res.null[[i]], 
-					file = paste(cmi_dir_tables, "/null_", i, ".txt", sep = ""),
+					file = paste(pruning_dir_tables, "/null_", i, ".txt", sep = ""),
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 				
 				nullecdf<-ecdf(res.null[[i]]$cmi)
 				res.actual[[i]]$pvalue<-nullecdf(res.actual[[i]]$cmi)
 
 				write.table(res.actual[[i]], 
-					file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
+					file = paste(pruning_dir_tables, "/actual_", i, ".txt", sep = ""),
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 
 				tab<-res.actual[[i]]
 				res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
 				write.table(res.sig[[i]], 
-					file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
+					file = paste(pruning_dir_tables, "/sig_", i, ".txt", sep = ""),
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 
 			} else { #method = sobel
@@ -743,29 +743,29 @@ prune<-function(f_cis_tab, f_trans_tab,
 					y.names = rownames(cis_vec), z.names = rownames(trans_vec))
 
 				write.table(res.actual[[i]], 
-					file = paste(cmi_dir_tables, "/actual_", i, ".txt", sep = ""),
+					file = paste(pruning_dir_tables, "/actual_", i, ".txt", sep = ""),
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 
 				tab<-res.actual[[i]]
 				res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
 				write.table(res.sig[[i]], 
-					file = paste(cmi_dir_tables, "/sig_", i, ".txt", sep = ""),
+					file = paste(pruning_dir_tables, "/sig_", i, ".txt", sep = ""),
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 			}
 
 			if(hasArg("gs")){
 				cat("Running hyperenrichment...\n")
-				hyper[[i]]<-run_cmi_hyperenrichment(tab = res.sig[[i]], 
+				hyper[[i]]<-run_pruning_hyperenrichment(tab = res.sig[[i]], 
 					tab.name = i, ngenes = ngenes,
-					f.dir.out = cmi_dir_hyper, ...)
+					f.dir.out = pruning_dir_hyper, ...)
 
-				cat("Writing cmi js file..\n")
+				cat("Writing pruning js file..\n")
 				write_bipartite_JSON(tab = res.sig[[i]], 
-					hyper = hyper[[i]], f.dir.out = cmi_dir_js, header = i)
+					hyper = hyper[[i]], f.dir.out = pruning_dir_js, header = i)
 
 			} else {
 				write_bipartite_JSON(tab = res.sig[[i]], 
-					f.dir.out = cmi_dir_js, header = i)
+					f.dir.out = pruning_dir_js, header = i)
 			}
 			cat("\n")
 		}
@@ -831,13 +831,14 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 		downtest = "Deletion"
 		)
 
-	cmi_dir<-paste(base_dir, "/cmi", sep = "")
+	pruning_dir<-paste(base_dir, "/pruning", sep = "")
 	res.cis.sig<-res[["cis"]][["sig"]]
 	res.cis.full<-res[["cis"]][["full"]]
 	res.trans.sig<-res[["trans"]][["sig"]]
 
 	if(bipartite == TRUE){
-		cmi<-prune(f_cis_tab =  res.cis.sig, 
+		cat(paste("Running pruning using method: ", prune.method, "\n", sep = "")
+		pruning<-prune(f_cis_tab =  res.cis.sig, 
 			f_trans_tab= res.trans.sig, 
 			cn = cn, 
 			gep = gep,
@@ -845,7 +846,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 			gene_id = gepid,
 			seed =mutinfo.seed,
 			nsamples = mutinfo.nsamples, 
-			cmi_dir = cmi_dir, 
+			pruning_dir = pruning_dir, 
 			nbins = mutinfo.bins,
 			gs = gs,
 			prunecol = prune.col, prunethres = prune.thres, 
@@ -854,7 +855,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 			hypercol = "fdr", 
 			hyperthres = hyperthres)
 	} else {
-		cmi <-NA
+		pruning <-NA
 	}
 
 	html_dir<-paste(base_dir, "/html", sep = "")
@@ -862,7 +863,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 
 	iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
 		transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
-		outdir = html_dir, jsdir = jsdir, cmi = cmi, cmijsdir = paste(cmi_dir, "/js", sep = ""),
+		outdir = html_dir, jsdir = jsdir, pruning = pruning, pruningjsdir = paste(pruning_dir, "/js", sep = ""),
 		altid = cnid, altdesc = cndesc, geneid = gepid, 
 		cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
 }
