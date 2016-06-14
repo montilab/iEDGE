@@ -494,15 +494,20 @@ get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisge
 
 	numbipart<-NA
 	if(!is.na(cmi)){
-		if(x %in% names(cmi$sig)){
-			numbipartitecis<-length(unique(cmi$sig[[x]]$cis))
-			numbipartitetrans<-length(unique(cmi$sig[[x]]$trans))
+		cmi.sig<-cmi[["sig"]]
+		cmi.actual<-cmi[["actual"]]
+		if(x %in% names(cmi.actual)){
+			numbipartitecis<-0
+			numbipartitetrans<-0
+			if(x %in% names(cmi.sig)){
+				numbipartitecis<-length(unique(cmi.sig[[x]][,"cis"]))
+				numbipartitetrans<-length(unique(cmi.sig[[x]][,"trans"]))
+			}
 			numbipart<-paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = "")
 		}
 	} else {
 		numbipart<-NA
 	}
-
 
 	res<-data.frame(alteration_id = x, 
 		alteration_description = descriptor,
@@ -591,10 +596,8 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 
 	cat("Writing summary table...\n")
 
-	#alterations<-unique(as.character(cistab[, altid]))
 	alterations<-unique(as.character(fData(cn)[, altid]))
 	
-
 	if(bipartite){
 		summarytab<-lapply(alterations, function(x){
 			return(get_summary(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisgenes, cmi = cmi))
