@@ -792,7 +792,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	prune.method = "cmi", prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
 	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
-	if(is.na(gs.file)){ #use default gmt file c2 cp
+	if(is.na(gs.file)){ #use default gmt file 
 		HOMEDIR<-file.path(path.package("iEDGE"), "genesets")
 		gs.file<-paste(HOMEDIR, "/h.all.v5.1.symbols.gmt", sep =  "")
 	}
@@ -820,7 +820,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 		header,
 		gepid, cnid,  	
 		f.dir.out = de_dir, 
-		gs.file = c2, #geneset for hyper
+		gs.file = gs.file, #geneset for hyper
 		gs.file.name = gs.file.name,
 		fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
 		min.group = min.group,

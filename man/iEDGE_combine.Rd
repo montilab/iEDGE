@@ -2,12 +2,14 @@
 % Please edit documentation in R/iEDGE_util.R
 \name{iEDGE_combine}
 \alias{iEDGE_combine}
-\title{iEDGE_combine combines alteration data (e.g. GISTIC2) and gene expression data, using a mapping data frame for matching samples}
+\title{iEDGE_combine combines alteration data (e.g. GISTIC2) 
+and gene expression data, using a mapping data frame for matching samples}
 \usage{
 iEDGE_combine(alt, gep, mapping, mapping.cn = "CN", mapping.gep = "GEP",
   uppercase = TRUE)
 }
 \description{
-iEDGE_combine combines alteration data (e.g. GISTIC2) and gene expression data, using a mapping data frame for matching samples
+iEDGE_combine combines alteration data (e.g. GISTIC2) 
+and gene expression data, using a mapping data frame for matching samples
 }
 
