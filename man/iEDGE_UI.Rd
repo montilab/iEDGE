@@ -5,9 +5,10 @@
 \title{iEDGE_UI makes the user interface for iEDGE reports}
 \usage{
 iEDGE_UI(cistab, cisfulltab, transtab, cn, gep, cisgenes, outdir,
-  jsdir = file.path(path.package("iEDGE"), "javascript"), cmijsdir, cmi,
-  altid = "Unique.Name", altdesc = "Descriptor", geneid = "accession",
-  cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE)
+  jsdir = file.path(path.package("iEDGE"), "javascript"), pruning,
+  pruningjsdir, altid = "Unique.Name", altdesc = "Descriptor",
+  geneid = "accession", cis.boxplot = TRUE, trans.boxplot = TRUE,
+  bipartite = TRUE)
 }
 \description{
 iEDGE_UI makes the user interface for iEDGE reports

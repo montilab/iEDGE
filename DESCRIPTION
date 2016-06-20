@@ -22,7 +22,8 @@ Imports:
     RColorBrewer,
     org.Hs.eg.db,
     AnnotationDbi,
-    cba
+    cba,
+    sva
 License: MIT + file LICENSE
 LazyData: true
 RoxygenNote: 5.0.1

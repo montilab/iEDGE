@@ -4,11 +4,10 @@
 \alias{iEDGE_DE}
 \title{iEDGE_DE performs differential expression analysis and pathway enrichment and saves to text tables}
 \usage{
-iEDGE_DE(cn, gep, cisgenes, header, gepid, cnid, f.dir.out, gs.file,
-  gs.file.name, fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05,
-  min.group = 3, min.drawsize = 3, cndir = "alteration_direction",
-  cis.onesided = TRUE, trans.onesided = FALSE, fc.cis = NA,
-  fc.trans = NA, ...)
+iEDGE_DE(cn, gep, cisgenes, header, gepid, cnid, f.dir.out, gs, gs.file.name,
+  fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, min.group = 3,
+  min.drawsize = 3, cndir = "alteration_direction", cis.onesided = TRUE,
+  trans.onesided = FALSE, fc.cis = NA, fc.trans = NA, ...)
 }
 \description{
 iEDGE_DE performs differential expression analysis and pathway enrichment and saves to text tables
