@@ -1,3 +1,30 @@
+#' @export
+#' @import sva
+correct_batch<-function(eset, batch.name = "batch", method = "lm" #lm or combat
+	){
+
+	batch<-as.factor(pData(eset)[, batch.name])
+	if(method == "lm"){
+		mat<-t(apply(exprs(eset), 1, function(i){
+			y<- as.numeric(i)
+			res<-lm(y ~ batch)
+			return(coef(res)[1] + resid(res))
+			}))
+	} else if (method == "combat"){
+		mat<- ComBat(dat=exprs(eset), 
+			batch=batch, 
+			mod=NULL, 
+			par.prior=TRUE, 
+			prior.plots=FALSE)
+	} else {
+		stop("method must be one of \"lm\" or \"combat\"")
+	}
+	colnames(mat)<-colnames(eset)
+	rownames(mat)<-rownames(eset)
+	exprs(eset)<-mat
+	return(eset)
+}
+
 #' @import Biobase
 run_limma_accessory<-function(eset, design, log_offset = 1, log_base = 2){
 	eset.sub.cond1<-eset[,design[,1] == 1]
@@ -388,7 +415,6 @@ calc_sobel_y_z1<-function(x,y,z){
 
 	m2.summary<-summary(m2)
 	ny<-nrow(y)
-	
 
 	tau0<-m1$coefficients[2]
 
@@ -417,15 +443,19 @@ calc_sobel_y_z1<-function(x,y,z){
 
 	res<-data.frame(yind = vector(), zind = vector(), value = vector())
 	for(i in 1:ny){
-		res.add<-c(yind = i, zind = j, 
-			taudiff = taudiff[[i]][j],
-			Z = Z[[i]][j],
-			S = S[[i]][j],
-			pvalue = P.twosided[[i]][j])
+		res.add<-c(yind = i, zind = 1, 
+			taudiff = taudiff[[i]],
+			tau0 = tau0,
+			tauratio = taudiff[[i]]/tau0,
+			Z = Z[[i]],
+			S = S[[i]],
+			pvalue = P.twosided[[i]])
 		res<-rbind(res, res.add)
 	}
 
-	colnames(res)<-c("yind", "zind", "taudiff", "Z", "S", "pvalue")
+	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tauratio", "Z", "S", "pvalue")
+	res[, "fdr"]<-p.adjust(res[, "pvalue"], method = "fdr")
+
 	return(res)
 }
 
@@ -460,12 +490,16 @@ calc_sobel_y1_z<-function(x,y,z){
 	for(j in 1:nz){
 		res.add<-c(yind = 1, zind = j, 
 			taudiff = taudiff[j],
+			tau0 = tau0[j],
+			tauratio = taudiff[j]/tau0[j],
 			Z = Z[j],
 			S = S[j],
 			pvalue = P.twosided[j])
 		res<-rbind(res, res.add)
 	}
-	colnames(res)<-c("yind", "zind", "taudiff", "Z", "S", "pvalue")
+	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tauratio", "Z", "S", "pvalue")
+	res[, "fdr"]<-p.adjust(res[, "pvalue"], method = "fdr")
+
 	return(res)
 }
 
@@ -490,9 +524,15 @@ calc_sobel_y1_z1<-function(x,y,z){
 
 	res<-data.frame(yind = 1, zind = 1, 
 			taudiff = taudiff,
+			tau0 = tau0,
+			tauratio = taudiff/tau0,
 			Z = Z,
 			S = S,
 			pvalue = pvalue)
+
+	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tauratio", "Z", "S", "pvalue")
+
+	res[, "fdr"]<-p.adjust(res[, "pvalue"], method = "fdr")
 
 	return(res)
 }
@@ -509,8 +549,8 @@ calc_sobel_mat<-function(x,y,z){
 	ny<-nrow(y)
 	nz<-nrow(z)
 
+	#size of z
 	tau0<-m1$coefficients[2,]
-
 	tau1<-lapply(1:ny, function(i) m3[[i]]$coefficients[2,])
 	beta<-lapply(1:ny, function(i) m3[[i]]$coefficients[3,])
 	alpha<-m2$coefficients[2,]
@@ -539,6 +579,8 @@ calc_sobel_mat<-function(x,y,z){
 		for(j in 1:nz){
 			res.add<-c(yind = i, zind = j, 
 				taudiff = taudiff[[i]][j],
+				tau0 = tau0[j],
+				tauratio = taudiff[[i]][j]/tau0[j],
 				Z = Z[[i]][j],
 				S = S[[i]][j],
 				pvalue = P.twosided[[i]][j])
@@ -546,9 +588,19 @@ calc_sobel_mat<-function(x,y,z){
 		}
 	}
 
-	colnames(res)<-c("yind", "zind", "taudiff", "Z", "S", "pvalue")
+	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tauratio", "Z", "S", "pvalue")
+	res[, "fdr"]<-p.adjust(res[, "pvalue"], method = "fdr")
+
 	return(res)
 }
+
+#' @import plyr
+subset_group_min<-function(res, by = "trans", metric = "pvalue"){
+	res[, "metric"]<-res[, metric]
+	res<-ddply(res, by, subset, metric == min(metric))
+	return(res[, setdiff(colnames(res), "metric")])
+}
+
 
 calc_sobel<-function(x,y,z, y.names, z.names){
 	ny<-nrow(y)
@@ -564,6 +616,8 @@ calc_sobel<-function(x,y,z, y.names, z.names){
 		res<-calc_sobel_y1_z1(x,y,z)
 	}
 	res<-data.frame(cis = y.names[res[, "yind"]], trans = z.names[res[, "zind"]], res)
+
+	res<-subset_group_min(res, by = "trans", metric = "fdr")
 	return(res)
 }
 
