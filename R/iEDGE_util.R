@@ -446,6 +446,7 @@ calc_sobel_y_z1<-function(x,y,z){
 		res.add<-c(yind = i, zind = 1, 
 			taudiff = taudiff[[i]],
 			tau0 = tau0,
+			tau1 = tau1[[i]],
 			tauratio = taudiff[[i]]/tau0,
 			Z = Z[[i]],
 			S = S[[i]],
@@ -453,7 +454,7 @@ calc_sobel_y_z1<-function(x,y,z){
 		res<-rbind(res, res.add)
 	}
 
-	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tauratio", "Z", "S", "pvalue")
+	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tau1", "tauratio", "Z", "S", "pvalue")
 	res[, "fdr"]<-p.adjust(res[, "pvalue"], method = "fdr")
 
 	return(res)
@@ -491,13 +492,14 @@ calc_sobel_y1_z<-function(x,y,z){
 		res.add<-c(yind = 1, zind = j, 
 			taudiff = taudiff[j],
 			tau0 = tau0[j],
+			tau1 = tau1[j],
 			tauratio = taudiff[j]/tau0[j],
 			Z = Z[j],
 			S = S[j],
 			pvalue = P.twosided[j])
 		res<-rbind(res, res.add)
 	}
-	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tauratio", "Z", "S", "pvalue")
+	colnames(res)<-c("yind", "zind", "taudiff", "tau0","tau1", "tauratio", "Z", "S", "pvalue")
 	res[, "fdr"]<-p.adjust(res[, "pvalue"], method = "fdr")
 
 	return(res)
@@ -525,12 +527,13 @@ calc_sobel_y1_z1<-function(x,y,z){
 	res<-data.frame(yind = 1, zind = 1, 
 			taudiff = taudiff,
 			tau0 = tau0,
+			tau1 = tau1,
 			tauratio = taudiff/tau0,
 			Z = Z,
 			S = S,
 			pvalue = pvalue)
 
-	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tauratio", "Z", "S", "pvalue")
+	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tau1", "tauratio", "Z", "S", "pvalue")
 
 	res[, "fdr"]<-p.adjust(res[, "pvalue"], method = "fdr")
 
@@ -616,8 +619,6 @@ calc_sobel<-function(x,y,z, y.names, z.names){
 		res<-calc_sobel_y1_z1(x,y,z)
 	}
 	res<-data.frame(cis = y.names[res[, "yind"]], trans = z.names[res[, "zind"]], res)
-
-	res<-subset_group_min(res, by = "trans", metric = "fdr")
 	return(res)
 }
 
@@ -801,6 +802,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 
 				tab<-res.actual[[i]]
+				tab<-subset_group_min(tab, by = "trans", metric = "fdr")
 				res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
 				write.table(res.sig[[i]], 
 					file = paste(pruning_dir_tables, "/sig_", i, ".txt", sep = ""),
