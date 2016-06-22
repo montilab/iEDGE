@@ -839,7 +839,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 				tot_trans<-sum(res.actual[[i]][, "cis"] %in% cis)
 				mediated_trans<-sum(res.sig[[i]][, "cis"] %in% cis)
 
-				weights<-res.sig[[i]][res.sig[[i]][, "cis"] %in% cis), "tauratio"]
+				weights<-res.sig[[i]][res.sig[[i]][, "cis"] %in% cis, "tauratio"]
 				weights[weights > 1]<-1
 				weights[weights < 0]<-0
 
