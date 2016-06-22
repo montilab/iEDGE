@@ -876,9 +876,9 @@ prune<-function(f_cis_tab, f_trans_tab,
 				cis_summary.add<-data.frame(alteration = i, cis = cis,  
 					mediated_trans = mediated_trans, 
 					mediated_trans_weighted = mediated_trans_weighted,
+					total_trans = tot_trans,
 					frac_mediated_trans = mediated_trans/tot_trans, 
 					frac_mediated_trans_weighted = mediated_trans_weighted/tot_trans,
-					total_trans = tot_trans,
 					num_pathway_mediated_trans = num_pathway_mediated_trans, 
 					pathway_mediated_trans = pathway_mediated_trans)
 
@@ -891,6 +891,10 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 		cis_summary<-cis_summary[order(cis_summary[,"alteration"],
 			-cis_summary[,"frac_mediated_trans_weighted"],decreasing=FALSE),]
+
+		a<-cis_summary[,"alteration"]
+		tots<-sapply(unique(a), function(x) sum(a == x))
+		cis_summary[, "rank"]<-unlist(sapply(tots, function (x) 1:x))
 
 		write.table(cis_summary, 
 					file = paste(pruning_dir_tables, "/cis_summary.txt", sep = ""),
