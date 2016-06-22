@@ -837,20 +837,31 @@ prune<-function(f_cis_tab, f_trans_tab,
 			#summary of cis genes by prioritization
 			for(cis in unique(res.actual[[i]][, "cis"])){
 				tot_trans<-sum(res.actual[[i]][, "cis"] %in% cis)
-				mediated_trans<-sum(res.sig[[i]][, "cis"] %in% cis)
+				if(nrow(res.sig[[i]]) == 0){
+					mediated_trans<-0
+					mediated_trans_weighted<-0
+				}
+				else {
+					mediated_trans<-sum(res.sig[[i]][, "cis"] %in% cis)
+					if(mediated_trans>0){
+						weights<-res.sig[[i]][res.sig[[i]][, "cis"] %in% cis, "tauratio"]
+						weights[weights > 1]<-1
+						weights[weights < 0]<-0
+						mediated_trans_weighted<-sum(weights)
+					} 
+					else 
+						mediated_trans_weighted<-0
+				}
 
-				weights<-res.sig[[i]][res.sig[[i]][, "cis"] %in% cis, "tauratio"]
-				weights[weights > 1]<-1
-				weights[weights < 0]<-0
 
-				mediated_trans_weighted<-sum(weights)
 
 				num_pathway_mediated_trans<-NA
 				pathway_mediated_trans<-NA
 				if(hasArg("gs")){
 					hyper_cis<-hyper[[i]][["hyperbyalt"]][[cis]]
 					num_pathway_mediated_trans<-nrow(hyper_cis)
-					pathway_mediated_trans<-paste(hyper_cis[, "category"], collapse = ",")
+					if(num_pathway_mediated_trans > 0)
+						pathway_mediated_trans<-paste(hyper_cis[, "category"], collapse = ",")
 				}
 				
 				cis_summary.add<-data.frame(alteration = i, cis = cis,  
