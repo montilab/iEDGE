@@ -421,7 +421,7 @@ calc_sobel_y_z1<-function(x,y,z){
 	tau1<-lapply(1:ny, function(i) m3[[i]]$coefficients[2])
 	beta<-lapply(1:ny, function(i) m3[[i]]$coefficients[3])
 	alpha<-m2$coefficients[2,]
-	taudiff<-lapply(1:ny, function(i) tau0 - tau1[[i]])
+	taudiff<-lapply(1:ny, function(i) sign(tau0)*(tau0 - tau1[[i]]))
 	sa<-unlist(lapply(1:ny, function(i) m2.summary[[i]]$coefficients[2, "Std. Error"]))
 
 	sb<-lapply(1:ny, function(i) {
@@ -437,8 +437,8 @@ calc_sobel_y_z1<-function(x,y,z){
 			taudiff[[i]]/S[[i]]
 		})
 
-	P.twosided<-lapply(1:ny, function(i) {
-			2*pnorm(-abs(Z[[i]]))
+	Pvalue<-lapply(1:ny, function(i) {
+			pnorm(-Z[[i]])
 		})
 
 	res<-data.frame(yind = vector(), zind = vector(), value = vector())
@@ -447,10 +447,10 @@ calc_sobel_y_z1<-function(x,y,z){
 			taudiff = taudiff[[i]],
 			tau0 = tau0,
 			tau1 = tau1[[i]],
-			tauratio = taudiff[[i]]/tau0,
+			tauratio = taudiff[[i]]/(sign(tau0)*tau0),
 			Z = Z[[i]],
 			S = S[[i]],
-			pvalue = P.twosided[[i]])
+			pvalue = Pvalue[[i]])
 		res<-rbind(res, res.add)
 	}
 
@@ -476,7 +476,7 @@ calc_sobel_y1_z<-function(x,y,z){
 	beta<-m3$coefficients[3,]
 	alpha<-m2$coefficients[2]
 
-	taudiff<-tau0 - tau1
+	taudiff<-sign(tau0)*(tau0 - tau1)
 	sa<-m2.summary$coefficients[2, "Std. Error"]
 
 	m3.summary<-summary(m3)
@@ -485,7 +485,7 @@ calc_sobel_y1_z<-function(x,y,z){
 	S<-sqrt(beta^2 * sa^2 + alpha^2*sb^2)
 	Z<-taudiff/S
 	
-	P.twosided<-2*pnorm(-abs(Z))
+	Pvalue<-pnorm(-Z)
 	res<-data.frame(yind = vector(), zind = vector(), value = vector())
 
 	for(j in 1:nz){
@@ -493,10 +493,10 @@ calc_sobel_y1_z<-function(x,y,z){
 			taudiff = taudiff[j],
 			tau0 = tau0[j],
 			tau1 = tau1[j],
-			tauratio = taudiff[j]/tau0[j],
+			tauratio = taudiff[j]/(sign(tau0[j])*tau0[j]),
 			Z = Z[j],
 			S = S[j],
-			pvalue = P.twosided[j])
+			pvalue = Pvalue[j])
 		res<-rbind(res, res.add)
 	}
 	colnames(res)<-c("yind", "zind", "taudiff", "tau0","tau1", "tauratio", "Z", "S", "pvalue")
@@ -515,20 +515,20 @@ calc_sobel_y1_z1<-function(x,y,z){
 	m3<-lm(z ~ x + y)
 	tau1<-m3$coefficients[2]
 	beta<-m3$coefficients[3]
-	taudiff<-tau0-tau1
+	taudiff<-sign(tau0)*(tau0-tau1)
 	
 	sa<-summary(m2)$coefficients[2, "Std. Error"]
 	sb<-summary(m3)$coefficients[3, "Std. Error"]
 		
 	S<-sqrt(beta^2 * sa^2 + alpha^2*sb^2)
 	Z<-taudiff/S
-	pvalue<-2*pnorm(-abs(Z))
+	pvalue<-pnorm(-Z)
 
 	res<-data.frame(yind = 1, zind = 1, 
 			taudiff = taudiff,
 			tau0 = tau0,
 			tau1 = tau1,
-			tauratio = taudiff/tau0,
+			tauratio = taudiff/(sign(tau0)*tau0),
 			Z = Z,
 			S = S,
 			pvalue = pvalue)
@@ -557,7 +557,7 @@ calc_sobel_mat<-function(x,y,z){
 	tau1<-lapply(1:ny, function(i) m3[[i]]$coefficients[2,])
 	beta<-lapply(1:ny, function(i) m3[[i]]$coefficients[3,])
 	alpha<-m2$coefficients[2,]
-	taudiff<-lapply(1:ny, function(i) tau0 - tau1[[i]])
+	taudiff<-lapply(1:ny, function(i) sign(tau0) * (tau0 - tau1[[i]]))
 	sa<-unlist(lapply(1:ny, function(i) m2.summary[[i]]$coefficients[2, "Std. Error"]))
 
 	sb<-lapply(1:ny, function(i) {
@@ -573,8 +573,8 @@ calc_sobel_mat<-function(x,y,z){
 			taudiff[[i]]/S[[i]]
 		})
 
-	P.twosided<-lapply(1:ny, function(i) {
-			2*pnorm(-abs(Z[[i]]))
+	Pvalue<-lapply(1:ny, function(i) {
+		pnorm(-Z[[i]])
 		})
 
 	res<-data.frame(yind = vector(), zind = vector(), value = vector())
@@ -583,15 +583,16 @@ calc_sobel_mat<-function(x,y,z){
 			res.add<-c(yind = i, zind = j, 
 				taudiff = taudiff[[i]][j],
 				tau0 = tau0[j],
-				tauratio = taudiff[[i]][j]/tau0[j],
+				tau1 = tau1[[i]][j],
+				tauratio = taudiff[[i]][j]/(sign(tau0[j])*tau0[j]),
 				Z = Z[[i]][j],
 				S = S[[i]][j],
-				pvalue = P.twosided[[i]][j])
+				pvalue = Pvalue[[i]][j])
 			res<-rbind(res, res.add)
 		}
 	}
 
-	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tauratio", "Z", "S", "pvalue")
+	colnames(res)<-c("yind", "zind", "taudiff", "tau0", "tau1", "tauratio", "Z", "S", "pvalue")
 	res[, "fdr"]<-p.adjust(res[, "pvalue"], method = "fdr")
 
 	return(res)
@@ -713,6 +714,12 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 	p<-list()
 
+	cis_summary<-data.frame(alteration = c(), cis = c(),  
+		mediated_trans = c(), mediated_trans_weighted = c(),
+		frac_mediated_trans = c(), frac_mediated_trans_weighted = c(),
+		total_trans = c(),
+		num_pathway_mediated_trans = c(), pathway_mediated_trans = c())
+
 	for(i in alt_id){
 		cat(paste("alteration: ", i, "\n", sep = " "))	
 		i_ind <-which(cn.fdat[, alteration_id] == i)
@@ -809,6 +816,8 @@ prune<-function(f_cis_tab, f_trans_tab,
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 			}
 
+
+
 			if(hasArg("gs")){
 				cat("Running hyperenrichment...\n")
 				hyper[[i]]<-run_pruning_hyperenrichment(tab = res.sig[[i]], 
@@ -823,8 +832,49 @@ prune<-function(f_cis_tab, f_trans_tab,
 				write_bipartite_JSON(tab = res.sig[[i]], 
 					f.dir.out = pruning_dir_js, header = i)
 			}
+
+
+			#summary of cis genes by prioritization
+			for(cis in unique(res.actual[[i]][, "cis"])){
+				tot_trans<-sum(res.actual[[i]][, "cis"] %in% cis)
+				mediated_trans<-sum(res.sig[[i]][, "cis"] %in% cis)
+
+				weights<-res.sig[[i]][res.sig[[i]][, "cis"] %in% cis), "tauratio"]
+				weights[weights > 1]<-1
+				weights[weights < 0]<-0
+
+				mediated_trans_weighted<-sum(weights)
+
+				num_pathway_mediated_trans<-NA
+				pathway_mediated_trans<-NA
+				if(hasArg("gs")){
+					hyper_cis<-hyper[[i]][["hyperbyalt"]][[cis]]
+					num_pathway_mediated_trans<-nrow(hyper_cis)
+					pathway_mediated_trans<-paste(hyper_cis[, "category"], collapse = ",")
+				}
+				
+				cis_summary.add<-data.frame(alteration = i, cis = cis,  
+					mediated_trans = mediated_trans, 
+					mediated_trans_weighted = mediated_trans_weighted,
+					frac_mediated_trans = mediated_trans/tot_trans, 
+					frac_mediated_trans_weighted = mediated_trans_weighted/tot_trans,
+					total_trans = tot_trans,
+					num_pathway_mediated_trans = num_pathway_mediated_trans, 
+					pathway_mediated_trans = pathway_mediated_trans)
+
+				cis_summary<-rbind(cis_summary, cis_summary.add)
+
+			}
+
 			cat("\n")
 		}
+
+		cis_summary<-cis_summary[order(cis_summary[,"alteration"],
+			-cis_summary[,"frac_mediated_trans_weighted"],decreasing=FALSE),]
+
+		write.table(cis_summary, 
+					file = paste(pruning_dir_tables, "/cis_summary.txt", sep = ""),
+					col.names = TRUE, row.names = FALSE, sep = "\t")
 
 	}
 
