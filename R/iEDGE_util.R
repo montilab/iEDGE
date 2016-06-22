@@ -857,12 +857,20 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 				num_pathway_mediated_trans<-NA
 				pathway_mediated_trans<-NA
+
 				if(hasArg("gs")){
-					hyper_cis<-hyper[[i]][["hyperbyalt"]][[cis]]
-					print(hyper_cis)
-					num_pathway_mediated_trans<-nrow(hyper_cis)
-					if(num_pathway_mediated_trans > 0)
-						pathway_mediated_trans<-paste(as.character(hyper_cis[, "category"]), collapse = ",")
+					num_pathway_mediated_trans<-0
+					pathway_mediated_trans<-""
+
+					if(cis %in% names(hyper[[i]][["hyperbyalt"]])){
+						hyper_cis<-hyper[[i]][["hyperbyalt"]][[cis]]
+						if(!is.null(hyper_cis))
+							num_pathway_mediated_trans<-nrow(hyper_cis)
+							if(num_pathway_mediated_trans > 0)
+								pathway_mediated_trans<-paste(as.character(hyper_cis[, "category"]),
+								 collapse = ",")
+					}
+					
 				}
 				
 				cis_summary.add<-data.frame(alteration = i, cis = cis,  
