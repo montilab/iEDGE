@@ -859,9 +859,10 @@ prune<-function(f_cis_tab, f_trans_tab,
 				pathway_mediated_trans<-NA
 				if(hasArg("gs")){
 					hyper_cis<-hyper[[i]][["hyperbyalt"]][[cis]]
+					print(hyper_cis)
 					num_pathway_mediated_trans<-nrow(hyper_cis)
 					if(num_pathway_mediated_trans > 0)
-						pathway_mediated_trans<-paste(hyper_cis[, "category"], collapse = ",")
+						pathway_mediated_trans<-paste(as.character(hyper_cis[, "category"]), collapse = ",")
 				}
 				
 				cis_summary.add<-data.frame(alteration = i, cis = cis,  
