@@ -890,9 +890,9 @@ prune<-function(f_cis_tab, f_trans_tab,
 		cis_summary<-cis_summary[order(cis_summary[,"alteration"],
 			-cis_summary[,"frac_mediated_trans_weighted"],decreasing=FALSE),]
 
-		a<-cis_summary[,"alteration"]
-		tots<-sapply(unique(a), function(x) sum(a == x))
-		cis_summary[, "rank"]<-unlist(sapply(tots, function (x) 1:x))
+#		a<-cis_summary[,"alteration"]
+#		tots<-sapply(unique(a), function(x) sum(a == x))
+#		cis_summary[, "rank"]<-unlist(sapply(tots, function (x) 1:x))
 
 		write.table(cis_summary, 
 					file = paste(pruning_dir_tables, "/cis_summary.txt", sep = ""),
