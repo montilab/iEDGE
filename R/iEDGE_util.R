@@ -393,18 +393,6 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 		hyper.trans=hyper.trans, hyper.trans.split=hyper.trans.split))
 }
 
-#' @import infotheo
-#' @export
-calc_mutinfo<-function(x, #alt
-	y,#cis 
-	z,#trans
-	nbins = 5){
-	y<-discretize(y, nbins=nbins)
-	z<-discretize(z, nbins=nbins)
-	I <- condinformation(x,discretize(z),discretize(y),method="emp")
-	return(I)
-}
-
 calc_sobel_y_z1<-function(x,y,z){
 
 	m1<-lm(t(z) ~ x)
@@ -459,8 +447,6 @@ calc_sobel_y_z1<-function(x,y,z){
 
 	return(res)
 }
-
-
 
 calc_sobel_y1_z<-function(x,y,z){
 
@@ -605,7 +591,6 @@ subset_group_min<-function(res, by = "trans", metric = "pvalue"){
 	return(res[, setdiff(colnames(res), "metric")])
 }
 
-
 calc_sobel<-function(x,y,z, y.names, z.names){
 	ny<-nrow(y)
 	nz<-nrow(z)
@@ -678,14 +663,9 @@ prune<-function(f_cis_tab, f_trans_tab,
 	nbins = 5,  
 	pruning_dir,
 	prunecol = "pvalue", prunethres = 0.25,
-	method = "cmi", #cmi or sobel
 	... #other args.file in run_pruning_hyperenrichment
 	) {
 	
-	if(!(method %in% c("cmi", "sobel"))){
-		stop("method must be one of \"cmi\" or \"sobel\"")
-	}
-
 	alt_id<-unique(as.character(f_cis_tab[, alteration_id]))
 	cn.fdat<-fData(cn)
 	cn.exprs<-exprs(cn)
@@ -714,7 +694,6 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 	p<-list()
 
-	
 	cis_summary<-data.frame(alteration = c(), cis = c(),  
 		mediated_trans = c(), mediated_trans_weighted = c(),
 		total_trans = c(),
@@ -724,6 +703,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 		pathway_mediated_trans = c())
 
 	for(i in alt_id){
+
 		cat(paste("alteration: ", i, "\n", sep = " "))	
 		i_ind <-which(cn.fdat[, alteration_id] == i)
 		x <- as.numeric(cn.exprs[i_ind,])
@@ -735,89 +715,24 @@ prune<-function(f_cis_tab, f_trans_tab,
 		trans_genes_n<-length(trans_genes)
 
 		if(cis_genes_n >0 & trans_genes_n > 0) {
-
+			
 			cis_vec<-ge.exprs[match(cis_genes, ge.fdat.genes),, drop = FALSE]
 			trans_vec<-ge.exprs[match(trans_genes, ge.fdat.genes),, drop = FALSE]
+			cat("Running actual model...\n")
 
-			if(method == "cmi"){
-				set.seed(seed)
-				sample_cg<-ge.fdat.genes[sample(1:ngenes, nsamples, replace = T)]
-				set.seed(seed+10)
-				sample_tg<-sample(trans_genes, min(nsamples, trans_genes_n), replace = T)
-			
-				cis_null_vec<-ge.exprs[match(sample_cg, ge.fdat.genes),, drop = FALSE]
-				trans_null_vec<-ge.exprs[match(sample_tg, ge.fdat.genes),, drop = FALSE]
+			res.actual[[i]]<-calc_sobel(x =x,y = cis_vec,z = trans_vec, 
+				y.names = rownames(cis_vec), z.names = rownames(trans_vec))
 
-				cat("Running actual model...\n")
-				res.actual[[i]]<-lapply(1:nrow(cis_vec),
-						function(k){
-							y<- cis_vec[k,]
-							y.name<-rownames(cis_vec)[k]
-							res<-sapply(1:nrow(trans_vec), function(j)
-									calc_mutinfo( x = x,y = y, z = trans_vec[j,], 
-										nbins = nbins))
+			write.table(res.actual[[i]], 
+				file = paste(pruning_dir_tables, "/actual_", i, ".txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
 
-							res.df<-data.frame(cis = y.name, 
-								trans = rownames(trans_vec), 
-								cmi = as.numeric(res))
-							return(res.df)	
-						})
-
-				res.actual[[i]]<-do.call(rbind, res.actual[[i]])
-
-				cat("Running null model...\n")
-				res.null[[i]]<-lapply(1:nrow(cis_null_vec),
-						function(k){
-							y<- cis_null_vec[k,]
-							y.name<-rownames(cis_null_vec)[k]
-							res<-sapply(1:nrow(trans_null_vec), function(j)
-									calc_mutinfo( x = x,
-										y = y,
-										z = trans_null_vec[j,], 
-										nbins = nbins))
-							res.df<-data.frame(cis = y.name, 
-								trans = rownames(trans_null_vec), 
-								cmi = as.numeric(res))
-							return(res.df)	
-						})
-
-				res.null[[i]]<-do.call(rbind, res.null[[i]])	
-
-				write.table(res.null[[i]], 
-					file = paste(pruning_dir_tables, "/null_", i, ".txt", sep = ""),
-					col.names = TRUE, row.names = FALSE, sep = "\t")
-				
-				nullecdf<-ecdf(res.null[[i]]$cmi)
-				res.actual[[i]]$pvalue<-nullecdf(res.actual[[i]]$cmi)
-
-				write.table(res.actual[[i]], 
-					file = paste(pruning_dir_tables, "/actual_", i, ".txt", sep = ""),
-					col.names = TRUE, row.names = FALSE, sep = "\t")
-
-				tab<-res.actual[[i]]
-				res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
-				write.table(res.sig[[i]], 
-					file = paste(pruning_dir_tables, "/sig_", i, ".txt", sep = ""),
-					col.names = TRUE, row.names = FALSE, sep = "\t")
-
-			} else { #method = sobel
-
-				cat("Running actual model...\n")
-
-				res.actual[[i]]<-calc_sobel(x =x,y = cis_vec,z = trans_vec, 
-					y.names = rownames(cis_vec), z.names = rownames(trans_vec))
-
-				write.table(res.actual[[i]], 
-					file = paste(pruning_dir_tables, "/actual_", i, ".txt", sep = ""),
-					col.names = TRUE, row.names = FALSE, sep = "\t")
-
-				tab<-res.actual[[i]]
-				tab<-subset_group_min(tab, by = "trans", metric = "fdr")
-				res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
-				write.table(res.sig[[i]], 
-					file = paste(pruning_dir_tables, "/sig_", i, ".txt", sep = ""),
-					col.names = TRUE, row.names = FALSE, sep = "\t")
-			}
+			tab<-res.actual[[i]]
+			tab<-subset_group_min(tab, by = "trans", metric = "fdr")
+			res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
+			write.table(res.sig[[i]], 
+				file = paste(pruning_dir_tables, "/sig_", i, ".txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
 
 			if(hasArg("gs")){
 				cat("Running hyperenrichment...\n")
@@ -829,11 +744,9 @@ prune<-function(f_cis_tab, f_trans_tab,
 				write_bipartite_JSON(tab = res.sig[[i]], 
 					hyper = hyper[[i]], f.dir.out = pruning_dir_js, header = i)
 
-			} else {
-				write_bipartite_JSON(tab = res.sig[[i]], 
-					f.dir.out = pruning_dir_js, header = i)
-			}
-
+			} else 
+				write_bipartite_JSON(tab = res.sig[[i]], f.dir.out = pruning_dir_js, header = i)
+			
 			#summary of cis genes by prioritization
 			for(cis in unique(res.actual[[i]][, "cis"])){
 				tot_trans<-sum(res.actual[[i]][, "cis"] %in% cis)
@@ -879,27 +792,23 @@ prune<-function(f_cis_tab, f_trans_tab,
 					frac_mediated_trans_weighted = mediated_trans_weighted/tot_trans,
 					num_pathway_mediated_trans = num_pathway_mediated_trans, 
 					pathway_mediated_trans = pathway_mediated_trans)
-
 				cis_summary<-rbind(cis_summary, cis_summary.add)
-
 			}
-
 			cat("\n")
 		}
 
-		cis_summary<-cis_summary[order(cis_summary[,"alteration"],
+	}
+
+	cis_summary<-cis_summary[order(cis_summary[,"alteration"],
 			-cis_summary[,"frac_mediated_trans_weighted"],decreasing=FALSE),]
 
-		a<-cis_summary[,"alteration"]
-		tots<-sapply(unique(a), function(x) sum(a == x))
-		ranks<-unlist(sapply(tots, function (x) 1:x))
-		cis_summary_full<-cbind(cis_summary, rank = ranks)
-
-		write.table(cis_summary_full, 
-					file = paste(pruning_dir_tables, "/cis_summary.txt", sep = ""),
-					col.names = TRUE, row.names = FALSE, sep = "\t")
-
-	}
+	a<-cis_summary[,"alteration"]
+	tots<-sapply(unique(a), function(x) sum(a == x))
+	ranks<-unlist(sapply(tots, function (x) 1:x))
+	cis_summary_full<-cbind(cis_summary, rank = ranks)
+	write.table(cis_summary_full, 
+		file = paste(pruning_dir_tables, "/cis_summary.txt", sep = ""),
+		col.names = TRUE, row.names = FALSE, sep = "\t")
 
 	if(hasArg("gs"))
 		return(list(actual = res.actual, null = res.null, sig = res.sig, p = p, hyper = hyper))
@@ -916,7 +825,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
 	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "h.all.v5.1",
 	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
-	prune.method = "cmi", prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
+	prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
 	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
 	if(is.na(gs.file)){ #use default gmt file 
@@ -979,7 +888,6 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 			nbins = mutinfo.bins,
 			gs = gs,
 			prunecol = prune.col, prunethres = prune.thres, 
-			method = prune.method,
 			min.drawsize = min.drawsize, 
 			hypercol = "fdr", 
 			hyperthres = hyperthres)
