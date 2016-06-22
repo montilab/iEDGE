@@ -893,9 +893,9 @@ prune<-function(f_cis_tab, f_trans_tab,
 		a<-cis_summary[,"alteration"]
 		tots<-sapply(unique(a), function(x) sum(a == x))
 		ranks<-unlist(sapply(tots, function (x) 1:x))
-		cis_summary<-cbind(cis_summary, rank = ranks)
+		cis_summary_full<-cbind(cis_summary, rank = ranks)
 
-		write.table(cis_summary, 
+		write.table(cis_summary_full, 
 					file = paste(pruning_dir_tables, "/cis_summary.txt", sep = ""),
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 
