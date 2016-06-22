@@ -714,11 +714,14 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 	p<-list()
 
+	
 	cis_summary<-data.frame(alteration = c(), cis = c(),  
 		mediated_trans = c(), mediated_trans_weighted = c(),
-		frac_mediated_trans = c(), frac_mediated_trans_weighted = c(),
 		total_trans = c(),
-		num_pathway_mediated_trans = c(), pathway_mediated_trans = c())
+		frac_mediated_trans = c(), 
+		frac_mediated_trans_weighted = c(),
+		num_pathway_mediated_trans = c(), 
+		pathway_mediated_trans = c())
 
 	for(i in alt_id){
 		cat(paste("alteration: ", i, "\n", sep = " "))	
@@ -816,8 +819,6 @@ prune<-function(f_cis_tab, f_trans_tab,
 					col.names = TRUE, row.names = FALSE, sep = "\t")
 			}
 
-
-
 			if(hasArg("gs")){
 				cat("Running hyperenrichment...\n")
 				hyper[[i]]<-run_pruning_hyperenrichment(tab = res.sig[[i]], 
@@ -832,7 +833,6 @@ prune<-function(f_cis_tab, f_trans_tab,
 				write_bipartite_JSON(tab = res.sig[[i]], 
 					f.dir.out = pruning_dir_js, header = i)
 			}
-
 
 			#summary of cis genes by prioritization
 			for(cis in unique(res.actual[[i]][, "cis"])){
@@ -853,8 +853,6 @@ prune<-function(f_cis_tab, f_trans_tab,
 						mediated_trans_weighted<-0
 				}
 
-
-
 				num_pathway_mediated_trans<-NA
 				pathway_mediated_trans<-NA
 
@@ -872,7 +870,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 					}
 					
 				}
-				
+
 				cis_summary.add<-data.frame(alteration = i, cis = cis,  
 					mediated_trans = mediated_trans, 
 					mediated_trans_weighted = mediated_trans_weighted,
