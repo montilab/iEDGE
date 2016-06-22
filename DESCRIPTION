@@ -16,7 +16,6 @@ Imports:
     Biobase,
     limma,
     plyr,
-    infotheo,
     XML,
     knitr,
     RColorBrewer,
