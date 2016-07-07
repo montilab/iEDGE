@@ -203,7 +203,13 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 				fdat.combined$interaction_type <-"trans"
 
 			fData(gep.keep)<-fdat.combined
-			treatment<-factor(as.numeric(exprs(cn)[i,]))
+			treatment.raw<-as.numeric(exprs(cn)[i,])
+			#remove na indices
+			rmna<-which(!is.na(treatment.raw))
+			gep.keep<-gep.keep[,rmna]
+			treatment.raw<-treatment.raw[rmna]
+			
+			treatment<-factor(treatment.raw)
 			levels(treatment)<-c("control", "case")
 			design.treatment<-data.frame(treatment = treatment)
 
