@@ -208,7 +208,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 			rmna<-which(!is.na(treatment.raw))
 			gep.keep<-gep.keep[,rmna]
 			treatment.raw<-treatment.raw[rmna]
-			
+
 			treatment<-factor(treatment.raw)
 			levels(treatment)<-c("control", "case")
 			design.treatment<-data.frame(treatment = treatment)
@@ -333,7 +333,8 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 
  	ngenes<-nrow(gep)
  	#run hyperenrichment with all sig cis genes in one geneset
- 	drawnList<-list(cis.sig = unique(as.character(res.cis$sig[, gepid])))
+ 	drawns<- unique(as.character(res.cis$sig[, gepid]))
+ 	drawnList<-list(cis.sig = drawns)
  	hyper.cis<-run_hyperEnrichment(drawn=drawnList,
 	    categories=gs,
 	    ntotal=ngenes,
@@ -346,7 +347,8 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	cat("Done!\n")
 
 	#run hyperenrichment with all sig trans genes in one geneset
-	drawnList<-list(trans.sig = unique(as.character(res.trans$sig[, gepid])))
+	drawns<-unique(as.character(res.trans$sig[, gepid]))
+	drawnList<-list(trans.sig = drawns)
  	hyper.trans<-run_hyperEnrichment(drawn=drawnList,
 	    categories=gs,
 	    ntotal=ngenes,
@@ -357,14 +359,29 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 		file = f.out)	
 	cat("Done!\n")
 
+	#run hyperenrichment with all sig cis and trans genes in one geneset
+	drawns<-unique(c(as.character(res.cis$sig[, gepid]),
+		as.character(res.trans$sig[, gepid])))
+
+	drawnList<-list(cistrans.sig = drawns)
+ 	hyper.trans<-run_hyperEnrichment(drawn=drawnList,
+	    categories=gs,
+	    ntotal=ngenes,
+	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
+ 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_cistrans.txt", sep = "")
+	cat(paste("Writing table to ", f.out, "\n", sep = ""))
+	write.table(hyper.trans, sep = "\t", col.names = TRUE, row.names = FALSE,
+		file = f.out)	
+	cat("Done!\n")
+
 	#run hyperenrichment with lists of sig cis genes separated by the alteration it is contained in
-	drawnList<-sapply(unique(res.cis$sig[, cnid]), 
+	drawns<-unique(res.cis$sig[, cnid])
+	drawnList<-sapply(drawns, 
 		function(x){
 			y<-res.cis$sig[res.cis$sig[, cnid] == x,]
 			return(unique(as.character(y[, gepid])))
 			})
-	
-	names(drawnList)<-unique(res.cis$sig[, cnid])
+	names(drawnList)<-drawns
  	hyper.cis.split<-run_hyperEnrichment(drawn=drawnList,
 	    categories=gs,
 	    ntotal=ngenes,
@@ -377,12 +394,13 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	cat("Done!\n")
 
 	#run hyperenrichment with lists of sig trans genes separated by the alteration it is contained in
-	drawnList<-sapply(unique(res.trans$sig[, cnid]), 
+	drawns<-unique(res.trans$sig[, cnid])
+	drawnList<-sapply(drawns, 
 		function(x){
 			y<-res.trans$sig[res.trans$sig[, cnid] == x,]
 			return(unique(as.character(y[, gepid])))
 			})	
-	names(drawnList)<-unique(res.trans$sig[, cnid])
+	names(drawnList)<-drawns
 
  	hyper.trans.split<-run_hyperEnrichment(drawn=drawnList,
 	    categories=gs,
@@ -390,6 +408,27 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
 
  	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_trans_splitbyalteration.txt", sep = "")
+	cat(paste("Writing table to ", f.out, "\n", sep = ""))
+	write.table(hyper.trans.split, sep = "\t", col.names = TRUE, row.names = FALSE,
+		file = f.out)
+
+
+	#run hyperenrichment with lists of sig cis and trans genes separated by the alteration it is contained in
+	drawns<-unique(c(res.cis$sig[, cnid], res.trans$sig[, cnid]))
+	drawnList<-sapply(drawns, 
+		function(x){
+			y1<-res.cis$sig[res.cis$sig[, cnid] == x,]
+			y2<-res.trans$sig[res.trans$sig[, cnid] == x,]
+			return(unique(c(as.character(y1[, gepid]), as.character(y2[, gepid]))))
+			})	
+	names(drawnList)<-drawns
+
+ 	hyper.trans.split<-run_hyperEnrichment(drawn=drawnList,
+	    categories=gs,
+	    ntotal=ngenes,
+	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
+
+ 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_cistrans_splitbyalteration.txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
 	write.table(hyper.trans.split, sep = "\t", col.names = TRUE, row.names = FALSE,
 		file = f.out)
