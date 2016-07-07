@@ -868,8 +868,8 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 		trans.onesided = onesided.trans,
 		fc.cis = fc.cis,
 		fc.trans = fc.trans,
-		uptest = "Amplification",
-		downtest = "Deletion"
+		uptest = uptest,
+		downtest = downtest
 		)
 
 	pruning_dir<-paste(base_dir, "/pruning", sep = "")
