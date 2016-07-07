@@ -821,7 +821,8 @@ prune<-function(f_cis_tab, f_trans_tab,
 #' @param iEDGE datalist consisting of cn (alteration), gep (gene expression), and cisgenes (list of genes in each alt)
 #' @param outdir output directory
 #' @export
-run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = "Unique.Name", cndesc = "Descriptor", cndir = "alteration_direction",
+run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", 
+	cnid = "Unique.Name", cndesc = "Descriptor", cndir = "alteration_direction",
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
 	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "h.all.v5.1",
 	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
@@ -851,6 +852,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 	dir.create(base_dir, recursive = TRUE)
 	de_dir<-paste(base_dir, "/tables", sep = "")
 
+
 	cat("Making Differential Expression tables...\n")
 	res<-iEDGE_DE(cn, gep, cisgenes,
 		header,
@@ -861,6 +863,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", cnid = 
 		fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
 		min.group = min.group,
 		min.drawsize = min.drawsize,  
+		cndir = cndir,
 		cis.onesided = onesided.cis, 
 		trans.onesided = onesided.trans,
 		fc.cis = fc.cis,
