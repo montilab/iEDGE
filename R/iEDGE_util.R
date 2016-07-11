@@ -878,6 +878,16 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 		HOMEDIR<-file.path(path.package("iEDGE"), "genesets")
 		gs.file<-paste(HOMEDIR, "/h.all.v5.1.symbols.gmt", sep =  "")
 	}
+	
+	cn<-dat$cn
+
+	#check duplicated altids
+	if(any(duplicated(fData(dat$cn)[, altid]))){
+		stop("Error: duplicated entries in fData(dat$cn)[, altid], make unique...")
+	}
+
+	gep<-dat$gep
+	cisgenes<-dat$cisgenes
 
 	cat("Reading genesets..\n")
 	gs<-read_gmt(gs.file)$genesets
@@ -886,9 +896,7 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 		return(unique(do.call(c,a)))
 	})
 
-	cn<-dat$cn
-	gep<-dat$gep
-	cisgenes<-dat$cisgenes
+
 	cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
 
 	dir.create(outdir, recursive = TRUE)
@@ -946,9 +954,11 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 	html_dir<-paste(base_dir, "/html", sep = "")
 	jsdir<-file.path(path.package("iEDGE"), "javascript")
 
-	iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
+	ui<-iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
 		transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
 		outdir = html_dir, jsdir = jsdir, pruning = pruning, pruningjsdir = paste(pruning_dir, "/js", sep = ""),
 		altid = cnid, altdesc = cndesc, geneid = gepid, 
 		cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
+
+	return(list(DE = res, pruning = pruning, summary = ui))
 }

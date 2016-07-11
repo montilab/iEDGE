@@ -443,7 +443,6 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 	          overwrite = TRUE, recursive = FALSE, 
 	          copy.mode = TRUE)
 
-		#doc.html = htmlTreeParse(template, useInternal = TRUE)
 		doc.html = htmlTreeParse(template, useInternalNodes = TRUE)
 		temp.src = "temp.js"
 		new.src = paste(i.basename, headeradd, i.ext,sep = "")
@@ -462,7 +461,6 @@ make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "",
 
 		f.out  = paste(f.dir.out, "/", gsub(".js","",i.base), headeradd, ".html", sep = "")
 		#save to html for each JSON input file
-		
 		saveXML(doc.html, file = f.out)
 	}
 }
@@ -473,7 +471,7 @@ get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisge
 	if (nrow(cistab)>=1) numcis <- length(which(cistab[, altid] == x))
 	if (nrow(transtab)>=1) numtrans <- length(which(transtab[, altid] == x))
 	
-	ind.cis<-which(fData(cn)[,altid] == x)
+	ind.cis<-which(fData(cn)[,altid] == x)[1]
 	if(is.na(altdesc)) descriptor<-NA
 	else descriptor<-fData(cn)[, altdesc][ind.cis]
 	
@@ -620,4 +618,5 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 			header = "", headeradd = "", 
 			template = paste(outdir, "/", "template_bipartite.html", sep = ""))
 	}
+	return(summarytab)
 }
