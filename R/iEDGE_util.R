@@ -878,12 +878,12 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 		HOMEDIR<-file.path(path.package("iEDGE"), "genesets")
 		gs.file<-paste(HOMEDIR, "/h.all.v5.1.symbols.gmt", sep =  "")
 	}
-	
+
 	cn<-dat$cn
 
 	#check duplicated altids
-	if(any(duplicated(fData(dat$cn)[, altid]))){
-		stop("Error: duplicated entries in fData(dat$cn)[, altid], make unique...")
+	if(any(duplicated(fData(dat$cn)[, cnid]))){
+		stop("Error: duplicated entries in fData(dat$cn)[, cnid], make unique...")
 	}
 
 	gep<-dat$gep
