@@ -3,14 +3,13 @@
 <script src="http://d3js.org/d3.v3.min.js" id = "d3"></script>
 
 <svg width=1500 height=75 id="mainplot">
-
+  <g id="buttons"></g>
   <g id="mainheader"></g>
   <g id="subheader"></g>
  
 </svg>
 
 <svg width=1500 height=500 id="mainplot">
-
   <g id="cisplot"></g>
   <g id="transplot"></g>
   <g id="edgeplot"></g>
@@ -31,12 +30,14 @@
   var hyperedgescis = {};
   var hypergsets =[];
   var hyperedges = [];
+  var selectedButton = "";
 
 </script>
 
 <script src="temp.js" id = "jslink"></script>
 
 <script id = "bipartite">
+
 
   var x1 = 200;
   var x2 = 400;
@@ -59,6 +60,7 @@
 
   //formats data input for sidebars
   function formatBarData(data) {
+    if(!data){return [];}
     if(data.length == 0) {return([]);}
     var datasize = data.map(function (i) {return parseInt(i[1]);});
     var datacolor = data.map(function (i) {return i[2];});
@@ -85,7 +87,7 @@
   //uniright = 1 per label on right
   //otherwise break bar into fractions depending on how many outgoing edges
   function formatEdgeData(left, right, links, colorby, unileft, uniright){
-   
+    if(!left || !right || !links){return [];};
     if(right.length == 0 | left.length == 0 | links.length == 0){return([])};
 
     var arr = links; 
@@ -329,10 +331,15 @@
 
   };
 
-  function drawAll(cis, trans, edges, hypergsets, hyperedges, hypergsetscis, hyperedgescis) {
+  function drawAll(cis, trans, edges, allhypergsets, allhyperedges, allhypergsetscis, allhyperedgescis) {
+    var hypergsets = allhypergsets[selectedButton];
+    var hyperedges = allhyperedges[selectedButton];
+    var hypergsetscis = allhypergsetscis[selectedButton];
+    var hyperedgescis = allhyperedgescis[selectedButton];
+
     cisData = formatBarData(cis);
     transData = formatBarData(trans);
-    edgesData = formatEdgeData(cisData, transData, edges,0, false, false);
+    edgesData = formatEdgeData(cisData, transData, edges, 0, false, false);
     drawBar(cisData, x1, width, "cisplot", 0);
     drawBar(transData, x2, width, "transplot",1);
     drawEdges(edgesData, x1+width, x2, "edgeplot");
@@ -344,7 +351,6 @@
     drawBar(hyperData, x3, width, "hyperplot", 1);
     drawEdges(hyperEdgesData, x2label1, x3, "edgehyperplot");
     drawlabels(hyperData, "hyperlabel", x3label1, x3label2, x3label3, x3label4, x3label5); 
-
   }
 
   //update without hyper
@@ -385,9 +391,11 @@
       return(j);
     });
 
-    if(cisname in hypergsetscis){
-      var hyper2 = hypergsetscis[cisname];
-      var hyperedges2 = hyperedgescis[cisname];
+    var selectedhypergsetscis = hypergsetscis[selectedButton];
+    var selectedhyperedgescis = hyperedgescis[selectedButton]; 
+    if(selectedhypergsetscis && cisname in selectedhypergsetscis){
+      var hyper2 = selectedhypergsetscis[cisname];
+      var hyperedges2 = selectedhyperedgescis[cisname];
       return([cis, trans2, edges2, hyper2, hyperedges2]);
     } else {
       return([cis, trans2, edges2, [], []])
@@ -402,8 +410,7 @@
   }
 
   function transitionOut() {
-
-     drawUpdate(cis, trans, edges, hypergsets, hyperedges);
+     drawUpdate(cis, trans, edges, hypergsets[selectedButton], hyperedges[selectedButton]);
     
   }
 
@@ -424,11 +431,41 @@
         .style('font-weight',textstyle)
         .text(function(i){
           return(i[0]);});
+
+  };
+
+  function updateHyper(arg) {
+    selectedButton = arg.value;
+    drawAll(cis, trans, edges, hypergsets, hyperedges, hypergsetscis, hyperedgescis);
+  };
+
+  //add buttons
+  function addButtons() {
+    var buttonNames = Object.keys(hypergsets).reverse();
+    if (buttonNames.length > 0) {
+      selectedButton = buttonNames[buttonNames.length - 1];
+    }
+      // Use jquery to insert a button with this name
+      d3.select("#mainheader").append("foreignObject")
+            .attr("x",800)
+            .attr("y",16)
+            .attr("width",200)
+            .attr("height",25).append("xhtml:body")
+    .style("margin",0)
+    .style("padding",0)
+            
+            .append("select")
+            .attr("onchange", "updateHyper(this)")
+
+      .selectAll("option").data(buttonNames.reverse()).enter().insert("option", ":first-child")
+            .attr("value", function (d){return d;})
+            .html(function (d){return d;})
+            
   };
 
   //main call  
 
-  drawAll(cis, trans, edges, hypergsets, hyperedges, hypergsetscis, hyperedgescis)
+
   var headerlabels = ["gene", "count", "percent", "gene", "count", "percent",
   "pathway", "count", "percent", "p-value", "fdr"]
   var headerxpos = [x1label1, x1label2, x1label3, x2label1, x2label2, x2label3, 
@@ -439,10 +476,14 @@
   var mainzipped = mainlabels.map(function (e, i) {return [mainlabels[i], 
       mainxpos[i]];});
   drawheaders(mainzipped, "mainheader", 25, 15, "bold");
+  addButtons();
 
   var headerzipped = headerlabels.map(function (e, i) {return [headerlabels[i], 
       headerxpos[i]];});
   drawheaders(headerzipped, "subheader", 60, 10, "normal");
+
+  drawAll(cis, trans, edges, hypergsets, hyperedges, hypergsetscis, hyperedgescis)
+
 
 </script>
 

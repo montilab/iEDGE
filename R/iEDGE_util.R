@@ -1,3 +1,11 @@
+# lapply wrapper preserving the names
+lapplyn<-function(dat, fn){
+	datn<-names(dat)
+	res<-lapply(dat, fn)
+	names(res)<-datn
+	return(res)
+}
+
 #' @export
 #' @import sva
 correct_batch<-function(eset, batch.name = "batch", method = "lm" #lm or combat
@@ -6,7 +14,7 @@ correct_batch<-function(eset, batch.name = "batch", method = "lm" #lm or combat
 	batch<-as.factor(pData(eset)[, batch.name])
 	if(method == "lm"){
 		mat<-t(apply(exprs(eset), 1, function(i){
-			y<- as.numeric(i)
+			y<- suppressWarnings(as.numeric(i))
 			res<-lm(y ~ batch)
 			return(coef(res)[1] + resid(res))
 			}))
@@ -203,7 +211,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 				fdat.combined$interaction_type <-"trans"
 
 			fData(gep.keep)<-fdat.combined
-			treatment.raw<-as.numeric(exprs(cn)[i,])
+			treatment.raw<-suppressWarnings(as.numeric(exprs(cn)[i,]))
 			#remove na indices
 			rmna<-which(!is.na(treatment.raw))
 			gep.keep<-gep.keep[,rmna]
@@ -257,6 +265,22 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	return(res.list)
 }
 
+
+get_sig_split<-function(tab, cnid, gepid){
+	res<-sapply(unique(tab[, cnid]), 
+			function(x){
+				y<-tab[tab[, cnid] == x,]
+				return(unique(as.character(y[, gepid])))
+				}, USE.NAMES = TRUE)
+	return(res)
+}
+
+get_sig_single<-function(tab, gepid, nm){
+	res<-list()
+	res[[nm]]<-unique(as.character(tab[, gepid]))
+	return(res)
+}
+
 #' iEDGE_DE performs differential expression analysis and pathway enrichment and saves to text tables
 #' @export
 iEDGE_DE<-function(cn, gep, cisgenes,
@@ -264,7 +288,6 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	gepid, cnid,  	
 	f.dir.out, 
 	gs, #genset for hyper
-	gs.file.name,
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, 
 	min.group = 3,
 	min.drawsize = 3,  
@@ -276,7 +299,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	... #other parameters in make_iEDGE
 	){
 
-	dir.create(f.dir.out, recursive =TRUE)
+	suppressWarnings(dir.create(f.dir.out, recursive =TRUE))
 	cat("Performancing cis analysis...\n")
 	res.cis<-make_iEDGE(gep = gep, 
  		cn = cn,
@@ -318,6 +341,18 @@ iEDGE_DE<-function(cn, gep, cisgenes,
  		fc = fc.trans,
  		...)
 
+
+
+	res.cis.sig<-res.cis$sig
+	res.trans.sig<-res.trans$sig
+	res.trans.sig.up<-res.trans.sig[res.trans.sig[, "high.class"] %in% "case",]
+	res.trans.sig.dn<-res.trans.sig[res.trans.sig[, "high.class"] %in% "control",]
+	
+
+	res.cistrans.sig<-rbind(res.cis.sig, res.trans.sig)
+	res.cistrans.sig.up<-rbind(res.cis.sig, res.trans.sig.up)
+	res.cistrans.sig.dn<-rbind(res.cis.sig, res.trans.sig.dn)
+
 	if(is.na(fc.trans)) fc_trans_header <- ""
 	else fc_trans_header<-paste("_fc_", fc.trans, sep = "")
 
@@ -332,110 +367,57 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	cat("\nPerforming hyperEnrichment analysis...\n")
 
  	ngenes<-nrow(gep)
- 	#run hyperenrichment with all sig cis genes in one geneset
- 	drawns<- unique(as.character(res.cis$sig[, gepid]))
- 	drawnList<-list(cis.sig = drawns)
- 	hyper.cis<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
-	    ntotal=ngenes,
-	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
- 	f.out<-paste(f.dir.out, "/", header, 
- 		"_hyperEnrichment_",gs.file.name,"_cis.txt", sep = "")	
-	cat(paste("Writing table to ", f.out, "\n", sep = ""))
-	write.table(hyper.cis, sep = "\t", col.names = TRUE, row.names = FALSE,
-		file = f.out)
-	cat("Done!\n")
 
-	#run hyperenrichment with all sig trans genes in one geneset
-	drawns<-unique(as.character(res.trans$sig[, gepid]))
-	drawnList<-list(trans.sig = drawns)
- 	hyper.trans<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
-	    ntotal=ngenes,
-	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_trans.txt", sep = "")
-	cat(paste("Writing table to ", f.out, "\n", sep = ""))
-	write.table(hyper.trans, sep = "\t", col.names = TRUE, row.names = FALSE,
-		file = f.out)	
-	cat("Done!\n")
+ 	hyper<-lapply(names(gs), function(i){
 
-	#run hyperenrichment with all sig cis and trans genes in one geneset
-	drawns<-unique(c(as.character(res.cis$sig[, gepid]),
-		as.character(res.trans$sig[, gepid])))
+	 	gs.i<-gs[[i]]
+	 	gs.file.name<-i
+	 	#run hyperenrichment with all sig cis genes in one geneset
 
-	drawnList<-list(cistrans.sig = drawns)
- 	hyper.trans<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
-	    ntotal=ngenes,
-	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_cistrans.txt", sep = "")
-	cat(paste("Writing table to ", f.out, "\n", sep = ""))
-	write.table(hyper.trans, sep = "\t", col.names = TRUE, row.names = FALSE,
-		file = f.out)	
-	cat("Done!\n")
+	 	drawns<-list()
+	 	drawns[["cis"]]<-get_sig_single(res.cis.sig, gepid, "cis")
+	 	drawns[["trans"]]<-get_sig_single(res.cis.sig, gepid, "trans")
+	 	drawns[["trans.up"]]<-get_sig_single(res.trans.sig.up, gepid, "trans.up")
+	 	drawns[["trans.dn"]]<-get_sig_single(res.trans.sig.dn, gepid, "trans.dn")
 
-	#run hyperenrichment with lists of sig cis genes separated by the alteration it is contained in
-	drawns<-unique(res.cis$sig[, cnid])
-	drawnList<-sapply(drawns, 
-		function(x){
-			y<-res.cis$sig[res.cis$sig[, cnid] == x,]
-			return(unique(as.character(y[, gepid])))
-			})
-	names(drawnList)<-drawns
- 	hyper.cis.split<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
-	    ntotal=ngenes,
-	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
+	 	drawns[["cistrans"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans")
+	 	drawns[["cistrans.up"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans.up")
+		drawns[["cistrans.dn"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans.dn")
 
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_cis_splitbyalteration.txt", sep = "")
-	cat(paste("Writing table to ", f.out, "\n", sep = ""))
-	write.table(hyper.cis.split, sep = "\t", col.names = TRUE, row.names = FALSE,
-		file = f.out)		
-	cat("Done!\n")
+	 	drawns[["cis_split"]]<-get_sig_split(res.cis.sig, cnid, gepid)
+	 	drawns[["trans_split"]]<-get_sig_split(res.trans.sig, cnid, gepid)
+	 	drawns[["trans.up_split"]]<-get_sig_split(res.trans.sig.up, cnid, gepid)
+	 	drawns[["trans.dn_split"]]<-get_sig_split(res.trans.sig.dn, cnid, gepid)
 
-	#run hyperenrichment with lists of sig trans genes separated by the alteration it is contained in
-	drawns<-unique(res.trans$sig[, cnid])
-	drawnList<-sapply(drawns, 
-		function(x){
-			y<-res.trans$sig[res.trans$sig[, cnid] == x,]
-			return(unique(as.character(y[, gepid])))
-			})	
-	names(drawnList)<-drawns
+	 	drawns[["cistrans_split"]]<-get_sig_split(res.cistrans.sig, cnid, gepid)
+	 	drawns[["cistrans.up_split"]]<-get_sig_split(res.cistrans.sig.up, cnid, gepid)
+	 	drawns[["cistrans.dn_split"]]<-get_sig_split(res.cistrans.sig.dn, cnid, gepid)
 
- 	hyper.trans.split<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
-	    ntotal=ngenes,
-	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
+	 	hyper.res<-lapply(names(drawns), function(i){
+	 		return(run_hyperEnrichment_unpruned(ngenes, 
+	 		gs.i, gs.file.name, drawns[[i]], f.dir.out, header, i))
+	 		})
+	 	names(hyper.res)<-names(drawns)
+		return(hyper.res)
+	})
+	names(hyper)<-names(gs)
 
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_trans_splitbyalteration.txt", sep = "")
-	cat(paste("Writing table to ", f.out, "\n", sep = ""))
-	write.table(hyper.trans.split, sep = "\t", col.names = TRUE, row.names = FALSE,
-		file = f.out)
-
-
-	#run hyperenrichment with lists of sig cis and trans genes separated by the alteration it is contained in
-	drawns<-unique(c(res.cis$sig[, cnid], res.trans$sig[, cnid]))
-	drawnList<-sapply(drawns, 
-		function(x){
-			y1<-res.cis$sig[res.cis$sig[, cnid] == x,]
-			y2<-res.trans$sig[res.trans$sig[, cnid] == x,]
-			return(unique(c(as.character(y1[, gepid]), as.character(y2[, gepid]))))
-			})	
-	names(drawnList)<-drawns
-
- 	hyper.trans.split<-run_hyperEnrichment(drawn=drawnList,
-	    categories=gs,
-	    ntotal=ngenes,
-	    min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
-
- 	f.out<-paste(f.dir.out, "/", header, "_hyperEnrichment_",gs.file.name,"_cistrans_splitbyalteration.txt", sep = "")
-	cat(paste("Writing table to ", f.out, "\n", sep = ""))
-	write.table(hyper.trans.split, sep = "\t", col.names = TRUE, row.names = FALSE,
-		file = f.out)
+	hyperhm<-lapply(names(gs), function(i){
+			hyperi<-hyper[[i]]
+			hyperinames<-grep("split", names(hyperi), value = T)
+			hm<-lapply(hyperinames, function(j){
+					hmfile<-paste(f.dir.out, "/", header, 
+    					"_hyperEnrichment_",i,"_", j,".pdf", sep = "")
+					get_enrich_heatmap(hyperi[[j]], outfile = hmfile,
+						margins = c(13, 23), cexRow = 0.5, cexCol=1)
+				})
+			names(hm)<-hyperinames
+		return(hm)
+		})
+	names(hyperhm)<-names(gs)
 
 	return(list(cis=res.cis, trans =res.trans, 
-		hyper.cis=hyper.cis, hyper.cis.split=hyper.cis.split, 
-		hyper.trans=hyper.trans, hyper.trans.split=hyper.trans.split))
+		hyper = hyper, hyperhm = hyperhm))
 }
 
 calc_sobel_y_z1<-function(x,y,z){
@@ -537,8 +519,8 @@ calc_sobel_y1_z<-function(x,y,z){
 }
 
 calc_sobel_y1_z1<-function(x,y,z){
-	y<-as.numeric(y)
-	z<-as.numeric(z)
+	y<-suppressWarnings(as.numeric(y))
+	z<-suppressWarnings(as.numeric(z))
 	m1<-lm(z ~ x)
 	tau0<-m1$coefficients[2]
 	m2<-lm(y ~ x)
@@ -653,50 +635,6 @@ calc_sobel<-function(x,y,z, y.names, z.names){
 	return(res)
 }
 
-run_pruning_hyperenrichment<-function(tab, tab.name, gs, ngenes, 
-	min.drawsize = 3, 
-	hypercol = "fdr", 
-	hyperthres = 0.25, 
-	f.dir.out){
-
-	drawnList<-list(drawn = unique(tab$trans))
-	hyperunion<-run_hyperEnrichment(drawn=drawnList,
-		categories=gs,
-		ntotal=ngenes,
-		min.drawsize = min.drawsize, 
-		mht = TRUE, 
-		verbose = TRUE, 
-		order = TRUE, 
-		hypercol = hypercol, hyperthres = hyperthres)
-	
-	if(nrow(hyperunion)>0)
-	write.table(hyperunion, file = paste(f.dir.out, "/", tab.name, ".txt", sep = ""), 
-		sep = "\t", row.names = FALSE)
-		
-	cis<-unique(tab$cis)
-	hyperbyalt<-lapply(cis, function(j){
-			i.sub<-tab[tab$cis %in% j,]
-			drawnList <- list(drawn = unique(i.sub$trans))
-			hyper<-run_hyperEnrichment(drawn=drawnList,
-	    		categories=gs,
-	    		ntotal=ngenes,
-	    		min.drawsize = min.drawsize, 
-	    		mht = TRUE, 
-	    		verbose = TRUE, 
-	    		order = TRUE,
-	    		hypercol = hypercol, hyperthres = hyperthres)
-			
-			if(nrow(hyper)>0)
-			write.table(hyper, file = paste(f.dir.out, "/", tab.name, "_", j, ".txt", sep = ""), 
-						sep = "\t", row.names = FALSE)
-			return(hyper)
-			})
-	names(hyperbyalt)<-cis
-
-	return(list(hyperunion = hyperunion, hyperbyalt = hyperbyalt))
-}
-
-
 #' @import Biobase
 #' @export
 prune<-function(f_cis_tab, f_trans_tab, 
@@ -708,7 +646,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 	nbins = 5,  
 	pruning_dir,
 	prunecol = "pvalue", prunethres = 0.25,
-	... #other args.file in run_pruning_hyperenrichment
+	gs, ... #other args.file in run_hyperEnrichment_pruned
 	) {
 	
 	alt_id<-unique(as.character(f_cis_tab[, alteration_id]))
@@ -723,35 +661,38 @@ prune<-function(f_cis_tab, f_trans_tab,
 	rownames(ge.exprs)<-ge.fdat.genes
 
 	res.actual<-list()
-	res.null<-list()
 	res.sig<-list()
 
 	pruning_dir_tables<-paste(pruning_dir, "/tables", sep = "")
 	pruning_dir_js<-paste(pruning_dir, "/js", sep = "")
 
-	dir.create(pruning_dir_tables, recursive = TRUE)
+	suppressWarnings(dir.create(pruning_dir_tables, recursive = TRUE))
+	suppressWarnings(dir.create(pruning_dir_js, recursive = TRUE))
 
-	if(hasArg("gs")){
+
+	hyper<-list()
+
+	#create pruning/hyperEnrichment subdirectories
+	suppressWarnings(if(!is.na(gs)){
 		pruning_dir_hyper<-paste(pruning_dir, "/hyperEnrichment", sep = "")
-		dir.create(pruning_dir_hyper, recursive = TRUE)
-		hyper<-list()
-	}
+		suppressWarnings(dir.create(pruning_dir_hyper, recursive = TRUE))
+		
+		for(j in names(gs)){
+			pruning_dir_hyper_gs<-paste(pruning_dir_hyper, "/", j, sep = "")
+			suppressWarnings(dir.create(pruning_dir_hyper_gs))
+		}
+	})
 
-	p<-list()
-
-	cis_summary<-data.frame(alteration = c(), cis = c(),  
-		mediated_trans = c(), mediated_trans_weighted = c(),
-		total_trans = c(),
-		frac_mediated_trans = c(), 
-		frac_mediated_trans_weighted = c(),
-		num_pathway_mediated_trans = c(), 
-		pathway_mediated_trans = c())
-
+	cis_summary<-data.frame(c())
+	
 	for(i in alt_id){
 
-		cat(paste("alteration: ", i, "\n", sep = " "))	
+		cat(paste("Running pruning for ", i, "\n"))
+
+		hyper[[i]]<-list()
+
 		i_ind <-which(cn.fdat[, alteration_id] == i)
-		x <- as.numeric(cn.exprs[i_ind,])
+		x <- suppressWarnings(as.numeric(cn.exprs[i_ind,]))
 		cis_genes<-as.character(f_cis_tab[which(f_cis_tab[,alteration_id] == i), gene_id])
 		trans_genes<-as.character(f_trans_tab[which(f_trans_tab[,alteration_id] == i), gene_id])
 		cis_genes<-intersect(cis_genes, ge.fdat.genes)
@@ -763,34 +704,34 @@ prune<-function(f_cis_tab, f_trans_tab,
 			
 			cis_vec<-ge.exprs[match(cis_genes, ge.fdat.genes),, drop = FALSE]
 			trans_vec<-ge.exprs[match(trans_genes, ge.fdat.genes),, drop = FALSE]
-			cat("Running actual model...\n")
-
-			res.actual[[i]]<-calc_sobel(x =x,y = cis_vec,z = trans_vec, 
+			
+			res.actual[[i]]<-calc_sobel(x =x, y = cis_vec,z = trans_vec, 
 				y.names = rownames(cis_vec), z.names = rownames(trans_vec))
-
-			write.table(res.actual[[i]], 
-				file = paste(pruning_dir_tables, "/actual_", i, ".txt", sep = ""),
-				col.names = TRUE, row.names = FALSE, sep = "\t")
 
 			tab<-res.actual[[i]]
 			tab<-subset_group_min(tab, by = "trans", metric = "fdr")
 			res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
-			write.table(res.sig[[i]], 
-				file = paste(pruning_dir_tables, "/sig_", i, ".txt", sep = ""),
-				col.names = TRUE, row.names = FALSE, sep = "\t")
 
-			if(hasArg("gs")){
-				cat("Running hyperenrichment...\n")
-				hyper[[i]]<-run_pruning_hyperenrichment(tab = res.sig[[i]], 
-					tab.name = i, ngenes = ngenes,
-					f.dir.out = pruning_dir_hyper, ...)
+			suppressWarnings(if(!is.na(gs)){
+				
+				for(j in names(gs)){ #iterate through geneset compendiums
+					gs.curr<-gs[[j]]
+					pruning_dir_hyper_gs<-paste(pruning_dir_hyper, "/", j, sep = "")
+					cat("Running hyperenrichment...\n")
+					hyper[[i]][[j]]<-run_hyperEnrichment_pruned(tab = res.sig[[i]], 
+						tab.name = i, gs= gs.curr, ngenes = ngenes,
+						f.dir.out = pruning_dir_hyper_gs, ...)
+				}
 
-				cat("Writing pruning js file..\n")
 				write_bipartite_JSON(tab = res.sig[[i]], 
-					hyper = hyper[[i]], f.dir.out = pruning_dir_js, header = i)
+						hyper = hyper[[i]], f.dir.out = pruning_dir_js, header = i)
 
-			} else 
-				write_bipartite_JSON(tab = res.sig[[i]], f.dir.out = pruning_dir_js, header = i)
+			} 
+
+			else 
+				write_bipartite_JSON(tab = res.sig[[i]], 
+						f.dir.out = pruning_dir_js, header = i)
+			)
 			
 			#summary of cis genes by prioritization
 			for(cis in unique(res.actual[[i]][, "cis"])){
@@ -811,23 +752,38 @@ prune<-function(f_cis_tab, f_trans_tab,
 						mediated_trans_weighted<-0
 				}
 
-				num_pathway_mediated_trans<-NA
-				pathway_mediated_trans<-NA
+				num_path<-NA
+				paths<-NA
+				num_path_header<-"num_path"
+				paths_header<-"paths"
+				names(num_path)<-num_path_header
+				names(paths_header)<-paths_header
+				
+				suppressWarnings(if(!is.na(gs)){
+					cis.path<-lapply(names(gs), function(j){
+						num_pathway_mediated_trans<-0
+						pathway_mediated_trans<-""
 
-				if(hasArg("gs")){
-					num_pathway_mediated_trans<-0
-					pathway_mediated_trans<-""
+						if(cis %in% names(hyper[[i]][[j]][["hyperbyalt"]])){
+							hyper_cis<-hyper[[i]][[j]][["hyperbyalt"]][[cis]]
+							if(!is.null(hyper_cis))
+								num_pathway_mediated_trans<-nrow(hyper_cis)
+								if(num_pathway_mediated_trans > 0)
+									pathway_mediated_trans<-paste(as.character(hyper_cis[, "category"]),
+									 collapse = ",")
+						}
+						names(num_pathway_mediated_trans)<-paste("numpath_", j, sep = "")
+						names(pathway_mediated_trans)<-paste("paths_", j, sep = "")
+						return(list(num_pathway_mediated_trans, pathway_mediated_trans))
 
-					if(cis %in% names(hyper[[i]][["hyperbyalt"]])){
-						hyper_cis<-hyper[[i]][["hyperbyalt"]][[cis]]
-						if(!is.null(hyper_cis))
-							num_pathway_mediated_trans<-nrow(hyper_cis)
-							if(num_pathway_mediated_trans > 0)
-								pathway_mediated_trans<-paste(as.character(hyper_cis[, "category"]),
-								 collapse = ",")
-					}
-					
-				}
+					})
+
+					num_path<-lapply(cis.path, function(i) i[[1]])
+					names(num_path)<-paste(num_path_header, "_", names(gs), sep  = "")
+					paths<-lapply(cis.path, function(i) i[[2]])
+					names(paths)<-paste(paths_header, "_", names(gs), sep = "")
+
+				})
 
 				cis_summary.add<-data.frame(alteration = i, cis = cis,  
 					mediated_trans = mediated_trans, 
@@ -835,14 +791,37 @@ prune<-function(f_cis_tab, f_trans_tab,
 					total_trans = tot_trans,
 					frac_mediated_trans = mediated_trans/tot_trans, 
 					frac_mediated_trans_weighted = mediated_trans_weighted/tot_trans,
-					num_pathway_mediated_trans = num_pathway_mediated_trans, 
-					pathway_mediated_trans = pathway_mediated_trans)
+					num_path, 
+					paths)
+
 				cis_summary<-rbind(cis_summary, cis_summary.add)
 			}
 			cat("\n")
 		}
 
 	}
+
+	res.actual.alt<-lapply(names(res.actual), function(i){
+		cbind(data.frame(alt = i, res.actual[[i]]))
+		})
+	names(res.actual.alt)<-names(res.actual)
+
+	res.sig.alt<-lapply(names(res.sig), function(i){
+		cbind(data.frame(alt = rep(i, nrow(res.sig[[i]])), res.sig[[i]]))
+		})
+	names(res.sig.alt)<-names(res.sig)
+
+	res.combined.all<-Reduce(rbind, res.actual.alt)
+
+	write.table(res.combined.all, 
+				file = paste(pruning_dir_tables, "/pruned.all.txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
+
+	res.combined.sig<-Reduce(rbind, res.sig.alt)
+
+	write.table(res.combined.sig, 
+				file = paste(pruning_dir_tables, "/pruned.sig.txt", sep = ""),
+				col.names = TRUE, row.names = FALSE, sep = "\t")
 
 	cis_summary<-cis_summary[order(cis_summary[,"alteration"],
 			-cis_summary[,"frac_mediated_trans_weighted"],decreasing=FALSE),]
@@ -851,14 +830,16 @@ prune<-function(f_cis_tab, f_trans_tab,
 	tots<-sapply(unique(a), function(x) sum(a == x))
 	ranks<-unlist(sapply(tots, function (x) 1:x))
 	cis_summary_full<-cbind(cis_summary, rank = ranks)
+	rownames(cis_summary_full)<-NULL
 	write.table(cis_summary_full, 
 		file = paste(pruning_dir_tables, "/cis_summary.txt", sep = ""),
 		col.names = TRUE, row.names = FALSE, sep = "\t")
 
-	if(hasArg("gs"))
-		return(list(actual = res.actual, null = res.null, sig = res.sig, p = p, hyper = hyper))
+	suppressWarnings(if(!is.na(gs))
+		return(list(cis_summary = cis_summary_full, all = res.actual, sig = res.sig, hyper = hyper))
 	else 
-		return(list(actual = res.actual, null = res.null, sig = res.sig, p = p))
+		return(list(cis_summary = cis_summary_full, all = res.actual, sig = res.sig))
+		)
 
 }
 
@@ -866,17 +847,58 @@ prune<-function(f_cis_tab, f_trans_tab,
 #' @param iEDGE datalist consisting of cn (alteration), gep (gene expression), and cisgenes (list of genes in each alt)
 #' @param outdir output directory
 #' @export
-run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL", 
-	cnid = "Unique.Name", cndesc = "Descriptor", cndir = "alteration_direction",
-	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
-	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", gs.file.name = "h.all.v5.1",
+run_iEDGE<-function(dat, #iEDGE object
+	header, #header string for result file names
+	outdir, #directory for results
+	gs.file = NA, #vector of characters giving full path of gmt files for enrichment analysis
+	gepid = "SYMBOL", #colname in fData(dat$gep) indicating unique gene ids to display
+	cnid = "Unique.Name", #colname in fData(dat$cn) indicating unique alterations to display
+	cndesc = "Descriptor", #column in fData(dat$cn), can be NA if not available
+	cndir = "alteration_direction", #column in fData(dat$cn) indicating directions of one sided differential expression
+	#use NA if onesided.cis = FALSE and onesided.trans = FALSE
+	fdr.cis.cutoff = 0.25, #fdr cis cutoff
+	fdr.trans.cutoff = 0.05, #fdr trans cutoff
+	fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
+	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", 
 	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
 	prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
-	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
+	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE, 
+	html = TRUE, 
+	jsdir = NA, #default directory of iEDGE js files
+	cache = list(DE = NULL, prunning = NULL, ui = NULL) #optional, cached result of previous run_iEDGE 
+	){
 
-	if(is.na(gs.file)){ #use default gmt file 
-		HOMEDIR<-file.path(path.package("iEDGE"), "genesets")
-		gs.file<-paste(HOMEDIR, "/h.all.v5.1.symbols.gmt", sep =  "")
+
+
+	res<-NULL
+	pruning<-NULL
+	ui<-NULL
+
+	do.DE<-TRUE
+	do.pruning<-TRUE
+	do.ui<-TRUE
+
+	if(!is.null(cache[["DE"]])) {
+		res<-cache[["DE"]]
+		do.DE<-FALSE
+	}
+	if(!is.null(cache[["pruning"]])){
+		pruning<-cache[["pruning"]]
+		do.pruning<-FALSE
+	}
+
+	if(!is.null(cache[["ui"]])){
+		ui<-cache[["ui"]]
+		do.ui<-FALSE
+	}
+
+	do.gs<-TRUE
+	if(is.na(gs.file[1])){ 
+		do.gs<-FALSE
+	} else {
+		if(any(!file.exists(gs.file))){
+			stop("gs.file must be vector of gmt file names, full paths only")
+		}
 	}
 
 	cn<-dat$cn
@@ -889,76 +911,91 @@ run_iEDGE<-function(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 	gep<-dat$gep
 	cisgenes<-dat$cisgenes
 
-	cat("Reading genesets..\n")
-	gs<-read_gmt(gs.file)$genesets
-	gs<-sapply(gs, function(x){
-		a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
-		return(unique(do.call(c,a)))
-	})
-
-
-	cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
-
-	dir.create(outdir, recursive = TRUE)
+	suppressWarnings(dir.create(outdir, recursive = TRUE))
 	base_dir<-paste(outdir,"/", header, sep = "")
 
-	dir.create(base_dir, recursive = TRUE)
+	suppressWarnings(dir.create(base_dir, recursive = TRUE))
 	de_dir<-paste(base_dir, "/tables", sep = "")
 
+	gs<-NA
+	if(do.gs){
+		cat("Reading genesets..\n")
+		gs<-lapply(gs.file, function(i){
+			res<-read_gmt(i)$genesets
+			res<-sapply(res, function(x){
+				a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
+				return(unique(do.call(c,a)))
+			})
+			cat(paste("Geneset loaded:", i, "\n", sep = ""))
+			return(res)
+			})
+		names(gs)<-gsub(".gmt", "",basename(gs.file))
 
-	cat("Making Differential Expression tables...\n")
-	res<-iEDGE_DE(cn, gep, cisgenes,
-		header,
-		gepid, cnid,  	
-		f.dir.out = de_dir, 
-		gs = gs, 
-		gs.file.name = gs.file.name,
-		fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
-		min.group = min.group,
-		min.drawsize = min.drawsize,  
-		cndir = cndir,
-		cis.onesided = onesided.cis, 
-		trans.onesided = onesided.trans,
-		fc.cis = fc.cis,
-		fc.trans = fc.trans,
-		uptest = uptest,
-		downtest = downtest
-		)
 
-	pruning_dir<-paste(base_dir, "/pruning", sep = "")
+	}
+
+	if(do.DE){
+		cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
+
+		cat("Making Differential Expression tables...\n")
+		res<-iEDGE_DE(cn, gep, cisgenes,
+			header,
+			gepid, cnid,  	
+			f.dir.out = de_dir, 
+			gs = gs, 
+			fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
+			min.group = min.group,
+			min.drawsize = min.drawsize,  
+			cndir = cndir,
+			cis.onesided = onesided.cis, 
+			trans.onesided = onesided.trans,
+			fc.cis = fc.cis,
+			fc.trans = fc.trans,
+			uptest = uptest,
+			downtest = downtest
+			)
+	}
+
 	res.cis.sig<-res[["cis"]][["sig"]]
 	res.cis.full<-res[["cis"]][["full"]]
 	res.trans.sig<-res[["trans"]][["sig"]]
 
-	if(bipartite == TRUE){
-		
-		pruning<-prune(f_cis_tab =  res.cis.sig, 
-			f_trans_tab= res.trans.sig, 
-			cn = cn, 
-			gep = gep,
-			alteration_id = cnid,
-			gene_id = gepid,
-			seed =mutinfo.seed,
-			nsamples = mutinfo.nsamples, 
-			pruning_dir = pruning_dir, 
-			nbins = mutinfo.bins,
-			gs = gs,
-			prunecol = prune.col, prunethres = prune.thres, 
-			min.drawsize = min.drawsize, 
-			hypercol = "fdr", 
-			hyperthres = hyperthres)
-	} else {
-		pruning <-NA
+	pruning_dir<-paste(base_dir, "/pruning", sep = "")
+
+	if(do.pruning){
+		if(bipartite == TRUE){	
+			pruning<-prune(f_cis_tab =  res.cis.sig, 
+				f_trans_tab = res.trans.sig, 
+				cn = cn, 
+				gep = gep,
+				alteration_id = cnid,
+				gene_id = gepid,
+				seed = mutinfo.seed,
+				nsamples = mutinfo.nsamples, 
+				pruning_dir = pruning_dir, 
+				nbins = mutinfo.bins,
+				gs = gs,
+				prunecol = prune.col, prunethres = prune.thres, 
+				min.drawsize = min.drawsize, 
+				hypercol = "fdr", 
+				hyperthres = hyperthres)
+		} 
 	}
 
-	html_dir<-paste(base_dir, "/html", sep = "")
-	jsdir<-file.path(path.package("iEDGE"), "javascript")
+	if(do.ui){
+		if(html == TRUE){
+			html_dir<-paste(base_dir, "/html", sep = "")
+			if(is.na(jsdir))
+				jsdir<-file.path(path.package("iEDGE"), "javascript")
+	
+			ui<-iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
+				transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
+				outdir = html_dir, jsdir = jsdir, 
+				pruning = pruning, pruningjsdir = paste(pruning_dir, "/js", sep = ""),
+				altid = cnid, altdesc = cndesc, geneid = gepid, 
+				cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
+		} 
+	}
 
-	ui<-iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
-		transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
-		outdir = html_dir, jsdir = jsdir, pruning = pruning, pruningjsdir = paste(pruning_dir, "/js", sep = ""),
-		altid = cnid, altdesc = cndesc, geneid = gepid, 
-		cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
-
-	return(list(DE = res, pruning = pruning, summary = ui))
+	return(list(DE = res, pruning = pruning, ui = ui))
 }

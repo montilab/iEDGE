@@ -15,13 +15,75 @@ read_gmt<-function(f, split.char = '\t'){
   } 
   close(con)
 
-  genesets<-sapply(results.list, function(x) x[-(1:2)])
-  geneset.names<-unlist(sapply(results.list, function(x) x[1]))
-  geneset.descriptions<-unlist(sapply(results.list, function(x) x[2]))
+  genesets<-lapply(results.list, function(x) x[-(1:2)])
+  geneset.names<-unlist(lapply(results.list, function(x) x[1]))
+  geneset.descriptions<-unlist(lapply(results.list, function(x) x[2]))
   names(genesets)<-geneset.names
   res<-list(genesets = genesets, geneset.names = geneset.names, geneset.descriptions = geneset.descriptions)
   return(res)
 }
+
+
+run_hyperEnrichment_unpruned<-function(ngenes, gs, gs.file.name, drawnList, f.dir.out, header, header2){
+  #run hyperenrichment with all sig cis genes in one geneset
+
+  res<-run_hyperEnrichment(drawn=drawnList,
+      categories=gs,
+      ntotal=ngenes,
+      min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
+  f.out<-paste(f.dir.out, "/", header, 
+    "_hyperEnrichment_",gs.file.name,"_", header2,".txt", sep = "")  
+  cat(paste("Writing table to ", f.out, "\n", sep = ""))
+  write.table(res, sep = "\t", col.names = TRUE, row.names = FALSE,
+    file = f.out)
+  cat("Done!\n")
+  return(res)
+
+}
+
+run_hyperEnrichment_pruned<-function(tab, tab.name, gs, ngenes, 
+  min.drawsize = 3, 
+  hypercol = "fdr", 
+  hyperthres = 0.25, 
+  f.dir.out){
+
+  drawnList<-list(drawn = unique(tab$trans))
+  hyperunion<-run_hyperEnrichment(drawn=drawnList,
+    categories=gs,
+    ntotal=ngenes,
+    min.drawsize = min.drawsize, 
+    mht = TRUE, 
+    verbose = TRUE, 
+    order = TRUE, 
+    hypercol = hypercol, hyperthres = hyperthres)
+  
+  if(nrow(hyperunion)>0)
+  write.table(hyperunion, file = paste(f.dir.out, "/", tab.name, ".txt", sep = ""), 
+    sep = "\t", row.names = FALSE)
+    
+  cis<-unique(tab$cis)
+  hyperbyalt<-lapply(cis, function(j){
+      i.sub<-tab[tab$cis %in% j,]
+      drawnList <- list(drawn = unique(i.sub$trans))
+      hyper<-run_hyperEnrichment(drawn=drawnList,
+          categories=gs,
+          ntotal=ngenes,
+          min.drawsize = min.drawsize, 
+          mht = TRUE, 
+          verbose = TRUE, 
+          order = TRUE,
+          hypercol = hypercol, hyperthres = hyperthres)
+      
+      if(nrow(hyper)>0)
+      write.table(hyper, file = paste(f.dir.out, "/", tab.name, "_", j, ".txt", sep = ""), 
+            sep = "\t", row.names = FALSE)
+      return(hyper)
+      })
+  names(hyperbyalt)<-cis
+
+  return(list(hyperunion = hyperunion, hyperbyalt = hyperbyalt))
+}
+
 
 #' \code{run_hyperEnrichment_wrapper} wrapper for run_hyperEnrichment
 #' @param gs.tab DE results table from gistic2ge
@@ -95,7 +157,8 @@ run_hyperEnrichment_wrapper<-function(gs.tab, #gistic2ge_sig
 #' @return limma topTable data frame
 #' @export
 #'
-run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE, verbose = FALSE, order = TRUE,
+run_hyperEnrichment<-function(drawn, categories, ntotal, 
+  min.drawsize = 4, mht = TRUE, verbose = FALSE, order = TRUE,
   hypercol = "fdr", hyperthres = NULL){
 
   if(length(drawn) == 0){
@@ -118,7 +181,7 @@ run_hyperEnrichment<-function(drawn, categories, ntotal, min.drawsize = 4, mht =
   num_col<-c("pval", "fdr", "set.annotated", "set.size", "category.annotated", "total.annotated")
 
   for (i in num_col)
-    res.HE.df[,i] <-as.numeric(paste(res.HE.df[, i]))
+    res.HE.df[,i] <-suppressWarnings(as.numeric(paste(res.HE.df[, i])))
 
   res.HE.df<-res.HE.df[apply(res.HE.df, 1, function(x) !all(is.na(x))),]
 
@@ -180,15 +243,15 @@ hyperEnrichment<-function (drawn, categories, ntotal = length(unique(unlist(cate
                   sep = "")
                 percent <- percent + 0.1
             }
-            VERBOSE(verbose, " (min fdr: ", signif(min(as.numeric(tmp[, 
-                "fdr"])), 2), ")\n", sep = "")
+            VERBOSE(verbose, " (min fdr: ", signif(min(suppressWarnings(as.numeric(tmp[, 
+                "fdr"]))), 2), ")\n", sep = "")
         }
         VERBOSE(verbose, "done.\n")
         colnames(enrich) <- c("set", cnames)
         enrich <- enrich[1:base, , drop = F]
         if (mht) {
             VERBOSE(verbose, "MHT-correction across multiple draws ..")
-            enrich[, "fdr"] <- pval2fdr(as.numeric(enrich[, "pval"]))
+            enrich[, "fdr"] <- pval2fdr(suppressWarnings(as.numeric(enrich[, "pval"])))
             VERBOSE(verbose, "done.\n")
         }
         VERBOSE(verbose, "Categories tested: ", rjust(length(categories), 
@@ -222,11 +285,11 @@ hyperEnrichment<-function (drawn, categories, ntotal = length(unique(unlist(cate
         ndrawn = ndrawn, ncats = ncats, ntot = ntotal, category = names(categories))
     enrich <- cbind(enrich, hits = sapply(categories, function(x, 
         y) paste(intersect(x, y), collapse = ","), m.idx))
-    ord <- order(as.numeric(enrich[, "pval"]))
+    ord <- order(suppressWarnings(as.numeric(enrich[, "pval"])))
     enrich <- enrich[ord, , drop = F]
-    enrich[, "pval"] <- signif(as.numeric(enrich[, "pval"]), 
+    enrich[, "pval"] <- signif(suppressWarnings(as.numeric(enrich[, "pval"])), 
         2)
-    enrich[, "fdr"] <- signif(as.numeric(enrich[, "fdr"]), 2)
+    enrich[, "fdr"] <- signif(suppressWarnings(as.numeric(enrich[, "fdr"])), 2)
     colnames(enrich) <- cnames
     rownames(enrich) <- names(categories)[ord]
     return(enrich)

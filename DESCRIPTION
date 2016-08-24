@@ -17,6 +17,7 @@ Imports:
     limma,
     plyr,
     XML,
+    jsonlite,
     knitr,
     RColorBrewer,
     org.Hs.eg.db,

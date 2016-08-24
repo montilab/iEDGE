@@ -18,15 +18,8 @@ to.eSet<-function(mat, pdat, fdat){
 	if( nrow(pdat) != ncol(mat))
 		stop("nrow(pdat) must equal ncol(mat)")
 
-	if (!all(rownames(fdat) == rownames(mat))){
-		warning("fdat rownames and mat rownames do not match, setting fdat rownames to mat rownames")
-		rownames(fdat) <- rownames(mat)
-	}
-
-	if (!all(rownames(pdat) == colnames(mat))){
-		warning("pdat rownames and mat colnames do not match, setting fdat rownames to mat rownames")
-		rownames(pdat) <- colnames(mat)
-	}
+	rownames(fdat) <- rownames(mat)
+	rownames(pdat) <- colnames(mat)
 
 	fMetaData<-data.frame(labelDescription = colnames(fdat), row.names = colnames(fdat))
 	featureData<-new("AnnotatedDataFrame", data= fdat, varMetadata=fMetaData) 

@@ -18,14 +18,13 @@ get_colors<-function(){
 	return(colorsall)
 }
 
-
 cis_order<-function(dat){
 	cat("Performing cis ordering...\n")
 	cis_in<-unique(as.character(dat[,1]))
 	trans_in<-unique(as.character(dat[,2]))
-	n_edges<-as.numeric(sapply(cis_in, function(i){
+	n_edges<-suppressWarnings(as.numeric(sapply(cis_in, function(i){
 		sum(dat[,1] == i)
-		}))
+		})))
 
 	res<-cis_in[order(n_edges, decreasing = TRUE)]
 	return(res)
@@ -63,7 +62,7 @@ trans_order<-function(dat){
 }
 
 write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
-	dir.create(f.dir.out)
+	suppressWarnings(dir.create(f.dir.out))
 	ntab<-nrow(tab)
 
 	if(ntab>=1){	
@@ -95,32 +94,40 @@ write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
 		edges.write<-write_JSON_df(df = f.tab.ord, df.name = "var edges")
 
 		if(hasArg(hyper)){
-			hyper.union<-get_hyper_wrapper(hyper$hyperunion)
-			hyper.union.hypergsets<-write_JSON_df(df =hyper.union$hypergsets, df.name = "var hypergsets")
-			hyper.union.hyperedges<-write_JSON_df(df =hyper.union$hyperedges, df.name = "var hyperedges")
-			hyper.byalt.hypergsets<-list()
-			hyper.byalt.hyperedges<-list()
 
-			for(i in names(hyper$hyperbyalt)){
-				hyper.byalt<-get_hyper_wrapper(hyper$hyperbyalt[[i]])
-				hyper.byalt.hypergsets[[i]]<-write_JSON_df(df =hyper.byalt$hypergsets, 
-					df.name = paste("hypergsetscis","['", i, "']", sep = ""))
-				hyper.byalt.hyperedges[[i]]<-write_JSON_df(df =hyper.byalt$hyperedges, 
-					df.name =  paste("hyperedgescis","['", i, "']", sep = ""))
-			}
+			hu<-lapplyn(hyper, function(i) get_hyper_wrapper(i[["hyperunion"]]))
+			hu.gs<-lapplyn(hu, function(i) {
+				res<-i[["hypergsets"]]
+				if(is.null(res)) return(vector())
+				else return(res)
+				})
+			hu.edges<-lapplyn(hu, function(i) i[["hyperedges"]])
 
-			hyper.byalt.hypergsets<-hyper.byalt.hypergsets[hyper.byalt.hypergsets != ""]
-			hyper.byalt.hyperedges<-hyper.byalt.hyperedges[hyper.byalt.hyperedges != ""]
+			ha<-lapplyn(hyper, function(i){	
+					lapplyn(i[["hyperbyalt"]], function(j)
+						get_hyper_wrapper(j))					
+				})			
 
-			w1<-"var hypergsetscis = {};"
-			w2<-"var hyperedgescis = {};"
+			ha.gs<-lapplyn(ha, 
+					function(i) lapplyn(i, function(k){
+						res<-k[["hypergsets"]]
+						if(is.null(res)) return(vector())
+						else return(res)
+					}))
+
+			ha.edges<-lapplyn(ha, 
+					function(i) lapplyn(i, function(k) k[["hyperedges"]]))
+
+			hyper.union.hypergsets<-write_JSON_list(df = hu.gs, df.name = "hypergsets")
+			hyper.union.hyperedges<-write_JSON_list(df = hu.edges, df.name = "hyperedges")
+			hyper.union.hypergsets.cis<-write_JSON_list(df = ha.gs, df.name = "hypergsetscis")
+			hyper.union.hyperedges.cis<-write_JSON_list(df = ha.edges, df.name = "hyperedgescis")
 
 			all.write<-paste(cis.write, trans.write, edges.write, 
 				hyper.union.hypergsets, hyper.union.hyperedges, 
-				w1, paste(hyper.byalt.hypergsets, collapse = "\n"), 
-				w2, paste(hyper.byalt.hyperedges, collapse = "\n"), 
+				hyper.union.hypergsets.cis,
+				hyper.union.hyperedges.cis,
 				sep = "\n")
-
 			write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
 			
 		} else {
@@ -129,6 +136,14 @@ write_bipartite_JSON<-function(tab, hyper, f.dir.out, header){
 			write(all.write, file = paste(f.dir.out, "/", header, ".js", sep = ""), append = FALSE)
 		}
 	}
+}
+
+#' @import jsonlite
+write_JSON_list<-function(df, df.name){
+	res.header<-paste(df.name, " = ", sep = "")
+	res.body<-toJSON(df)
+	res<-paste(res.header, res.body, ";", "\n", sep = "")
+	return(res)
 }
 
 write_JSON_df<-function(df, df.name){
@@ -147,7 +162,7 @@ get_hyper_edges<-function(df){
 		gsets<-as.character(df$category[x])
 		return(data.frame(trans = trans, enrichsets =rep(gsets, length(trans))))
 		}))
-	enrich_ord<-trans_order(edges)
+	#enrich_ord<-trans_order(edges)
 	return(edges)
 }
 
@@ -164,15 +179,17 @@ get_hyper_wrapper<-function(f.tab.hyper){
 				sum(f.tab.hyper.edges$enrich %in% i)
 			}),
 		color = rep(colors, ceiling(nhyper/colors.max))[1:nhyper], 
-		pval = as.numeric(sapply(hyper_ord, 
+		pval = suppressWarnings(as.numeric(sapply(hyper_ord, 
 			function(i){
 				f.tab.hyper[which(f.tab.hyper$category %in% i),"pval"]
-			})),
-		fdr = as.numeric(sapply(hyper_ord, 
+			}))),
+		fdr = suppressWarnings(as.numeric(sapply(hyper_ord, 
 			function(i){
 				f.tab.hyper[which(f.tab.hyper$category %in% i),"fdr"]
-			})))
-		
+			}))))
+		colnames(hyper_df)<-NULL
+
+	colnames(f.tab.hyper.edges)<-NULL
 	return(list(hypergsets = hyper_df, hyperedges = f.tab.hyper.edges))
 
 	} else {
@@ -354,7 +371,7 @@ make_boxplotdataset<-function(cn,
 	if (length(altstatus_rowid) == 0){
 		return(NULL)
 	}
-	altstatus<-as.numeric(exprs(cn)[altstatus_rowid,])
+	altstatus<-suppressWarnings(as.numeric(exprs(cn)[altstatus_rowid,]))
 	altstatus<-as.factor(altstatus)
 	gep_rowid<-which(fData(gep)[, geneid] == gene)
 	if (length(gep_rowid) == 0){
@@ -362,11 +379,11 @@ make_boxplotdataset<-function(cn,
 	}
 
 	emat<-exprs(gep)
-	ematrow<-as.numeric(emat[gep_rowid,])
+	ematrow<-suppressWarnings(as.numeric(emat[gep_rowid,]))
 
 	if (loggep){
 		emat<-emat+(-1*min(emat))
-		ematrow<-as.numeric(emat[gep_rowid,])
+		ematrow<-suppressWarnings(as.numeric(emat[gep_rowid,]))
 		ematrow<-log2(ematrow+1)
 		logind <- "(log2 transformed)"
 	}
@@ -390,7 +407,7 @@ write_byalt_boxplot<-function(tab,#data frame to write
  ){
 
  	if (!file.exists(outdir)){
-		dir.create(outdir)
+		suppressWarnings(dir.create(outdir))
 	}
 	for(j.row in 1:nrow(tab)){
 
@@ -423,11 +440,12 @@ write_byalt_boxplot<-function(tab,#data frame to write
 # scripts for bipartite html
 ##
 #' @import XML
-make_bipartite_html<-function(f.dir.in, f.dir.out, header = "", headeradd = "", 
+make_bipartite_html<-function(f.dir.in, f.dir.out, 
+	header = "", 
+	headeradd = "", 
 	template){
 
-	dir.create(f.dir.out, recursive = TRUE)
-	#template <- "../inst/javascript/template_bipartite.html"
+	suppressWarnings(dir.create(f.dir.out, recursive = TRUE))
 	f.files.in<-list.files(f.dir.in)
 	for(i in f.files.in){
 		#copy json files to out directory
@@ -488,7 +506,7 @@ get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisge
 	if (nrow(cisfulltab)>=1)
 	numcisfull<-length(which(cisfulltab[, altid] == x))
 	numbipart<-NA
-	if(!is.na(pruning)){
+	suppressWarnings(if(!is.na(pruning)){
 		numbipartitecis<-0
 		numbipartitetrans<-0
 		pruning.sig<-pruning[["sig"]]
@@ -498,7 +516,7 @@ get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisge
 			numbipartitetrans<-length(unique(pruning.sig[[x]][,"trans"]))
 		}
 		numbipart<-paste("(",numbipartitecis, "/", numbipartitetrans,")", sep = "")	
-	}
+	})
 	res<-data.frame(alteration_id = x, 
 		alteration_description = descriptor,
 		cis = paste("(", numcis, "/", numcisfull, ")", sep = ""), 
@@ -517,7 +535,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	altid = "Unique.Name", altdesc = "Descriptor", geneid = "accession", 
 	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
-	dir.create(outdir)
+	suppressWarnings(dir.create(outdir))
 
 	jsfiles<-list.files(jsdir, full.names = TRUE)
 
@@ -535,7 +553,7 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 		boxplot_link_cis <- "./boxplots"
 		cat("Writing cis boxplots...\n")
 		outdirfig<-paste(outdir, "/", "boxplots", sep = "")
-		dir.create(outdirfig)
+		suppressWarnings(dir.create(outdirfig))
 		write_byalt_boxplot(cisfulltab,#data frame to write
 		 tabid = altid, #column name to split table by
 		 geneid = geneid, #column name for gene id
