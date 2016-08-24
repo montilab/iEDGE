@@ -10,8 +10,15 @@ require(staticdocs)
 #package.dir <- normalizePath("../../../Gistic2GE")
 package.dir <-"/Users/amyli/Desktop/git_projects/iEDGE"
 
+
+
+
 cat("documenting package...\n")
 document(package.dir) #creates help pages
+
+cat("building package..\n")
+build(package.dir)
+
 cat("checking package...\n")
 check(package.dir) #package checking
 #check(package.dir, args = "--no-examples")
