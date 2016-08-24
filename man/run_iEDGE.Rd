@@ -9,10 +9,11 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   cndir = "alteration_direction", fdr.cis.cutoff = 0.25,
   fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA, min.drawsize = 3,
   onesided.cis = TRUE, onesided.trans = FALSE, uptest = "Amplification",
-  downtest = "Deletion", gs.file.name = "h.all.v5.1", min.group = 2,
-  mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,
-  prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25,
-  cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE)
+  downtest = "Deletion", min.group = 2, mutinfo.seed = 7,
+  mutinfo.nsamples = 500, mutinfo.bins = 5, prune.col = "pvalue",
+  prune.thres = 0.05, hyperthres = 0.25, cis.boxplot = TRUE,
+  trans.boxplot = TRUE, bipartite = TRUE, html = TRUE, jsdir = NA,
+  cache = list(DE = NULL, prunning = NULL, ui = NULL))
 }
 \arguments{
 \item{outdir}{output directory}

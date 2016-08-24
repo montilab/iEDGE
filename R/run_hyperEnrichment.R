@@ -24,13 +24,15 @@ read_gmt<-function(f, split.char = '\t'){
 }
 
 
-run_hyperEnrichment_unpruned<-function(ngenes, gs, gs.file.name, drawnList, f.dir.out, header, header2){
+run_hyperEnrichment_unpruned<-function(ngenes, gs, gs.file.name, 
+  drawnList, f.dir.out, header, header2, ... #other parameters in run_hyperEnrichment
+  ){
   #run hyperenrichment with all sig cis genes in one geneset
 
   res<-run_hyperEnrichment(drawn=drawnList,
       categories=gs,
       ntotal=ngenes,
-      min.drawsize = min.drawsize, mht = TRUE, verbose = TRUE, order = TRUE)
+      mht = TRUE, verbose = TRUE, order = TRUE, ...)
   f.out<-paste(f.dir.out, "/", header, 
     "_hyperEnrichment_",gs.file.name,"_", header2,".txt", sep = "")  
   cat(paste("Writing table to ", f.out, "\n", sep = ""))
@@ -42,20 +44,18 @@ run_hyperEnrichment_unpruned<-function(ngenes, gs, gs.file.name, drawnList, f.di
 }
 
 run_hyperEnrichment_pruned<-function(tab, tab.name, gs, ngenes, 
-  min.drawsize = 3, 
   hypercol = "fdr", 
   hyperthres = 0.25, 
-  f.dir.out){
+  f.dir.out, ...){
 
   drawnList<-list(drawn = unique(tab$trans))
   hyperunion<-run_hyperEnrichment(drawn=drawnList,
     categories=gs,
     ntotal=ngenes,
-    min.drawsize = min.drawsize, 
     mht = TRUE, 
     verbose = TRUE, 
     order = TRUE, 
-    hypercol = hypercol, hyperthres = hyperthres)
+    hypercol = hypercol, hyperthres = hyperthres, ...)
   
   if(nrow(hyperunion)>0)
   write.table(hyperunion, file = paste(f.dir.out, "/", tab.name, ".txt", sep = ""), 
@@ -68,11 +68,10 @@ run_hyperEnrichment_pruned<-function(tab, tab.name, gs, ngenes,
       hyper<-run_hyperEnrichment(drawn=drawnList,
           categories=gs,
           ntotal=ngenes,
-          min.drawsize = min.drawsize, 
           mht = TRUE, 
           verbose = TRUE, 
           order = TRUE,
-          hypercol = hypercol, hyperthres = hyperthres)
+          hypercol = hypercol, hyperthres = hyperthres, ...)
       
       if(nrow(hyper)>0)
       write.table(hyper, file = paste(f.dir.out, "/", tab.name, "_", j, ".txt", sep = ""), 
@@ -114,12 +113,8 @@ run_hyperEnrichment_wrapper<-function(gs.tab, #gistic2ge_sig
     alt<-unique(de.table[, "alteration_descriptor"])
     gs.custom.groupalt<-sapply(alt,
       function(x) 
-
-      as.character(de.table[de.table[, "alteration_descriptor"] == x, "gene_id"])
-
-      #as.character(subset(de.table, alteration_descriptor == x)[, "gene_id"])
-
-      )
+      as.character(de.table[de.table[, "alteration_descriptor"] == x, "gene_id"]))
+    
     names(gs.custom.groupalt)<-paste(j, alt, sep = "_")
     res.HE.groupalt[[j]]<-list()
     for (k in names(gs.custom.groupalt)){

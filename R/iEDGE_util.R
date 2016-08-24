@@ -394,8 +394,10 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	 	drawns[["cistrans.dn_split"]]<-get_sig_split(res.cistrans.sig.dn, cnid, gepid)
 
 	 	hyper.res<-lapply(names(drawns), function(i){
-	 		return(run_hyperEnrichment_unpruned(ngenes, 
-	 		gs.i, gs.file.name, drawns[[i]], f.dir.out, header, i))
+	 		run_hyperEnrichment_unpruned(ngenes = ngenes, 
+	 		gs=gs.i, gs.file.name =gs.file.name, 
+	 		drawnList = drawns[[i]], f.dir.out =f.dir.out, 
+	 		header = header, header2= i, ...)
 	 		})
 	 	names(hyper.res)<-names(drawns)
 		return(hyper.res)
@@ -640,10 +642,7 @@ calc_sobel<-function(x,y,z, y.names, z.names){
 prune<-function(f_cis_tab, f_trans_tab, 
 	cn, gep,
 	alteration_id = "Unique.Name",
-	gene_id = "accession",
-	seed =7,
-	nsamples = 1000, 
-	nbins = 5,  
+	gene_id = "accession", 
 	pruning_dir,
 	prunecol = "pvalue", prunethres = 0.25,
 	gs, ... #other args.file in run_hyperEnrichment_pruned
@@ -860,7 +859,7 @@ run_iEDGE<-function(dat, #iEDGE object
 	fdr.trans.cutoff = 0.05, #fdr trans cutoff
 	fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
 	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", 
-	min.group = 2, mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
+	min.group = 2, #mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
 	prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
 	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE, 
 	html = TRUE, 
@@ -970,10 +969,10 @@ run_iEDGE<-function(dat, #iEDGE object
 				gep = gep,
 				alteration_id = cnid,
 				gene_id = gepid,
-				seed = mutinfo.seed,
-				nsamples = mutinfo.nsamples, 
+				#seed = mutinfo.seed,
+				#nsamples = mutinfo.nsamples, 
 				pruning_dir = pruning_dir, 
-				nbins = mutinfo.bins,
+				#nbins = mutinfo.bins,
 				gs = gs,
 				prunecol = prune.col, prunethres = prune.thres, 
 				min.drawsize = min.drawsize, 
