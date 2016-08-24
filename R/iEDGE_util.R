@@ -397,7 +397,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	 		run_hyperEnrichment_unpruned(ngenes = ngenes, 
 	 		gs=gs.i, gs.file.name =gs.file.name, 
 	 		drawnList = drawns[[i]], f.dir.out =f.dir.out, 
-	 		header = header, header2= i, ...)
+	 		header = header, header2= i, min.drawsize = min.drawsize)
 	 		})
 	 	names(hyper.res)<-names(drawns)
 		return(hyper.res)
@@ -857,12 +857,25 @@ run_iEDGE<-function(dat, #iEDGE object
 	#use NA if onesided.cis = FALSE and onesided.trans = FALSE
 	fdr.cis.cutoff = 0.25, #fdr cis cutoff
 	fdr.trans.cutoff = 0.05, #fdr trans cutoff
-	fc.cis = NA, fc.trans = NA, min.drawsize = 3, onesided.cis = TRUE, 
-	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", 
+	fc.cis = NA, #fold change cutoff cis
+	fc.trans = NA, #fold change cutoff trans
+	min.drawsize = 3, #min drawsize for geneset enrichment
+	onesided.cis = TRUE, #is cis DE one sided, default TRUE
+	onesided.trans = FALSE, #is trans DE one sided, default FALSE
+	uptest = "Amplification", #alterations for which upregulation in alteration is desired
+		#value must be on fData(dat$cn)[, cndir]
+		#must specify if onesided.cis =TRUE
+	downtest = "Deletion", #alterations for which downregulation in alteration is desired
+		#must specify if onesided.cis =TRUE
+		#value must be on fData(dat$cn)[, cndir]
 	min.group = 2, #mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
-	prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25, 
-	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE, 
-	html = TRUE, 
+	prune.col = "pvalue", #column name to indicate significance of sobel test
+	prune.thres = 0.05, #significance cutoff of sobel test
+	hyperthres = 0.25, #threshold for hyperEnrichment (fdr cutoff)
+	cis.boxplot = TRUE, #display boxplot for cis genes
+	trans.boxplot = TRUE, #display boxplot for trans genes
+	bipartite = TRUE, #do bipartite graph/pruning
+	html = TRUE, #do html report
 	jsdir = NA, #default directory of iEDGE js files
 	cache = list(DE = NULL, prunning = NULL, ui = NULL) #optional, cached result of previous run_iEDGE 
 	){
@@ -969,10 +982,7 @@ run_iEDGE<-function(dat, #iEDGE object
 				gep = gep,
 				alteration_id = cnid,
 				gene_id = gepid,
-				#seed = mutinfo.seed,
-				#nsamples = mutinfo.nsamples, 
 				pruning_dir = pruning_dir, 
-				#nbins = mutinfo.bins,
 				gs = gs,
 				prunecol = prune.col, prunethres = prune.thres, 
 				min.drawsize = min.drawsize, 
