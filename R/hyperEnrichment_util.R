@@ -1,4 +1,4 @@
-suppressPackageStartupMessages(require(heatmap.plus))
+#suppressPackageStartupMessages(require(heatmap.plus))
 
 get_enrich_heatmap<-function(tab, outfile, ...){
   if(length(unique(tab[, "set"]))<2) return(NA)
@@ -102,6 +102,8 @@ hyper2qmatrix <- function
     return( list(mx01=mx01,mx=mx) )
 }
 
+
+#' @import heatmap.plus
 my.heatmap <- function
 (dat,
  col=NA,

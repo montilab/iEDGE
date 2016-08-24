@@ -23,6 +23,7 @@ Imports:
     org.Hs.eg.db,
     AnnotationDbi,
     cba,
+    heatmap.plus,
     sva
 License: MIT + file LICENSE
 LazyData: true
