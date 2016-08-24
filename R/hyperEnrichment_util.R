@@ -104,6 +104,7 @@ hyper2qmatrix <- function
 
 
 #' @import heatmap.plus
+#' @export
 my.heatmap <- function
 (dat,
  col=NA,
