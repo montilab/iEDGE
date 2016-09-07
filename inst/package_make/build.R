@@ -28,12 +28,12 @@ cat("library package...\n")
 library(iEDGE)
 
 ##install package
-cat("installing package...\n")
-install.packages(package.dir, repos = NULL, type = "source")
+#cat("installing package...\n")
+#install.packages(package.dir, repos = NULL, type = "source")
 
 
-PAT <- "04fe676593e46b6bda5a5d09431156e8a500349a"
-install_github("montilab/iEDGE",auth_token = PAT)
+#PAT <- "04fe676593e46b6bda5a5d09431156e8a500349a"
+#install_github("montilab/iEDGE",auth_token = PAT)
 
 
 #generate html pages
