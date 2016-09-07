@@ -1,6 +1,7 @@
 #suppressPackageStartupMessages(require(heatmap.plus))
 
 get_enrich_heatmap<-function(tab, outfile, ...){
+  if(nrow(tab) == 0) return (NA)
   if(length(unique(tab[, "set"]))<2) return(NA)
   else {
     pdf(outfile)
