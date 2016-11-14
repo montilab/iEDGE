@@ -296,6 +296,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	trans.onesided = FALSE,
 	fc.cis = NA,
 	fc.trans = NA,
+	enrich.heatmap = FALSE,
 	... #other parameters in make_iEDGE
 	){
 
@@ -404,19 +405,23 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	})
 	names(hyper)<-names(gs)
 
-	hyperhm<-lapply(names(gs), function(i){
-			hyperi<-hyper[[i]]
-			hyperinames<-grep("split", names(hyperi), value = T)
-			hm<-lapply(hyperinames, function(j){
-					hmfile<-paste(f.dir.out, "/", header, 
-    					"_hyperEnrichment_",i,"_", j,".pdf", sep = "")
-					get_enrich_heatmap(hyperi[[j]], outfile = hmfile,
-						margins = c(13, 23), cexRow = 0.5, cexCol=1)
-				})
-			names(hm)<-hyperinames
-		return(hm)
-		})
-	names(hyperhm)<-names(gs)
+	if(enrich.heatmap){
+		hyperhm<-lapply(names(gs), function(i){
+				hyperi<-hyper[[i]]
+				hyperinames<-grep("split", names(hyperi), value = T)
+				hm<-lapply(hyperinames, function(j){
+						hmfile<-paste(f.dir.out, "/", header, 
+	    					"_hyperEnrichment_",i,"_", j,".pdf", sep = "")
+						get_enrich_heatmap(hyperi[[j]], outfile = hmfile,
+							margins = c(13, 23), cexRow = 0.5, cexCol=1)
+					})
+				names(hm)<-hyperinames
+			return(hm)
+			})
+		names(hyperhm)<-names(gs)
+	} else {
+		hyperhm<-NA
+	}
 
 	return(list(cis=res.cis, trans =res.trans, 
 		hyper = hyper, hyperhm = hyperhm))

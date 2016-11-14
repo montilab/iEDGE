@@ -13,8 +13,8 @@ get_enrich_heatmap<-function(tab, outfile, ...){
         do.heat=TRUE,  
         rm.zero=TRUE,  
         method=c("ward.D"), ...)
-      dev.off()
-      return(res)
+    dev.off()
+    return(res)
   }
 
 }
