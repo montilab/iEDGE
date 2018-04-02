@@ -9,6 +9,7 @@ Description: iEDGE performs integrative analysis of (epi-)DNA data (methylation,
     microRNA, or copy number alteration) and gene expression data from overlapping
     samples.
 URL: https://github.com/montilab/iEDGE
+biocViews:
 Depends:
     R (>= 2.11.0),
     Biobase
