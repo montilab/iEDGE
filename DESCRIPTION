@@ -21,11 +21,12 @@ Imports:
     jsonlite,
     knitr,
     RColorBrewer,
-    org.Hs.eg.db,
     AnnotationDbi,
     cba,
     heatmap.plus,
     sva
+Suggests:
+    org.Hs.eg.db
 License: MIT + file LICENSE
 LazyData: true
 RoxygenNote: 5.0.1
