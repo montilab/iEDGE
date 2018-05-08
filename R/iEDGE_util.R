@@ -1,36 +1,241 @@
+
+#' Construct iEDGE input object
+#' @param cn matrix of epi-DNA alterations (m rows of alterations by n samples)
+#' @param gep matrix of gene expression (g rows of genes by n samples)
+#' @param cn.fdat data frame of row annotations for cn, must have column of row identifiers, and optionally column of direction identifiers if one-sided DE tests are applied
+#' @param gep.fdat data frame of row annotaions for gep, must have column of row identifiers
+#' @export 
+construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat){
+	cn<-to.eSet(mat = cn, pdat = data.frame(colid = colnames(cn)), fdat = cn.fdat)
+	gep<-to.eSet(mat = gep, pdat = data.frame(colid = colnames(gep)), fdat = gep.fdat)
+	dat<-list(cn = cn, gep = gep, cisgenes = cisgenes)
+	return(dat)
+}
+
+
+#' Main wrapper for iEDGE, assumes input data is constructed by construct_iEDGE
+#' @param   dat the input iEDGE object, see construct_iEDGE for specification
+#' @param	header header string for result file names
+#' @param	outdir output directory
+#' @param	gs.file default = NA, vector of characters giving full path of gmt files for enrichment analysis
+#' @param	gepid default = "SYMBOL", colname in fData(dat$gep) indicating unique gene ids to display
+#' @param	cnid default = "Unique.Name", colname in fData(dat$cn) indicating unique alterations to display
+#' @param	cndesc default = "Descriptor", column in fData(dat$cn), can be NA if not available
+#' @param	cndir default = "alteration_direction", column in fData(dat$cn) indicating directions of one sided differential expression, use NA if onesided.cis = FALSE and onesided.trans = FALSE
+#' @param	fdr.cis.cutoff default = 0.25, fdr cis cutoff
+#' @param	fdr.trans.cutoff default = 0.05, fdr trans cutoff
+#' @param	fc.cis default = NA, fold change cutoff cis
+#' @param	fc.trans default = NA, fold change cutoff trans
+#' @param	min.drawsize default = 3, min drawsize for geneset enrichment
+#' @param	onesided.cis default = TRUE, one sided cis differential expression
+#' @param	onesided.trans default = FALSE, one sided trans differential expression
+#' @param	uptest default = "Amplification", alterations for which upregulation in alteration is desired, value must be on fData(dat$cn)[, cndir], must specify if onesided.cis =TRUE
+#' @param	downtest = "Deletion", alterations for which downregulation in alteration is desired
+#' @param	min.group default = 2, mininum sample size in each group 
+#' @param	prune.col default = "pvalue", column name to indicate significance of sobel test
+#' @param	prune.thres default = 0.05, significance cutoff of sobel test
+#' @param	hyperthres default = 0.25, threshold for hyperEnrichment (fdr cutoff)
+#' @param	cis.boxplot default = TRUE, display boxplot for cis genes
+#' @param	trans.boxplot default = TRUE, display boxplot for trans genes
+#' @param	bipartite default = TRUE, do bipartite graph/pruning
+#' @param	html default = TRUE, do html report
+#' @param	jsdir default = NA, default directory of iEDGE js files
+#' @param	numcores default = NA (non-parallel), if specified uses mclapply with specified mc.cores
+#' @param	cache default = list(DE = NULL, prunning = NULL, ui = NULL), optional, cached result of previous run_iEDGE 
+#' @export
+run_iEDGE<-function(dat, #iEDGE object
+	header, #header string for result file names
+	outdir, #directory for results
+	gs.file = NA, #vector of characters giving full path of gmt files for enrichment analysis
+	gepid = "SYMBOL", #colname in fData(dat$gep) indicating unique gene ids to display
+	cnid = "Unique.Name", #colname in fData(dat$cn) indicating unique alterations to display
+	cndesc = "Descriptor", #column in fData(dat$cn), can be NA if not available
+	cndir = "alteration_direction", #column in fData(dat$cn) indicating directions of one sided differential expression
+	#use NA if onesided.cis = FALSE and onesided.trans = FALSE
+	fdr.cis.cutoff = 0.25, #fdr cis cutoff
+	fdr.trans.cutoff = 0.05, #fdr trans cutoff
+	fc.cis = NA, #fold change cutoff cis
+	fc.trans = NA, #fold change cutoff trans
+	min.drawsize = 3, #min drawsize for geneset enrichment
+	onesided.cis = TRUE, #is cis DE one sided, default TRUE
+	onesided.trans = FALSE, #is trans DE one sided, default FALSE
+	uptest = "Amplification", #alterations for which upregulation in alteration is desired
+		#value must be on fData(dat$cn)[, cndir]
+		#must specify if onesided.cis =TRUE
+	downtest = "Deletion", #alterations for which downregulation in alteration is desired
+		#must specify if onesided.cis =TRUE
+		#value must be on fData(dat$cn)[, cndir]
+	min.group = 2, #mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
+	prune.col = "pvalue", #column name to indicate significance of sobel test
+	prune.thres = 0.05, #significance cutoff of sobel test
+	hyperthres = 0.25, #threshold for hyperEnrichment (fdr cutoff)
+	cis.boxplot = TRUE, #display boxplot for cis genes
+	trans.boxplot = TRUE, #display boxplot for trans genes
+	bipartite = TRUE, #do bipartite graph/pruning
+	html = TRUE, #do html report
+	jsdir = NA, #default directory of iEDGE js files
+	numcores = NA, #default NA non-parallel, if specified uses mclapply with specified mc.cores
+	cache = list(DE = NULL, prunning = NULL, ui = NULL) #optional, cached result of previous run_iEDGE 
+	){
+
+	res<-NULL
+	pruning<-NULL
+	ui<-NULL
+
+	do.DE<-TRUE
+	do.pruning<-TRUE
+	do.ui<-TRUE
+
+	if(!is.null(cache[["DE"]])) {
+		de<-cache[["DE"]]
+		do.DE<-FALSE
+	}
+	if(!is.null(cache[["pruning"]])){
+		pruning<-cache[["pruning"]]
+		do.pruning<-FALSE
+	}
+
+	if(!is.null(cache[["ui"]])){
+		ui<-cache[["ui"]]
+		do.ui<-FALSE
+	}
+
+	do.gs<-TRUE
+	if(is.na(gs.file[1])){ 
+		do.gs<-FALSE
+	} else {
+		if(any(!file.exists(gs.file))){
+			stop("gs.file must be vector of gmt file names, full paths only")
+		}
+	}
+
+	cn<-dat$cn
+
+	#check duplicated altids
+	if(any(duplicated(fData(dat$cn)[, cnid]))){
+		stop("Error: duplicated entries in fData(dat$cn)[, cnid], make unique...")
+	}
+
+	gep<-dat$gep
+	cisgenes<-dat$cisgenes
+
+	suppressWarnings(dir.create(outdir, recursive = TRUE))
+	base_dir<-paste(outdir,"/", header, sep = "")
+
+	suppressWarnings(dir.create(base_dir, recursive = TRUE))
+	de_dir<-paste(base_dir, "/tables", sep = "")
+
+	gs<-NA
+	if(do.gs){
+		cat("Reading genesets..\n")
+		gs<-lapply(gs.file, function(i){
+			res<-read_gmt(i)$genesets
+			res<-sapply(res, function(x){
+				a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
+				return(unique(do.call(c,a)))
+			})
+			cat(paste("Geneset loaded:", i, "\n", sep = ""))
+			return(res)
+			})
+		names(gs)<-gsub(".gmt", "",basename(gs.file))
+
+
+	}
+
+	if(do.DE){
+		cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
+
+		cat("Making Differential Expression tables...\n")
+		de<-iEDGE_DE(cn, gep, cisgenes,
+			header,
+			gepid, cnid,  	
+			f.dir.out = de_dir, 
+			gs = gs, 
+			fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
+			min.group = min.group,
+			min.drawsize = min.drawsize,  
+			cndir = cndir,
+			cis.onesided = onesided.cis, 
+			trans.onesided = onesided.trans,
+			fc.cis = fc.cis,
+			fc.trans = fc.trans,
+			uptest = uptest,
+			downtest = downtest, 
+			numcores = numcores
+			)
+	}
+
+	de.cis.sig<-de[["cis"]][["sig"]]
+	de.cis.full<-de[["cis"]][["full"]]
+	de.trans.sig<-de[["trans"]][["sig"]]
+
+	pruning_dir<-paste(base_dir, "/pruning", sep = "")
+
+	if(do.pruning){
+		if(bipartite == TRUE){	
+			pruning<-prune(f_cis_tab =  de.cis.sig, 
+				f_trans_tab = de.trans.sig, 
+				cn = cn, 
+				gep = gep,
+				alteration_id = cnid,
+				gene_id = gepid,
+				pruning_dir = pruning_dir, 
+				gs = gs,
+				prunecol = prune.col, prunethres = prune.thres, 
+				min.drawsize = min.drawsize, 
+				hypercol = "fdr", 
+				hyperthres = hyperthres)
+		} 
+	}
+
+	if(do.ui){
+		if(html == TRUE){
+			html_dir<-paste(base_dir, "/html", sep = "")
+			if(is.na(jsdir))
+				jsdir<-file.path(path.package("iEDGE"), "javascript")
+	
+			ui<-iEDGE_UI(cistab = de.cis.sig, cisfulltab = de.cis.full,
+				transtab = de.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
+				outdir = html_dir, jsdir = jsdir, 
+				pruning = pruning, pruningjsdir = paste(pruning_dir, "/js", sep = ""),
+				altid = cnid, altdesc = cndesc, geneid = gepid, 
+				cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
+		} 
+	}
+
+	return(list(DE = de, pruning = pruning, ui = ui))
+}
+
+#' Performs sobel test of mediation
+#' @param x binary numeric vector of epi-DNA states
+#' @param y matrix of cis gene expression ncol(x) must be equal to length(x)
+#' @param z matrix of trans gene expression ncol(z) must be equal to length(x)
+#' @param y.names names of cis genes in y
+#' @param z.names names of trans genes in z
+#' @export
+calc_sobel<-function(x,y,z, y.names, z.names){
+	ny<-nrow(y)
+	nz<-nrow(z)
+	res<-NULL
+	if(ny>1 & nz>1){
+		res<-calc_sobel_mat(x,y,z)
+	} else if (ny>1 & nz == 1){
+		res<-calc_sobel_y_z1(x,y,z)
+	} else if (ny == 1 & nz > 1){
+		res<-calc_sobel_y1_z(x,y,z)
+	} else if (ny == 1 & nz == 1){
+		res<-calc_sobel_y1_z1(x,y,z)
+	}
+	res<-data.frame(cis = y.names[res[, "yind"]], trans = z.names[res[, "zind"]], res)
+	return(res)
+}
+
 # lapply wrapper preserving the names
 lapplyn<-function(dat, fn){
 	datn<-names(dat)
 	res<-lapply(dat, fn)
 	names(res)<-datn
 	return(res)
-}
-
-#' @export
-#' @import sva
-correct_batch<-function(eset, batch.name = "batch", method = "lm" #lm or combat
-	){
-
-	batch<-as.factor(pData(eset)[, batch.name])
-	if(method == "lm"){
-		mat<-t(apply(exprs(eset), 1, function(i){
-			y<- suppressWarnings(as.numeric(i))
-			res<-lm(y ~ batch)
-			return(coef(res)[1] + resid(res))
-			}))
-	} else if (method == "combat"){
-		mat<- ComBat(dat=exprs(eset), 
-			batch=batch, 
-			mod=NULL, 
-			par.prior=TRUE, 
-			prior.plots=FALSE)
-	} else {
-		stop("method must be one of \"lm\" or \"combat\"")
-	}
-	colnames(mat)<-colnames(eset)
-	rownames(mat)<-rownames(eset)
-	exprs(eset)<-mat
-	return(eset)
 }
 
 #' @import Biobase
@@ -131,38 +336,8 @@ run_limma<-function(eset, design,
 	return(fit2.table)
 }
 
-#' iEDGE_combine combines alteration data (e.g. GISTIC2) 
-#' and gene expression data, using a mapping data frame for matching samples
-#' @export
-iEDGE_combine<-function(alt, gep, mapping, mapping.cn = "CN", mapping.gep = "GEP", uppercase = TRUE){
-
-	cn <- alt$cn
-	cis <- alt$cis
-
-	samples.gep<-colnames(gep)
-	samples.cn<-colnames(cn)
-
-	if(uppercase){
-		cn_id<-match(toupper(mapping[, mapping.cn]), toupper(samples.cn))
-		gep_id<-match(toupper(mapping[, mapping.gep]), toupper(samples.gep))
-	} else {
-		cn_id<-match(mapping[, mapping.cn], samples.cn)
-		gep_id<-match(mapping[, mapping.gep], samples.gep)
-	}
-	mapping.sub<-data.frame(cn_id, gep_id)
-	mapping.sub<-mapping.sub[!apply(mapping.sub, 1, function(i){
-		any(is.na(i))
-		}),]
-	dat<-list()
-	dat$cn<-cn[, mapping.sub$cn_id]
-	dat$gep<-gep[, mapping.sub$gep_id]
-	dat$cisgenes<-cis
-	return(dat)
-}
-
 #' @import Biobase
-#' @export
-make_iEDGE<-function(gep, #eset containing log2 gene expression
+iEDGE_DE_inner<-function(gep, #eset containing log2 gene expression
  cn, #eset containing copy number by sample, must be sorted with respect to columns in gep
  cisgenes, #list of cisgenes in in gep with respect to cn ordered by rows in cn
  gepid, #column name in fData of gep identifying the genes in cisgenes
@@ -308,7 +483,6 @@ get_sig_single<-function(tab, gepid, nm){
 }
 
 #' iEDGE_DE performs differential expression analysis and pathway enrichment and saves to text tables
-#' @export
 iEDGE_DE<-function(cn, gep, cisgenes,
 	header,
 	gepid, cnid,  	
@@ -323,12 +497,12 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	fc.cis = NA,
 	fc.trans = NA,
 	enrich.heatmap = FALSE,
-	... #other parameters in make_iEDGE
+	... #other parameters in iEDGE_DE_inner
 	){
 
 	suppressWarnings(dir.create(f.dir.out, recursive =TRUE))
 	cat("Performancing cis analysis...\n")
-	res.cis<-make_iEDGE(gep = gep, 
+	res.cis<-iEDGE_DE_inner(gep = gep, 
  		cn = cn,
  		cisgenes = cisgenes, 
  		gepid = gepid, 
@@ -356,7 +530,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 		file = f.out)
 
 	cat("Performancing trans analysis...\n")
-	res.trans<-make_iEDGE(gep = gep, 
+	res.trans<-iEDGE_DE_inner(gep = gep, 
  		cn = cn,
  		cisgenes = cisgenes, 
  		gepid = gepid, 
@@ -648,25 +822,8 @@ subset_group_min<-function(res, by = "trans", metric = "pvalue"){
 	return(res[, setdiff(colnames(res), "metric")])
 }
 
-calc_sobel<-function(x,y,z, y.names, z.names){
-	ny<-nrow(y)
-	nz<-nrow(z)
-	res<-NULL
-	if(ny>1 & nz>1){
-		res<-calc_sobel_mat(x,y,z)
-	} else if (ny>1 & nz == 1){
-		res<-calc_sobel_y_z1(x,y,z)
-	} else if (ny == 1 & nz > 1){
-		res<-calc_sobel_y1_z(x,y,z)
-	} else if (ny == 1 & nz == 1){
-		res<-calc_sobel_y1_z1(x,y,z)
-	}
-	res<-data.frame(cis = y.names[res[, "yind"]], trans = z.names[res[, "zind"]], res)
-	return(res)
-}
 
 #' @import Biobase
-#' @export
 prune<-function(f_cis_tab, f_trans_tab, 
 	cn, gep,
 	alteration_id = "Unique.Name",
@@ -894,171 +1051,39 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 }
 
-#' run_iEDGE is the main wrapper for iEDGE, assumes processed data
-#' @param iEDGE datalist consisting of cn (alteration), gep (gene expression), and cisgenes (list of genes in each alt)
-#' @param outdir output directory
-#' @export
-run_iEDGE<-function(dat, #iEDGE object
-	header, #header string for result file names
-	outdir, #directory for results
-	gs.file = NA, #vector of characters giving full path of gmt files for enrichment analysis
-	gepid = "SYMBOL", #colname in fData(dat$gep) indicating unique gene ids to display
-	cnid = "Unique.Name", #colname in fData(dat$cn) indicating unique alterations to display
-	cndesc = "Descriptor", #column in fData(dat$cn), can be NA if not available
-	cndir = "alteration_direction", #column in fData(dat$cn) indicating directions of one sided differential expression
-	#use NA if onesided.cis = FALSE and onesided.trans = FALSE
-	fdr.cis.cutoff = 0.25, #fdr cis cutoff
-	fdr.trans.cutoff = 0.05, #fdr trans cutoff
-	fc.cis = NA, #fold change cutoff cis
-	fc.trans = NA, #fold change cutoff trans
-	min.drawsize = 3, #min drawsize for geneset enrichment
-	onesided.cis = TRUE, #is cis DE one sided, default TRUE
-	onesided.trans = FALSE, #is trans DE one sided, default FALSE
-	uptest = "Amplification", #alterations for which upregulation in alteration is desired
-		#value must be on fData(dat$cn)[, cndir]
-		#must specify if onesided.cis =TRUE
-	downtest = "Deletion", #alterations for which downregulation in alteration is desired
-		#must specify if onesided.cis =TRUE
-		#value must be on fData(dat$cn)[, cndir]
-	min.group = 2, #mutinfo.seed = 7, mutinfo.nsamples = 500, mutinfo.bins = 5,  
-	prune.col = "pvalue", #column name to indicate significance of sobel test
-	prune.thres = 0.05, #significance cutoff of sobel test
-	hyperthres = 0.25, #threshold for hyperEnrichment (fdr cutoff)
-	cis.boxplot = TRUE, #display boxplot for cis genes
-	trans.boxplot = TRUE, #display boxplot for trans genes
-	bipartite = TRUE, #do bipartite graph/pruning
-	html = TRUE, #do html report
-	jsdir = NA, #default directory of iEDGE js files
-	numcores = NA, #default NA non-parallel, if specified uses mclapply with specified mc.cores
-	cache = list(DE = NULL, prunning = NULL, ui = NULL) #optional, cached result of previous run_iEDGE 
-	){
+#' @import Biobase
+to.eSet<-function(mat, pdat, fdat){
+	mat<-as.matrix(mat)
 
-
-
-	res<-NULL
-	pruning<-NULL
-	ui<-NULL
-
-	do.DE<-TRUE
-	do.pruning<-TRUE
-	do.ui<-TRUE
-
-	if(!is.null(cache[["DE"]])) {
-		de<-cache[["DE"]]
-		do.DE<-FALSE
-	}
-	if(!is.null(cache[["pruning"]])){
-		pruning<-cache[["pruning"]]
-		do.pruning<-FALSE
-	}
-
-	if(!is.null(cache[["ui"]])){
-		ui<-cache[["ui"]]
-		do.ui<-FALSE
-	}
-
-	do.gs<-TRUE
-	if(is.na(gs.file[1])){ 
-		do.gs<-FALSE
-	} else {
-		if(any(!file.exists(gs.file))){
-			stop("gs.file must be vector of gmt file names, full paths only")
-		}
-	}
-
-	cn<-dat$cn
-
-	#check duplicated altids
-	if(any(duplicated(fData(dat$cn)[, cnid]))){
-		stop("Error: duplicated entries in fData(dat$cn)[, cnid], make unique...")
-	}
-
-	gep<-dat$gep
-	cisgenes<-dat$cisgenes
-
-	suppressWarnings(dir.create(outdir, recursive = TRUE))
-	base_dir<-paste(outdir,"/", header, sep = "")
-
-	suppressWarnings(dir.create(base_dir, recursive = TRUE))
-	de_dir<-paste(base_dir, "/tables", sep = "")
-
-	gs<-NA
-	if(do.gs){
-		cat("Reading genesets..\n")
-		gs<-lapply(gs.file, function(i){
-			res<-read_gmt(i)$genesets
-			res<-sapply(res, function(x){
-				a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
-				return(unique(do.call(c,a)))
-			})
-			cat(paste("Geneset loaded:", i, "\n", sep = ""))
-			return(res)
-			})
-		names(gs)<-gsub(".gmt", "",basename(gs.file))
-
-
-	}
-
-	if(do.DE){
-		cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
-
-		cat("Making Differential Expression tables...\n")
-		de<-iEDGE_DE(cn, gep, cisgenes,
-			header,
-			gepid, cnid,  	
-			f.dir.out = de_dir, 
-			gs = gs, 
-			fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
-			min.group = min.group,
-			min.drawsize = min.drawsize,  
-			cndir = cndir,
-			cis.onesided = onesided.cis, 
-			trans.onesided = onesided.trans,
-			fc.cis = fc.cis,
-			fc.trans = fc.trans,
-			uptest = uptest,
-			downtest = downtest, 
-			numcores = numcores
-			)
-	}
-
-	de.cis.sig<-de[["cis"]][["sig"]]
-	de.cis.full<-de[["cis"]][["full"]]
-	de.trans.sig<-de[["trans"]][["sig"]]
-
-	pruning_dir<-paste(base_dir, "/pruning", sep = "")
-
-	if(do.pruning){
-		if(bipartite == TRUE){	
-			pruning<-prune(f_cis_tab =  de.cis.sig, 
-				f_trans_tab = de.trans.sig, 
-				cn = cn, 
-				gep = gep,
-				alteration_id = cnid,
-				gene_id = gepid,
-				pruning_dir = pruning_dir, 
-				gs = gs,
-				prunecol = prune.col, prunethres = prune.thres, 
-				min.drawsize = min.drawsize, 
-				hypercol = "fdr", 
-				hyperthres = hyperthres)
-		} 
-	}
-
-	if(do.ui){
-		if(html == TRUE){
-			html_dir<-paste(base_dir, "/html", sep = "")
-			if(is.na(jsdir))
-				jsdir<-file.path(path.package("iEDGE"), "javascript")
+	#checking data type and dimensions
+	if (!is.data.frame(pdat))
+		stop("pdat must be a data frame")
 	
-			ui<-iEDGE_UI(cistab = de.cis.sig, cisfulltab = de.cis.full,
-				transtab = de.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
-				outdir = html_dir, jsdir = jsdir, 
-				pruning = pruning, pruningjsdir = paste(pruning_dir, "/js", sep = ""),
-				altid = cnid, altdesc = cndesc, geneid = gepid, 
-				cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
-		} 
+	if (!is.data.frame(fdat))
+		stop("fdat must be a data frame")
+	
+	if ( nrow(fdat) != nrow(mat))
+		stop("nrow(fdat) must equal nrow(mat)")
+	
+	if( nrow(pdat) != ncol(mat))
+		stop("nrow(pdat) must equal ncol(mat)")
+
+	if (!all(rownames(fdat) == rownames(mat))){
+		warning("fdat rownames and mat rownames do not match, setting fdat rownames to mat rownames")
+		rownames(fdat) <- rownames(mat)
 	}
 
-	return(list(DE = de, pruning = pruning, ui = ui))
+	if (!all(rownames(pdat) == colnames(mat))){
+		warning("pdat rownames and mat colnames do not match, setting fdat rownames to mat rownames")
+		rownames(pdat) <- colnames(mat)
+	}
+
+	fMetaData<-data.frame(labelDescription = colnames(fdat), row.names = colnames(fdat))
+	featureData<-new("AnnotatedDataFrame", data= fdat, varMetadata=fMetaData) 
+
+	pMetaData<-data.frame(labelDescription = colnames(pdat), row.names = colnames(pdat))
+	phenoData<-new("AnnotatedDataFrame", data= pdat, varMetadata=pMetaData) 
+	
+	eSet<-ExpressionSet(assayData=mat, featureData = featureData, phenoData = phenoData,  annotation = "")
+	return(eSet)
 }
