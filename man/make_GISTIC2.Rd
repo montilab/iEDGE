@@ -11,4 +11,3 @@ make_GISTIC2(gistic_in, all_genes, amp_thres_arm, del_thres_arm, amp_qvalue_arm,
 \description{
 make_GISTIC2 preprocess GISTIC2 data
 }
-

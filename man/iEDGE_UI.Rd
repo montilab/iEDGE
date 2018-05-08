@@ -13,4 +13,3 @@ iEDGE_UI(cistab, cisfulltab, transtab, cn, gep, cisgenes, outdir,
 \description{
 iEDGE_UI makes the user interface for iEDGE reports
 }
-

@@ -12,4 +12,3 @@ iEDGE_combine(alt, gep, mapping, mapping.cn = "CN", mapping.gep = "GEP",
 iEDGE_combine combines alteration data (e.g. GISTIC2) 
 and gene expression data, using a mapping data frame for matching samples
 }
-

@@ -20,4 +20,3 @@ limma topTable data frame
 \description{
 \code{run_hyperEnrichment} performs hyperenrichment test from gistic2ge DE results on gene sets
 }
-

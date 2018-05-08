@@ -1,4 +1,6 @@
+#helper functions to make iEDGE input from GISTIC
 #require(Biobase)
+#removed dependency: org.Hs.eg.db, not available in R version 3.4.3
 
 #' @import Biobase
 to.eSet<-function(mat, pdat, fdat){
@@ -229,24 +231,24 @@ get_cis_genes<-function(f.genes,direction){
 #	return(y$hgnc_symbol[which(y$arm == x)])
 #}
 
-#' @import org.Hs.eg.db AnnotationDbi
-#' @export
-get_genes_in_arm<-function(x){
-	#library("org.Hs.eg.db")
-	db<-as.list( revmap(org.Hs.eg.db::org.Hs.egMAP) )
+# #' @import org.Hs.eg.db AnnotationDbi
+# #' @export
+# get_genes_in_arm<-function(x){
+# 	#library("org.Hs.eg.db")
+# 	db<-as.list( revmap(org.Hs.eg.db::org.Hs.egMAP) )
 
-	res<-lapply(x, function(i){	
-		inds<-grep(paste("^", i, sep = ""), names(db))
-		ids<-as.character(unlist(db[inds]))
-		symbols<-select(org.Hs.eg.db,
-	       keys = ids,
-	       columns=c("ENSEMBL","ENTREZID","SYMBOL","GENENAME"),
-	       keytype="ENTREZID")
-		return(unique(symbols[, "SYMBOL"]))
-		})
+# 	res<-lapply(x, function(i){	
+# 		inds<-grep(paste("^", i, sep = ""), names(db))
+# 		ids<-as.character(unlist(db[inds]))
+# 		symbols<-select(org.Hs.eg.db,
+# 	       keys = ids,
+# 	       columns=c("ENSEMBL","ENTREZID","SYMBOL","GENENAME"),
+# 	       keytype="ENTREZID")
+# 		return(unique(symbols[, "SYMBOL"]))
+# 		})
 
-	return(res)
-}
+# 	return(res)
+# }
 
 add_direction<-function(cn, remove.cols = TRUE){
 	cnid<-"Unique.Name"
@@ -266,8 +268,6 @@ add_direction<-function(cn, remove.cols = TRUE){
 
 
 #' make_GISTIC2 preprocess GISTIC2 data
-#' @import org.Hs.eg.db
-#' @export
 make_GISTIC2<-function(gistic_in, all_genes, 
 	amp_thres_arm, del_thres_arm, 
 	amp_qvalue_arm, del_qvalue_arm, 

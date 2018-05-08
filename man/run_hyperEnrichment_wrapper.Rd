@@ -19,4 +19,3 @@ list of data frames of hyperenrichment results
 \description{
 \code{run_hyperEnrichment_wrapper} wrapper for run_hyperEnrichment
 }
-

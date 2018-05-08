@@ -12,7 +12,7 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   downtest = "Deletion", min.group = 2, prune.col = "pvalue",
   prune.thres = 0.05, hyperthres = 0.25, cis.boxplot = TRUE,
   trans.boxplot = TRUE, bipartite = TRUE, html = TRUE, jsdir = NA,
-  cache = list(DE = NULL, prunning = NULL, ui = NULL))
+  numcores = NA, cache = list(DE = NULL, prunning = NULL, ui = NULL))
 }
 \arguments{
 \item{outdir}{output directory}
@@ -22,4 +22,3 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 \description{
 run_iEDGE is the main wrapper for iEDGE, assumes processed data
 }
-

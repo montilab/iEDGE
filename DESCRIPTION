@@ -3,19 +3,20 @@ Type: Package
 Title: integrative analysis of (epi-)DNA and gene expression data
 Version: 1.0
 Date: 2016-05-18
-Author: Amy Li
+Authors@R: person("Amy", "Li", email = "lia978@gmail.com", role = c("aut", "cre")) 
 Maintainer: Amy Li <ajli@bu.edu>
 Description: iEDGE performs integrative analysis of (epi-)DNA data (methylation,
-    microRNA, or copy number alteration) and gene expression data from overlapping
+    microRNA, or copy number alteration) and gene expression data from paired
     samples.
 URL: https://github.com/montilab/iEDGE
 biocViews:
+    limma,
+    sva
 Depends:
     R (>= 2.11.0),
     Biobase
 Imports:
     Biobase,
-    limma,
     plyr,
     XML,
     jsonlite,
@@ -24,7 +25,8 @@ Imports:
     AnnotationDbi,
     cba,
     heatmap.plus,
+    limma, 
     sva
 License: MIT + file LICENSE
 LazyData: true
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

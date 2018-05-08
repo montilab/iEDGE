@@ -7,9 +7,9 @@
 iEDGE_DE(cn, gep, cisgenes, header, gepid, cnid, f.dir.out, gs,
   fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, min.group = 3,
   min.drawsize = 3, cndir = "alteration_direction", cis.onesided = TRUE,
-  trans.onesided = FALSE, fc.cis = NA, fc.trans = NA, ...)
+  trans.onesided = FALSE, fc.cis = NA, fc.trans = NA,
+  enrich.heatmap = FALSE, ...)
 }
 \description{
 iEDGE_DE performs differential expression analysis and pathway enrichment and saves to text tables
 }
-

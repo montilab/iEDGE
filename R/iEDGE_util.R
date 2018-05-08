@@ -91,8 +91,12 @@ run_limma<-function(eset, design,
 	contrast.matrix<-eval(parse(text =command_str)) 
 	fit2 <- contrasts.fit(fit, contrast.matrix)
 	fit2 <- eBayes(fit2)
-	fit2.table<-topTable(fit2, coef=1, adjust.method="BH", number =length(fit2) ,
-		sort.by = "none")
+	
+	#bug in number(length(fit2)) due to limma new version? revised to nrow(fit2)
+	#fit2.table<-topTable(fit2, coef=1,adjust.method="BH", number =length(fit2), sort.by = "none")
+	
+	fit2.table<-topTable(fit2, coef=1,adjust.method="BH", number =nrow(fit2), sort.by = "none")
+	
 
 	if (onesided){
 
@@ -171,7 +175,8 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
  onesided = TRUE,
  uptest = "Amplification", 
  downtest = "Deletion", 
- fc = NA
+ fc = NA, 
+ numcores = NA
 ){
 
 	if(onesided & !(cndir %in% colnames(fData(cn)))){
@@ -183,18 +188,18 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 	all_genes<-as.character(fData(gep)[, gepid])
 	cat(paste("Running iEDGE differential expression for ", nrow(cn), " alterations: \n\n", sep = ""))
 
-	res<-list()
-	pb <- txtProgressBar(style = 3)
-	setTxtProgressBar(pb, 0)
-
-	n<-nrow(cn)
-	for (i in 1:n){ 	#for each alteration
-		setTxtProgressBar(pb, i/n)
+	get_genes<-function(i){
 		if (interaction_type == "cis")
 			genes.keep<-intersect(all_genes, unique(cisgenes[[i]]))
 		else 
 			genes.keep<-setdiff(all_genes, unique(cisgenes[[i]]))
 
+		return(genes.keep)
+
+	}
+
+	de.inner<-function(i) { 	#for each alteration
+		genes.keep<-genes.keep.list[[i]]
 		if (length(genes.keep)<1) res[[i]]<-NA
 		else {
 
@@ -202,7 +207,7 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 			gep.keep.ind<-gep.keep.ind[!is.na(gep.keep.ind)]
 			gep.keep<-gep[gep.keep.ind,]
 			fdat<-fData(gep.keep)
-			
+
 			fdat.add<-fData(cn)[i, ,drop = FALSE]
 			fdat.combined<-cbind(fdat, fdat.add)
 
@@ -226,25 +231,46 @@ make_iEDGE<-function(gep, #eset containing log2 gene expression
 				sep = " + ")
 			design<-model.matrix(data = design.treatment, object = as.formula(design.formula))
 			colnames(design)[1:2]<-c("control", "case") #0 always first column if levels are c(0,1)
-			
+		
 
 			if (any(apply(design[, c(1,2)], 2, sum) < min.group)){
 				cat(paste("less than ", min.group," samples in case or control for ", 
 					i, ", cannot run limma", "\n\n", sep = "")
 				)
-				res[[i]]<-NA
+				res<-NA
 			}
 			else 
-				res[[i]]<-run_limma(eset = gep.keep, design = design, 
+				res<-run_limma(eset = gep.keep, design = design, 
 					cndir = cndir, onesided = onesided, 
 					uptest = uptest, downtest = downtest)
+				
 		}
+
+		percentProgress<-do.call(sum, lapply(genes.keep.list[1:i], length))/genes.keep.total
+		setTxtProgressBar(pb, percentProgress)
+		
+		return(res)
 	}
 
-	setTxtProgressBar(pb, 1)
-	close(pb)
-	res.df<-do.call(rbind, res[!is.na(res)])
-	
+	n<-nrow(cn)	
+	genes.keep.list<-lapply(1:n, function(i) get_genes(i))
+	genes.keep.total<-do.call(sum, lapply(genes.keep.list, length))
+
+	if(is.na(numcores)){
+		pb<-txtProgressBar(style = 3)
+		setTxtProgressBar(pb, 0)
+		res<-lapply(1:n, function(i) de.inner(i))
+		setTxtProgressBar(pb, 1)
+		close(pb)
+	} else {
+		pb <- txtProgressBar(style = 3)
+		setTxtProgressBar(pb, 0)
+		res<-mclapply(1:n, function(i) de.inner(i), mc.cores = numcores)
+		setTxtProgressBar(pb, 1)
+		close(pb)
+	}
+
+	res.df<-do.call(rbind, res[!is.na(res)])	
 	res.df[, "adj.P.Val.all"]<-p.adjust(res.df$P.Value, method = "fdr")
 	
 	#reorder columns
@@ -315,6 +341,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
  		fc = fc.cis,
  		...)
 
+
 	if(is.na(fc.cis)) fc_cis_header <- ""
 	else fc_cis_header<-paste("_fc_", fc.cis, sep = "")
 	f.out<-paste(f.dir.out, "/", header, "_cis_sig_fdr_", 
@@ -342,14 +369,11 @@ iEDGE_DE<-function(cn, gep, cisgenes,
  		fc = fc.trans,
  		...)
 
-
-
 	res.cis.sig<-res.cis$sig
 	res.trans.sig<-res.trans$sig
 	res.trans.sig.up<-res.trans.sig[res.trans.sig[, "high.class"] %in% "case",]
 	res.trans.sig.dn<-res.trans.sig[res.trans.sig[, "high.class"] %in% "control",]
 	
-
 	res.cistrans.sig<-rbind(res.cis.sig, res.trans.sig)
 	res.cistrans.sig.up<-rbind(res.cis.sig, res.trans.sig.up)
 	res.cistrans.sig.dn<-rbind(res.cis.sig, res.trans.sig.dn)
@@ -422,7 +446,6 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	} else {
 		hyperhm<-NA
 	}
-
 	return(list(cis=res.cis, trans =res.trans, 
 		hyper = hyper, hyperhm = hyperhm))
 }
@@ -653,6 +676,13 @@ prune<-function(f_cis_tab, f_trans_tab,
 	gs, ... #other args.file in run_hyperEnrichment_pruned
 	) {
 	
+	if(nrow(f_cis_tab) == 0){
+		stop("No significant cis genes")
+	}
+	if(nrow(f_trans_tab) == 0){
+		stop("No significant trans genes")
+	}
+
 	alt_id<-unique(as.character(f_cis_tab[, alteration_id]))
 	cn.fdat<-fData(cn)
 	cn.exprs<-exprs(cn)
@@ -696,6 +726,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 		hyper[[i]]<-list()
 
 		i_ind <-which(cn.fdat[, alteration_id] == i)
+		print(i_ind)
 		x <- suppressWarnings(as.numeric(cn.exprs[i_ind,]))
 		cis_genes<-as.character(f_cis_tab[which(f_cis_tab[,alteration_id] == i), gene_id])
 		trans_genes<-as.character(f_trans_tab[which(f_trans_tab[,alteration_id] == i), gene_id])
@@ -703,9 +734,17 @@ prune<-function(f_cis_tab, f_trans_tab,
 		trans_genes<-intersect(trans_genes, ge.fdat.genes)
 		cis_genes_n<-length(cis_genes)
 		trans_genes_n<-length(trans_genes)
+		print("cis")
+		print(cis_genes)
+		print("trans")
+		print(trans_genes)
+		print("number cis")
+		print(cis_genes_n)
+		print("number trans")
+		print(trans_genes_n)
 
 		if(cis_genes_n >0 & trans_genes_n > 0) {
-			
+	
 			cis_vec<-ge.exprs[match(cis_genes, ge.fdat.genes),, drop = FALSE]
 			trans_vec<-ge.exprs[match(trans_genes, ge.fdat.genes),, drop = FALSE]
 			
@@ -713,6 +752,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 				y.names = rownames(cis_vec), z.names = rownames(trans_vec))
 
 			tab<-res.actual[[i]]
+		
 			tab<-subset_group_min(tab, by = "trans", metric = "fdr")
 			res.sig[[i]]<-tab[tab[, prunecol] < prunethres,]
 
@@ -805,6 +845,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 	}
 
+	
 	res.actual.alt<-lapply(names(res.actual), function(i){
 		cbind(data.frame(alt = i, res.actual[[i]]))
 		})
@@ -827,23 +868,29 @@ prune<-function(f_cis_tab, f_trans_tab,
 				file = paste(pruning_dir_tables, "/pruned.sig.txt", sep = ""),
 				col.names = TRUE, row.names = FALSE, sep = "\t")
 
+	if(nrow(cis_summary) > 0){
 	cis_summary<-cis_summary[order(cis_summary[,"alteration"],
 			-cis_summary[,"frac_mediated_trans_weighted"],decreasing=FALSE),]
 
 	a<-cis_summary[,"alteration"]
 	tots<-sapply(unique(a), function(x) sum(a == x))
 	ranks<-unlist(sapply(tots, function (x) 1:x))
+
 	cis_summary_full<-cbind(cis_summary, rank = ranks)
 	rownames(cis_summary_full)<-NULL
 	write.table(cis_summary_full, 
 		file = paste(pruning_dir_tables, "/cis_summary.txt", sep = ""),
 		col.names = TRUE, row.names = FALSE, sep = "\t")
-
+	
 	suppressWarnings(if(!is.na(gs))
 		return(list(cis_summary = cis_summary_full, all = res.actual, sig = res.sig, hyper = hyper))
 	else 
 		return(list(cis_summary = cis_summary_full, all = res.actual, sig = res.sig))
 		)
+	} else {
+		print("no pruned results!")
+		return(list(all = res.actual, sig = res.sig))
+	}
 
 }
 
@@ -882,6 +929,7 @@ run_iEDGE<-function(dat, #iEDGE object
 	bipartite = TRUE, #do bipartite graph/pruning
 	html = TRUE, #do html report
 	jsdir = NA, #default directory of iEDGE js files
+	numcores = NA, #default NA non-parallel, if specified uses mclapply with specified mc.cores
 	cache = list(DE = NULL, prunning = NULL, ui = NULL) #optional, cached result of previous run_iEDGE 
 	){
 
@@ -896,7 +944,7 @@ run_iEDGE<-function(dat, #iEDGE object
 	do.ui<-TRUE
 
 	if(!is.null(cache[["DE"]])) {
-		res<-cache[["DE"]]
+		de<-cache[["DE"]]
 		do.DE<-FALSE
 	}
 	if(!is.null(cache[["pruning"]])){
@@ -955,7 +1003,7 @@ run_iEDGE<-function(dat, #iEDGE object
 		cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
 
 		cat("Making Differential Expression tables...\n")
-		res<-iEDGE_DE(cn, gep, cisgenes,
+		de<-iEDGE_DE(cn, gep, cisgenes,
 			header,
 			gepid, cnid,  	
 			f.dir.out = de_dir, 
@@ -969,20 +1017,21 @@ run_iEDGE<-function(dat, #iEDGE object
 			fc.cis = fc.cis,
 			fc.trans = fc.trans,
 			uptest = uptest,
-			downtest = downtest
+			downtest = downtest, 
+			numcores = numcores
 			)
 	}
 
-	res.cis.sig<-res[["cis"]][["sig"]]
-	res.cis.full<-res[["cis"]][["full"]]
-	res.trans.sig<-res[["trans"]][["sig"]]
+	de.cis.sig<-de[["cis"]][["sig"]]
+	de.cis.full<-de[["cis"]][["full"]]
+	de.trans.sig<-de[["trans"]][["sig"]]
 
 	pruning_dir<-paste(base_dir, "/pruning", sep = "")
 
 	if(do.pruning){
 		if(bipartite == TRUE){	
-			pruning<-prune(f_cis_tab =  res.cis.sig, 
-				f_trans_tab = res.trans.sig, 
+			pruning<-prune(f_cis_tab =  de.cis.sig, 
+				f_trans_tab = de.trans.sig, 
 				cn = cn, 
 				gep = gep,
 				alteration_id = cnid,
@@ -1002,8 +1051,8 @@ run_iEDGE<-function(dat, #iEDGE object
 			if(is.na(jsdir))
 				jsdir<-file.path(path.package("iEDGE"), "javascript")
 	
-			ui<-iEDGE_UI(cistab = res.cis.sig, cisfulltab = res.cis.full,
-				transtab = res.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
+			ui<-iEDGE_UI(cistab = de.cis.sig, cisfulltab = de.cis.full,
+				transtab = de.trans.sig, cn = cn, gep = gep, cisgenes = cisgenes,
 				outdir = html_dir, jsdir = jsdir, 
 				pruning = pruning, pruningjsdir = paste(pruning_dir, "/js", sep = ""),
 				altid = cnid, altdesc = cndesc, geneid = gepid, 
@@ -1011,5 +1060,5 @@ run_iEDGE<-function(dat, #iEDGE object
 		} 
 	}
 
-	return(list(DE = res, pruning = pruning, ui = ui))
+	return(list(DE = de, pruning = pruning, ui = ui))
 }

@@ -15,4 +15,3 @@ export}
 \description{
 \code{read_gmt} read from gmt file
 }
-
