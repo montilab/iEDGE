@@ -11,6 +11,8 @@ construct_iEDGE(cn, gep, cisgenes, cn.fdat, gep.fdat)
 
 \item{gep}{matrix of gene expression (g rows of genes by n samples)}
 
+\item{cisgenes}{list of cis genes corresponding to each row in cn}
+
 \item{cn.fdat}{data frame of row annotations for cn, must have column of row identifiers, and optionally column of direction identifiers if one-sided DE tests are applied}
 
 \item{gep.fdat}{data frame of row annotaions for gep, must have column of row identifiers}
