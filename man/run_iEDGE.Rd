@@ -2,7 +2,7 @@
 % Please edit documentation in R/iEDGE_util.R
 \name{run_iEDGE}
 \alias{run_iEDGE}
-\title{run_iEDGE is the main wrapper for iEDGE, assumes processed data}
+\title{Main wrapper for iEDGE, assumes input data is constructed by construct_iEDGE}
 \usage{
 run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   cnid = "Unique.Name", cndesc = "Descriptor",
@@ -15,10 +15,62 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   numcores = NA, cache = list(DE = NULL, prunning = NULL, ui = NULL))
 }
 \arguments{
+\item{dat}{the input iEDGE object, see construct_iEDGE for specification}
+
+\item{header}{header string for result file names}
+
 \item{outdir}{output directory}
 
-\item{iEDGE}{datalist consisting of cn (alteration), gep (gene expression), and cisgenes (list of genes in each alt)}
+\item{gs.file}{default = NA, vector of characters giving full path of gmt files for enrichment analysis}
+
+\item{gepid}{default = "SYMBOL", colname in fData(dat$gep) indicating unique gene ids to display}
+
+\item{cnid}{default = "Unique.Name", colname in fData(dat$cn) indicating unique alterations to display}
+
+\item{cndesc}{default = "Descriptor", column in fData(dat$cn), can be NA if not available}
+
+\item{cndir}{default = "alteration_direction", column in fData(dat$cn) indicating directions of one sided differential expression, use NA if onesided.cis = FALSE and onesided.trans = FALSE}
+
+\item{fdr.cis.cutoff}{default = 0.25, fdr cis cutoff}
+
+\item{fdr.trans.cutoff}{default = 0.05, fdr trans cutoff}
+
+\item{fc.cis}{default = NA, fold change cutoff cis}
+
+\item{fc.trans}{default = NA, fold change cutoff trans}
+
+\item{min.drawsize}{default = 3, min drawsize for geneset enrichment}
+
+\item{onesided.cis}{default = TRUE, one sided cis differential expression}
+
+\item{onesided.trans}{default = FALSE, one sided trans differential expression}
+
+\item{uptest}{default = "Amplification", alterations for which upregulation in alteration is desired, value must be on fData(dat$cn)[, cndir], must specify if onesided.cis =TRUE}
+
+\item{downtest}{= "Deletion", alterations for which downregulation in alteration is desired}
+
+\item{min.group}{default = 2, mininum sample size in each group}
+
+\item{prune.col}{default = "pvalue", column name to indicate significance of sobel test}
+
+\item{prune.thres}{default = 0.05, significance cutoff of sobel test}
+
+\item{hyperthres}{default = 0.25, threshold for hyperEnrichment (fdr cutoff)}
+
+\item{cis.boxplot}{default = TRUE, display boxplot for cis genes}
+
+\item{trans.boxplot}{default = TRUE, display boxplot for trans genes}
+
+\item{bipartite}{default = TRUE, do bipartite graph/pruning}
+
+\item{html}{default = TRUE, do html report}
+
+\item{jsdir}{default = NA, default directory of iEDGE js files}
+
+\item{numcores}{default = NA (non-parallel), if specified uses mclapply with specified mc.cores}
+
+\item{cache}{default = list(DE = NULL, prunning = NULL, ui = NULL), optional, cached result of previous run_iEDGE}
 }
 \description{
-run_iEDGE is the main wrapper for iEDGE, assumes processed data
+Main wrapper for iEDGE, assumes input data is constructed by construct_iEDGE
 }
