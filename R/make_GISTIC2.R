@@ -1,38 +1,3 @@
-#helper functions to make iEDGE input from GISTIC
-#require(Biobase)
-#removed dependency: org.Hs.eg.db, not available in R version 3.4.3
-
-#' @import Biobase
-to.eSet<-function(mat, pdat, fdat){
-	#require(Biobase)
-	mat<-as.matrix(mat)
-
-	#checking data type and dimensions
-	if (!is.data.frame(pdat))
-		stop("pdat must be a data frame")
-	
-	if (!is.data.frame(fdat))
-		stop("fdat must be a data frame")
-	
-	if ( nrow(fdat) != nrow(mat))
-		stop("nrow(fdat) must equal nrow(mat)")
-	
-	if( nrow(pdat) != ncol(mat))
-		stop("nrow(pdat) must equal ncol(mat)")
-
-	rownames(fdat) <- rownames(mat)
-	rownames(pdat) <- colnames(mat)
-
-	fMetaData<-data.frame(labelDescription = colnames(fdat), row.names = colnames(fdat))
-	featureData<-new("AnnotatedDataFrame", data= fdat, varMetadata=fMetaData) 
-
-	pMetaData<-data.frame(labelDescription = colnames(pdat), row.names = colnames(pdat))
-	phenoData<-new("AnnotatedDataFrame", data= pdat, varMetadata=pMetaData) 
-	
-	eSet<-ExpressionSet(assayData=mat, featureData = featureData, phenoData = phenoData,  annotation = "")
-	return(eSet)
-}
-
 read_GISTIC2_focal<-function(all_lesions, binarize = TRUE){
 	x<-read.table(all_lesions,sep = "\t", header =T)
 	x<-x[, !apply(x, 2, function(i){all(is.na(i))})]
