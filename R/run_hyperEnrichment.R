@@ -32,7 +32,8 @@ run_hyperEnrichment_unpruned<-function(ngenes, gs, gs.file.name,
   res<-run_hyperEnrichment(drawn=drawnList,
       categories=gs,
       ntotal=ngenes,
-      mht = TRUE, verbose = TRUE, order = TRUE, ...)
+      mht = TRUE, #verbose = TRUE,
+      order = TRUE, ...)
   f.out<-paste(f.dir.out, "/", header, 
     "_hyperEnrichment_",gs.file.name,"_", header2,".txt", sep = "")  
   cat(paste("Writing table to ", f.out, "\n", sep = ""))

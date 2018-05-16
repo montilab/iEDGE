@@ -38,6 +38,7 @@ construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat){
 #' @param	hyperthres default = 0.25, threshold for hyperEnrichment (fdr cutoff)
 #' @param	cis.boxplot default = TRUE, display boxplot for cis genes
 #' @param	trans.boxplot default = TRUE, display boxplot for trans genes
+#' @param 	enrich.heatmap = TRUE, display heatmap for pathway enrichment results
 #' @param	bipartite default = TRUE, do bipartite graph/pruning
 #' @param	html default = TRUE, do html report
 #' @param	jsdir default = NA, default directory of iEDGE js files
@@ -72,6 +73,7 @@ run_iEDGE<-function(dat, #iEDGE object
 	hyperthres = 0.25, #threshold for hyperEnrichment (fdr cutoff)
 	cis.boxplot = TRUE, #display boxplot for cis genes
 	trans.boxplot = TRUE, #display boxplot for trans genes
+	enrich.heatmap = TRUE, #display heatmap for pathway enrichment results
 	bipartite = TRUE, #do bipartite graph/pruning
 	html = TRUE, #do html report
 	jsdir = NA, #default directory of iEDGE js files
@@ -162,7 +164,8 @@ run_iEDGE<-function(dat, #iEDGE object
 			fc.trans = fc.trans,
 			uptest = uptest,
 			downtest = downtest, 
-			numcores = numcores
+			numcores = numcores, 
+			enrich.heatmap = enrich.heatmap
 			)
 	}
 
@@ -467,15 +470,26 @@ iEDGE_DE_inner<-function(gep, #eset containing log2 gene expression
 	return(res.list)
 }
 
-
 get_sig_split<-function(tab, cnid, gepid){
-	res<-sapply(unique(tab[, cnid]), 
+	res.names<-unique(tab[, cnid])
+	res<-lapply(res.names, 
 			function(x){
 				y<-tab[tab[, cnid] == x,]
 				return(unique(as.character(y[, gepid])))
-				}, USE.NAMES = TRUE)
+				}#, USE.NAMES = TRUE
+				)
+	names(res)<-res.names
 	return(res)
 }
+
+# get_sig_split<-function(tab, cnid, gepid){
+# 	res<-sapply(unique(tab[, cnid]), 
+# 			function(x){
+# 				y<-tab[tab[, cnid] == x,]
+# 				return(unique(as.character(y[, gepid])))
+# 				}, USE.NAMES = TRUE)
+# 	return(res)
+# }
 
 get_sig_single<-function(tab, gepid, nm){
 	res<-list()
@@ -568,36 +582,39 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 
  	ngenes<-nrow(gep)
 
+
+ 	#make lists of drawns genes
+
+	drawns<-list()
+	drawns[["cis"]]<-get_sig_single(res.cis.sig, gepid, "cis")
+	drawns[["trans"]]<-get_sig_single(res.cis.sig, gepid, "trans")
+	drawns[["trans.up"]]<-get_sig_single(res.trans.sig.up, gepid, "trans.up")
+	drawns[["trans.dn"]]<-get_sig_single(res.trans.sig.dn, gepid, "trans.dn")
+
+	drawns[["cistrans"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans")
+	drawns[["cistrans.up"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans.up")
+	drawns[["cistrans.dn"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans.dn")
+
+	drawns[["cis_split"]]<-get_sig_split(res.cis.sig, cnid, gepid)
+	drawns[["trans_split"]]<-get_sig_split(res.trans.sig, cnid, gepid)
+	drawns[["trans.up_split"]]<-get_sig_split(res.trans.sig.up, cnid, gepid)
+	drawns[["trans.dn_split"]]<-get_sig_split(res.trans.sig.dn, cnid, gepid)
+
+	drawns[["cistrans_split"]]<-get_sig_split(res.cistrans.sig, cnid, gepid)
+	drawns[["cistrans.up_split"]]<-get_sig_split(res.cistrans.sig.up, cnid, gepid)
+	drawns[["cistrans.dn_split"]]<-get_sig_split(res.cistrans.sig.dn, cnid, gepid)
+
  	hyper<-lapply(names(gs), function(i){
 
 	 	gs.i<-gs[[i]]
 	 	gs.file.name<-i
-	 	#run hyperenrichment with all sig cis genes in one geneset
-
-	 	drawns<-list()
-	 	drawns[["cis"]]<-get_sig_single(res.cis.sig, gepid, "cis")
-	 	drawns[["trans"]]<-get_sig_single(res.cis.sig, gepid, "trans")
-	 	drawns[["trans.up"]]<-get_sig_single(res.trans.sig.up, gepid, "trans.up")
-	 	drawns[["trans.dn"]]<-get_sig_single(res.trans.sig.dn, gepid, "trans.dn")
-
-	 	drawns[["cistrans"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans")
-	 	drawns[["cistrans.up"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans.up")
-		drawns[["cistrans.dn"]]<-get_sig_single(res.cistrans.sig, gepid, "cistrans.dn")
-
-	 	drawns[["cis_split"]]<-get_sig_split(res.cis.sig, cnid, gepid)
-	 	drawns[["trans_split"]]<-get_sig_split(res.trans.sig, cnid, gepid)
-	 	drawns[["trans.up_split"]]<-get_sig_split(res.trans.sig.up, cnid, gepid)
-	 	drawns[["trans.dn_split"]]<-get_sig_split(res.trans.sig.dn, cnid, gepid)
-
-	 	drawns[["cistrans_split"]]<-get_sig_split(res.cistrans.sig, cnid, gepid)
-	 	drawns[["cistrans.up_split"]]<-get_sig_split(res.cistrans.sig.up, cnid, gepid)
-	 	drawns[["cistrans.dn_split"]]<-get_sig_split(res.cistrans.sig.dn, cnid, gepid)
-
 	 	hyper.res<-lapply(names(drawns), function(i){
+	 		print(i)
 	 		run_hyperEnrichment_unpruned(ngenes = ngenes, 
 	 		gs=gs.i, gs.file.name =gs.file.name, 
 	 		drawnList = drawns[[i]], f.dir.out =f.dir.out, 
-	 		header = header, header2= i, min.drawsize = min.drawsize)
+	 		header = header, header2= i, min.drawsize = min.drawsize, 
+	 		verbose = FALSE)
 	 		})
 	 	names(hyper.res)<-names(drawns)
 		return(hyper.res)
@@ -892,10 +909,10 @@ prune<-function(f_cis_tab, f_trans_tab,
 		trans_genes<-intersect(trans_genes, ge.fdat.genes)
 		cis_genes_n<-length(cis_genes)
 		trans_genes_n<-length(trans_genes)
-		print("cis")
-		print(cis_genes)
-		print("trans")
-		print(trans_genes)
+		#print("cis")
+		#print(cis_genes)
+		#print("trans")
+		#print(trans_genes)
 		print("number cis")
 		print(cis_genes_n)
 		print("number trans")
