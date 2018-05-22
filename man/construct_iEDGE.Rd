@@ -4,7 +4,8 @@
 \alias{construct_iEDGE}
 \title{Construct iEDGE input object}
 \usage{
-construct_iEDGE(cn, gep, cisgenes, cn.fdat, gep.fdat)
+construct_iEDGE(cn, gep, cisgenes, cn.fdat, gep.fdat, cn.pdat = NA,
+  gep.pdat = NA)
 }
 \arguments{
 \item{cn}{matrix of epi-DNA alterations (m rows of alterations by n samples)}
@@ -16,6 +17,10 @@ construct_iEDGE(cn, gep, cisgenes, cn.fdat, gep.fdat)
 \item{cn.fdat}{data frame of row annotations for cn, must have column of row identifiers, and optionally column of direction identifiers if one-sided DE tests are applied}
 
 \item{gep.fdat}{data frame of row annotaions for gep, must have column of row identifiers}
+
+\item{cn.pdat}{optional data frame of column annotations for cn}
+
+\item{gep.pdat}{optional data frame of column annotations for gep}
 }
 \description{
 Construct iEDGE input object
