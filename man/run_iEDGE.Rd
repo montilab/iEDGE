@@ -11,8 +11,9 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   onesided.cis = TRUE, onesided.trans = FALSE, uptest = "Amplification",
   downtest = "Deletion", min.group = 2, prune.col = "pvalue",
   prune.thres = 0.05, hyperthres = 0.25, cis.boxplot = TRUE,
-  trans.boxplot = TRUE, bipartite = TRUE, html = TRUE, jsdir = NA,
-  numcores = NA, cache = list(DE = NULL, prunning = NULL, ui = NULL))
+  trans.boxplot = TRUE, enrich.heatmap = TRUE, bipartite = TRUE,
+  html = TRUE, jsdir = NA, numcores = NA, cache = list(DE = NULL,
+  prunning = NULL, ui = NULL))
 }
 \arguments{
 \item{dat}{the input iEDGE object, see construct_iEDGE for specification}
@@ -60,6 +61,8 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 \item{cis.boxplot}{default = TRUE, display boxplot for cis genes}
 
 \item{trans.boxplot}{default = TRUE, display boxplot for trans genes}
+
+\item{enrich.heatmap}{= TRUE, display heatmap for pathway enrichment results}
 
 \item{bipartite}{default = TRUE, do bipartite graph/pruning}
 
