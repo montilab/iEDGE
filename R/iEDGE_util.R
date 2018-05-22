@@ -5,10 +5,17 @@
 #' @param cisgenes list of cis genes corresponding to each row in cn
 #' @param cn.fdat data frame of row annotations for cn, must have column of row identifiers, and optionally column of direction identifiers if one-sided DE tests are applied
 #' @param gep.fdat data frame of row annotaions for gep, must have column of row identifiers
+#' @param cn.pdat optional data frame of column annotations for cn
+#' @param gep.pdat optional data frame of column annotations for gep
 #' @export 
-construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat){
-	cn<-to.eSet(mat = cn, pdat = data.frame(colid = colnames(cn)), fdat = cn.fdat)
-	gep<-to.eSet(mat = gep, pdat = data.frame(colid = colnames(gep)), fdat = gep.fdat)
+construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat, cn.pdat = NA, gep.pdat = NA){
+	if(suppressWarnings(is.na(cn.pdat)))
+		cn.pdat<-data.frame(colid = colnames(cn))
+	if(suppressWarnings(is.na(gep.pdat)))
+		gep.pdat<-data.frame(colid = colnames(gep))
+	
+	cn<-to.eSet(mat = cn, pdat = cn.pdat, fdat = cn.fdat)
+	gep<-to.eSet(mat = gep, pdat = gep.pdat, fdat = gep.fdat)
 	dat<-list(cn = cn, gep = gep, cisgenes = cisgenes)
 	return(dat)
 }
