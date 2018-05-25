@@ -22,6 +22,7 @@ construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat, cn.pdat = NA, ge
 
 
 #' Main wrapper for iEDGE, assumes input data is constructed by construct_iEDGE
+#' @import parallel
 #' @param   dat the input iEDGE object, see construct_iEDGE for specification
 #' @param	header header string for result file names
 #' @param	outdir output directory
