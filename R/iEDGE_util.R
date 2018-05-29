@@ -387,7 +387,7 @@ iEDGE_DE_inner<-function(gep, #eset containing log2 gene expression
 
 	de.inner<-function(i) { 	#for each alteration
 		genes.keep<-genes.keep.list[[i]]
-		if (length(genes.keep)<1) res[[i]]<-NA
+		if (length(genes.keep)<1) res<-NA
 		else {
 
 			gep.keep.ind<-match(genes.keep, all_genes)
