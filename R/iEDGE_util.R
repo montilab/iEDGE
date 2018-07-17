@@ -52,6 +52,7 @@ construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat, cn.pdat = NA, ge
 #' @param	jsdir default = NA, default directory of iEDGE js files
 #' @param	numcores default = NA (non-parallel), if specified uses mclapply with specified mc.cores
 #' @param	cache default = list(DE = NULL, prunning = NULL, ui = NULL), optional, cached result of previous run_iEDGE 
+#' @param includeheatmap = TRUE, optional, include heatmap for pathway enrichment in UI
 #' @export
 run_iEDGE<-function(dat, #iEDGE object
 	header, #header string for result file names
@@ -920,7 +921,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 		trans_genes<-intersect(trans_genes, ge.fdat.genes)
 		cis_genes_n<-length(cis_genes)
 		trans_genes_n<-length(trans_genes)
-		
+
 		print("number cis")
 		print(cis_genes_n)
 		print("number trans")

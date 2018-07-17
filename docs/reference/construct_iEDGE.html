@@ -105,7 +105,8 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>construct_iEDGE</span>(<span class='no'>cn</span>, <span class='no'>gep</span>, <span class='no'>cisgenes</span>, <span class='no'>cn.fdat</span>, <span class='no'>gep.fdat</span>)</pre>
+    <pre class="usage"><span class='fu'>construct_iEDGE</span>(<span class='no'>cn</span>, <span class='no'>gep</span>, <span class='no'>cisgenes</span>, <span class='no'>cn.fdat</span>, <span class='no'>gep.fdat</span>, <span class='kw'>cn.pdat</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>gep.pdat</span> <span class='kw'>=</span> <span class='fl'>NA</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -129,6 +130,14 @@
     <tr>
       <th>gep.fdat</th>
       <td><p>data frame of row annotaions for gep, must have column of row identifiers</p></td>
+    </tr>
+    <tr>
+      <th>cn.pdat</th>
+      <td><p>optional data frame of column annotations for cn</p></td>
+    </tr>
+    <tr>
+      <th>gep.pdat</th>
+      <td><p>optional data frame of column annotations for gep</p></td>
     </tr>
     </table>
     

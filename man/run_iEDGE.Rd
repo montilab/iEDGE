@@ -13,7 +13,7 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   prune.thres = 0.05, hyperthres = 0.25, cis.boxplot = TRUE,
   trans.boxplot = TRUE, enrich.heatmap = TRUE, bipartite = TRUE,
   html = TRUE, jsdir = NA, numcores = NA, cache = list(DE = NULL,
-  prunning = NULL, ui = NULL))
+  prunning = NULL, ui = NULL), includeheatmap = TRUE)
 }
 \arguments{
 \item{dat}{the input iEDGE object, see construct_iEDGE for specification}
@@ -73,6 +73,8 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 \item{numcores}{default = NA (non-parallel), if specified uses mclapply with specified mc.cores}
 
 \item{cache}{default = list(DE = NULL, prunning = NULL, ui = NULL), optional, cached result of previous run_iEDGE}
+
+\item{includeheatmap}{= TRUE, optional, include heatmap for pathway enrichment in UI}
 }
 \description{
 Main wrapper for iEDGE, assumes input data is constructed by construct_iEDGE
