@@ -213,113 +213,6 @@ data2html<-function(df){
 	return(paste(head, body, tail, sep = ""))
 }
 
-# writes json for pathway enrichment heatmap
-#' @import jsonlite RColorBrewer
-generate_heatmap_json<-function(header, gs.names, inputdir, outdir) {
-
-	#TODO
-	gs.names.base<-gsub(".gmt", "", basename(gs.names))
-
-	finnames <- paste0(header, "_hyperEnrichment_", gs.names.base, "_cistrans_split.txt")
-
-	names(finnames)<-gs.names.base
-	datoutlist<-list()
-
-	for(i in names(finnames)){
-
-		finname<-finnames[i]
-		finfull<-paste0(inputdir, "/", finname)
-		dat<-read.table(finfull, header = T)
-
-		##colorscales
-		colors<-rev(brewer.pal(4, "Reds"))
-		colorbreaks<-c(0.01, 0.05, 0.25)
-		thres<-colorbreaks[length(colorbreaks)-1]
-
-		##heatmapData
-		heatmapData<-dat[, c("set", "category",  "fdr")]
-
-		rowLabs<-as.character(unique(heatmapData$category))
-		colLabs<-as.character(unique(heatmapData$set))
-
-		##remove rows and columns with all in-significant FDR
-		rowLabsFilter<-sapply(rowLabs, function(i){
-			cond<-any(heatmapData[heatmapData$category %in% i, "fdr"]<thres)
-			if(cond) return(TRUE) else return(FALSE)
-			})
-
-		colLabsFilter<-sapply(colLabs, function(i){
-			cond<-any(heatmapData[heatmapData$set %in% i, "fdr"]<thres)
-			if(cond) return(TRUE) else return(FALSE)
-			})
-
-		heatmapData<-heatmapData[heatmapData$category %in% rowLabs[rowLabsFilter],]
-		heatmapData<-heatmapData[heatmapData$set %in% colLabs[colLabsFilter],]
-
-		rowLabs<-as.character(unique(heatmapData$category))
-		colLabs<-as.character(unique(heatmapData$set))
-
-		nR<-length(rowLabs)
-		nC<-length(colLabs)
-
-		mat<-sapply(rowLabs, function(i){
-				sapply(colLabs, function(j){
-					num<-as.numeric(heatmapData[heatmapData$category %in% i & heatmapData$set %in% j, 
-						"fdr"])
-				})
-			})
-
-
-		if(nR < 3) {
-			row.ord<-1:nR
-		} else {
-			row.d<-dist(t(mat), method = "euclidean")
-			row.ord<-order.dendrogram(as.dendrogram(hclust(row.d, method = "ward.D")))
-		}
-		if(nC < 3){
-			col.ord<-1:nC
-		} else {
-			col.d<-dist(mat, method = "euclidean")
-			col.ord<-order.dendrogram(as.dendrogram(hclust(col.d, method = "ward.D")))
-		}
-
-		rowLabs<-rowLabs[row.ord]
-		colLabs<-colLabs[col.ord]
-		
-		heatmapData$x<-sapply(heatmapData$set, function(i){
-			which(colLabs %in% i)
-			})
-
-		heatmapData$y<-sapply(heatmapData$category, function(i){
-			which(rowLabs %in% i)
-			})
-
-		datout<-list(colors = colors, 
-			colorbreaks = colorbreaks, 
-			rowLabs = rowLabs,
-			colLabs = colLabs,
-			heatmapData = heatmapData)
-
-		datoutlist[[i]]<-datout
-	}
-
-	dat.json<-toJSON(datoutlist, pretty = TRUE)
-	meta.json<-toJSON(list(header = header), pretty = TRUE)
-	foutname<-"combined_cistrans_split.json"
-	foutfull<-paste0(outdir, "/", foutname)
-
-	write_wrapper<-function(headername = "data", content, metacontent, fout){
-		write("dataset = \n", append = FALSE, file = fout)
-		write(content, append = TRUE, file = fout)
-		write(";\n", append = TRUE, file= fout)
-		write("heatmap_metadata = \n", append = TRUE, file = fout)
-		write(metacontent, append = TRUE, file = fout)
-		write(";", append = TRUE, file= fout)
-	}
-
-	write_wrapper(content = dat.json, metacontent=meta.json ,fout = foutfull)
-}
-
 ##turns data frame into html code 
 ##appends js headers
 #' @import knitr
@@ -329,7 +222,7 @@ to_table_html<-function(x,
 	jsdir = "../../inst/javascript",
 	hidecol = FALSE
 	){
-
+	
 	##add default js header
 	x.name.escape<-gsub("\\.", "\\\\.", x.name)
 
@@ -356,7 +249,7 @@ to_table_html<-function(x,
         	[25, 50, 100, 200, \"All\"]
     		],
     		dom: 'lBfrtip',
-    		fixedHeader: false,
+    		fixedHeader: true,
     		buttons: [ 'copy',
     			{ extend: 'excelHtml5',
     			title: '", x.name, "',
@@ -415,7 +308,8 @@ to_table_html<-function(x,
 
 	js_header2<-header
 	attrstr<-paste("id=\"", x.name, "\"", " class=\"display\" cellspacing=\"0\" width=\"60%\"", sep = "")
-	res<-kable(x, "html", table.attr = attrstr)#caption = x.name)
+	res<-kable(x, "html", table.attr = attrstr,
+	caption = x.name)
 	res<-paste(js_header, js_header2, res, sep = "\n")
 	return(res)
 }
@@ -634,27 +528,13 @@ get_summary<-function(x, cistab, cisfulltab, transtab, altid, altdesc, cn, cisge
 	return(res)
 }
 
-#Takes as input our summary table with links
-#Outputs our full index file
-to_main_index<-function(existingHTML, jsdir) {
-	indexupperfname <- paste0(jsdir, '/indexupper.html')
-	indexhtmlupper<- readChar(indexupperfname, file.info(indexupperfname)$size)
-	indexlowerfname <- paste0(jsdir, '/indexlower.html')
-	indexhtmllower <- readChar(indexlowerfname, file.info(indexlowerfname)$size)
-	return(paste0(indexhtmlupper, "<br></br>", existingHTML, indexhtmllower));
-}
-
 #' iEDGE_UI makes the user interface for iEDGE reports
 #' @export
 iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 	outdir, jsdir = file.path(path.package("iEDGE"), "javascript"), pruning, pruningjsdir,
 	altid = "Unique.Name", altdesc = "Descriptor", geneid = "accession", 
-	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE, heatmap = TRUE, heatmapdatadir = NA, 
-	header = NA, gs.names = NA){
+	cis.boxplot = TRUE, trans.boxplot = TRUE, bipartite = TRUE){
 
-	if (heatmap) {
-		generate_heatmap_json(header, gs.names, heatmapdatadir, outdir) 
-	}
 	suppressWarnings(dir.create(outdir))
 
 	jsfiles<-list.files(jsdir, full.names = TRUE)
@@ -746,8 +626,6 @@ iEDGE_UI<-function(cistab, cisfulltab, transtab, cn, gep, cisgenes,
 		header = addlinksheader,
 		jsdir = jsdir,
 		hidecol = TRUE)
-	cat("Adding main table to main index...\n")
-	summarytable.html<-to_main_index(summarytable.html, jsdir)
 	write(summarytable.html, file = paste(outdir, "/", "index.html", sep = ""))
 
 	##writing bipartite

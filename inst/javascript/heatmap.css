@@ -1,0 +1,124 @@
+.container {
+	position: relative;
+}
+
+#wrapper {
+	position: relative;
+	text-align: center;
+	margin: 0 auto;
+	font-family: sans-serif;
+	border: 1px solid black;
+}
+
+#label {
+	margin-top: 20px;
+	font-size: 30px;
+}
+
+h3 {
+	margin-top: -15px;
+}
+
+#blurb {
+	display: block;
+	margin: -10px auto 0 auto;
+	font-weight: 100;
+	font-size: 0.8em;
+	max-width: 800px;
+}
+
+.custom-select {
+  position: relative;
+  font-family: Arial;
+}
+.custom-select select {
+  display: none; /*hide original SELECT element:*/
+}
+.select-selected {
+  background-color: DodgerBlue;
+}
+/*style the arrow inside the select element:*/
+.select-selected:after {
+  position: absolute;
+  content: "";
+  top: 14px;
+  right: 10px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-color: #fff transparent transparent transparent;
+}
+/*point the arrow upwards when the select box is open (active):*/
+.select-selected.select-arrow-active:after {
+  border-color: transparent transparent #fff transparent;
+  top: 7px;
+}
+/*style the items (options), including the selected item:*/
+.select-items div,.select-selected {
+  color: #ffffff;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+  cursor: pointer;
+}
+/*style items (options):*/
+.select-items {
+  position: absolute;
+  background-color: DodgerBlue;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+/*hide the items when the select box is closed:*/
+.select-hide {
+  display: none;
+}
+.select-items div:hover, .same-as-selected {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.tooltip {
+	position: absolute;
+	text-align: center;
+	z-index: 10;
+	font: 16px sans-serif;
+	font-weight: bold;
+	background-color: black;
+	color: white;
+	border-radius: 5px;
+	padding: 5px;
+}
+
+.x,
+.y,
+.legend text {
+	font-weight: lighter;
+	font-size: 12px;
+}
+
+g.y {
+	padding-right: 10px;
+}
+
+
+.axis path,
+.axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+.legend-panel {
+	padding-left: 0px;
+	padding-bottom: 0px;
+	padding-top: 0px;
+	padding-right: 0px;	
+}
+
+.heat-map {
+	padding-left: 0px;
+	padding-bottom: 0px;
+	padding-top: 0px;
+	padding-right: 0px;
+}

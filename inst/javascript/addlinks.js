@@ -10,8 +10,7 @@ function addLinksToDoc(){
         	if(prev_value == 0) { // no links for empty tables
         		return;
         	}
-        	new_text = "<a href=\"" + link_name + "\">" + prev_value + "</a>";
-        	//console.log(new_text);
+            new_text = "<a href=\"" + link_name + "\"" + " target=\"_blank\"" + ">" + prev_value + "</a>";
         	selection.html(new_text);
         }
 

@@ -86,7 +86,8 @@ run_iEDGE<-function(dat, #iEDGE object
 	html = TRUE, #do html report
 	jsdir = NA, #default directory of iEDGE js files
 	numcores = NA, #default NA non-parallel, if specified uses mclapply with specified mc.cores
-	cache = list(DE = NULL, prunning = NULL, ui = NULL) #optional, cached result of previous run_iEDGE 
+	cache = list(DE = NULL, prunning = NULL, ui = NULL), #optional, cached result of previous run_iEDGE 
+	includeheatmap = TRUE
 	){
 
 	res<-NULL
@@ -211,7 +212,9 @@ run_iEDGE<-function(dat, #iEDGE object
 				outdir = html_dir, jsdir = jsdir, 
 				pruning = pruning, pruningjsdir = paste(pruning_dir, "/js", sep = ""),
 				altid = cnid, altdesc = cndesc, geneid = gepid, 
-				cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite)
+				cis.boxplot = cis.boxplot, trans.boxplot = trans.boxplot, bipartite = bipartite,
+				heatmap = includeheatmap, heatmapdatadir = paste0(base_dir, "/tables"),
+				header = header, gs.names = gs.file)
 		} 
 	}
 
@@ -917,10 +920,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 		trans_genes<-intersect(trans_genes, ge.fdat.genes)
 		cis_genes_n<-length(cis_genes)
 		trans_genes_n<-length(trans_genes)
-		#print("cis")
-		#print(cis_genes)
-		#print("trans")
-		#print(trans_genes)
+		
 		print("number cis")
 		print(cis_genes_n)
 		print("number trans")
