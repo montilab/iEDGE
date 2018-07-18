@@ -177,6 +177,9 @@ $(document).ready(function() {
     	//initialize new panels
         init(selected)
     });
+	$("#heatmap-main-title").html("Heatmap of pathway enrichment");
+    $("#heatmap-sub-title").html("Pathway enrichment of cis-or-trans signatures for dataset: " + heatmap_metadata.header[0]);
 
-    $("#heatmap-title").html("Pathway enrichment of cis-or-trans signatures for dataset: " + heatmap_metadata.header[0]);
+
+
 });

@@ -52,7 +52,7 @@ construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat, cn.pdat = NA, ge
 #' @param	jsdir default = NA, default directory of iEDGE js files
 #' @param	numcores default = NA (non-parallel), if specified uses mclapply with specified mc.cores
 #' @param	cache default = list(DE = NULL, prunning = NULL, ui = NULL), optional, cached result of previous run_iEDGE 
-#' @param includeheatmap = TRUE, optional, include heatmap for pathway enrichment in UI
+#' @param includeheatmap = TRUE, optional, include heatmap for pathway enrichment in UI, must be enrichment=TRUE for this to work
 #' @export
 run_iEDGE<-function(dat, #iEDGE object
 	header, #header string for result file names
@@ -82,38 +82,58 @@ run_iEDGE<-function(dat, #iEDGE object
 	hyperthres = 0.25, #threshold for hyperEnrichment (fdr cutoff)
 	cis.boxplot = TRUE, #display boxplot for cis genes
 	trans.boxplot = TRUE, #display boxplot for trans genes
-	enrich.heatmap = TRUE, #display heatmap for pathway enrichment results
+	#enrich.heatmap = TRUE, #display heatmap for pathway enrichment results
+	enrichment = TRUE, #do pathway enrichment
 	bipartite = TRUE, #do bipartite graph/pruning
 	html = TRUE, #do html report
 	jsdir = NA, #default directory of iEDGE js files
 	numcores = NA, #default NA non-parallel, if specified uses mclapply with specified mc.cores
-	cache = list(DE = NULL, prunning = NULL, ui = NULL), #optional, cached result of previous run_iEDGE 
+	cache = list(DE = NULL, DE.enrich = NULL, prunning = NULL, pruning.enrich = NULL, ui = NULL), #optional, cached result of previous run_iEDGE 
 	includeheatmap = TRUE
 	){
 
 	res<-NULL
+	de.enrich<-NULL
 	pruning<-NULL
 	ui<-NULL
+	if(!enrichment) includeheatmap = FALSE
 
 	do.DE<-TRUE
+	do.de.enrich<-TRUE
 	do.pruning<-TRUE
+	do.pruning.enrich<-TRUE
 	do.ui<-TRUE
 
-	if(!is.null(cache[["DE"]])) {
-		de<-cache[["DE"]]
+
+
+	if(!is.null(cache[["de"]])) {
+		de<-cache[["de"]]
 		do.DE<-FALSE
 	}
+
+	if(!is.null(cache[["de.enrich"]])){
+		de.enrich<-cache[["de.enrich"]]
+		do.de.enrich<-FALSE
+	}
+
 	if(!is.null(cache[["pruning"]])){
 		pruning<-cache[["pruning"]]
 		do.pruning<-FALSE
 	}
 
-	if(!is.null(cache[["ui"]])){
-		ui<-cache[["ui"]]
-		do.ui<-FALSE
+	if(!is.null(cache[["pruning.enrich"]])){
+		pruning.enrich<-cache[["pruning.enrich"]]
+		do.pruning.enrich<-FALSE
 	}
 
+	#if(!is.null(cache[["ui"]])){
+	#	ui<-cache[["ui"]]
+	#	do.ui<-FALSE
+	#}
+
 	do.gs<-TRUE
+
+
 	if(is.na(gs.file[1])){ 
 		do.gs<-FALSE
 	} else {
@@ -138,23 +158,6 @@ run_iEDGE<-function(dat, #iEDGE object
 	suppressWarnings(dir.create(base_dir, recursive = TRUE))
 	de_dir<-paste(base_dir, "/tables", sep = "")
 
-	gs<-NA
-	if(do.gs){
-		cat("Reading genesets..\n")
-		gs<-lapply(gs.file, function(i){
-			res<-read_gmt(i)$genesets
-			res<-sapply(res, function(x){
-				a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
-				return(unique(do.call(c,a)))
-			})
-			cat(paste("Geneset loaded:", i, "\n", sep = ""))
-			return(res)
-			})
-		names(gs)<-gsub(".gmt", "",basename(gs.file))
-
-
-	}
-
 	if(do.DE){
 		cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
 
@@ -163,7 +166,6 @@ run_iEDGE<-function(dat, #iEDGE object
 			header,
 			gepid, cnid,  	
 			f.dir.out = de_dir, 
-			gs = gs, 
 			fdr.cis.cutoff = fdr.cis.cutoff, fdr.trans.cutoff = fdr.trans.cutoff, 
 			min.group = min.group,
 			min.drawsize = min.drawsize,  
@@ -174,9 +176,32 @@ run_iEDGE<-function(dat, #iEDGE object
 			fc.trans = fc.trans,
 			uptest = uptest,
 			downtest = downtest, 
-			numcores = numcores, 
-			enrich.heatmap = enrich.heatmap
+			numcores = numcores
 			)
+	}
+	if(do.de.enrich){
+		if(enrichment == TRUE){
+			print("enrichment ")
+
+			gs<-NA
+			if(do.gs){
+				cat("Reading genesets..\n")
+				gs<-lapply(gs.file, function(i){
+					res<-read_gmt(i)$genesets
+					res<-sapply(res, function(x){
+						a<-lapply(x,function(i) strsplit(i, split="[ |_]///[ |_]")[[1]])
+						return(unique(do.call(c,a)))
+					})
+					cat(paste("Geneset loaded:", i, "\n", sep = ""))
+					return(res)
+					})
+				names(gs)<-gsub(".gmt", "",basename(gs.file))
+
+
+			}
+
+			de.enrich<-do_de_enrichment(header, gep, gepid, cnid, gs, f.dir.out = de_dir)
+		}
 	}
 
 	de.cis.sig<-de[["cis"]][["sig"]]
@@ -219,7 +244,7 @@ run_iEDGE<-function(dat, #iEDGE object
 		} 
 	}
 
-	return(list(DE = de, pruning = pruning, ui = ui))
+	return(list(de = de, de.enrich = de.enrich, pruning = pruning, ui = ui))
 }
 
 #' Performs sobel test of mediation
@@ -514,7 +539,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	header,
 	gepid, cnid,  	
 	f.dir.out, 
-	gs, #genset for hyper
+##	gs, #genset for hyper
 	fdr.cis.cutoff = 0.25, fdr.trans.cutoff = 0.05, 
 	min.group = 3,
 	min.drawsize = 3,  
@@ -523,7 +548,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	trans.onesided = FALSE,
 	fc.cis = NA,
 	fc.trans = NA,
-	enrich.heatmap = FALSE,
+#	enrich.heatmap = FALSE,
 	... #other parameters in iEDGE_DE_inner
 	){
 
@@ -545,6 +570,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 
 	if(is.na(fc.cis)) fc_cis_header <- ""
 	else fc_cis_header<-paste("_fc_", fc.cis, sep = "")
+	
 	f.out<-paste(f.dir.out, "/", header, "_cis_sig_fdr_", 
 		fdr.cis.cutoff, fc_cis_header, ".txt", sep = "")
 	cat(paste("Writing table to ", f.out, "\n", sep = ""))
@@ -590,12 +616,30 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	
 	cat("Done!\n")
 
+
+	return(list(cis=res.cis, trans =res.trans#, 
+		#hyper = hyper, hyperhm = hyperhm
+		))
+}
+
+#do enrichment for differential expression
+do_de_enrichment<-function(header, gep, gepid, cnid, gs, f.dir.out){
 	cat("\nPerforming hyperEnrichment analysis...\n")
-
  	ngenes<-nrow(gep)
-
-
  	#make lists of drawns genes
+ 	res.cis<-res$de$cis
+ 	res.trans<-res$de$trans
+	res.cis.sig<-res.cis$sig
+	res.trans.sig<-res.trans$sig
+	res.trans.sig.up<-res.trans.sig[res.trans.sig[, "high.class"] %in% "case",]
+	res.trans.sig.dn<-res.trans.sig[res.trans.sig[, "high.class"] %in% "control",]
+	
+	res.cistrans.sig<-rbind(res.cis.sig, res.trans.sig)
+	res.cistrans.sig.up<-rbind(res.cis.sig, res.trans.sig.up)
+	res.cistrans.sig.dn<-rbind(res.cis.sig, res.trans.sig.dn)
+
+	#if(is.na(fc.trans)) fc_trans_header <- ""
+	#else fc_trans_header<-paste("_fc_", fc.trans, sep = "")
 
 	drawns<-list()
 	drawns[["cis"]]<-get_sig_single(res.cis.sig, gepid, "cis")
@@ -617,15 +661,14 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	drawns[["cistrans.dn_split"]]<-get_sig_split(res.cistrans.sig.dn, cnid, gepid)
 
  	hyper<-lapply(names(gs), function(i){
-
+ 		cat(paste0("Reading geneset:", i, "\n"))
 	 	gs.i<-gs[[i]]
 	 	gs.file.name<-i
-	 	hyper.res<-lapply(names(drawns), function(i){
-	 		print(i)
+	 	hyper.res<-lapply(names(drawns), function(j){
 	 		run_hyperEnrichment_unpruned(ngenes = ngenes, 
 	 		gs=gs.i, gs.file.name =gs.file.name, 
-	 		drawnList = drawns[[i]], f.dir.out =f.dir.out, 
-	 		header = header, header2= i, min.drawsize = min.drawsize, 
+	 		drawnList = drawns[[j]], f.dir.out =f.dir.out, 
+	 		header = header, header2= j, min.drawsize = min.drawsize, 
 	 		verbose = FALSE)
 	 		})
 	 	names(hyper.res)<-names(drawns)
@@ -633,25 +676,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	})
 	names(hyper)<-names(gs)
 
-	if(enrich.heatmap){
-		hyperhm<-lapply(names(gs), function(i){
-				hyperi<-hyper[[i]]
-				hyperinames<-grep("split", names(hyperi), value = T)
-				hm<-lapply(hyperinames, function(j){
-						hmfile<-paste(f.dir.out, "/", header, 
-	    					"_hyperEnrichment_",i,"_", j,".pdf", sep = "")
-						get_enrich_heatmap(hyperi[[j]], outfile = hmfile,
-							margins = c(13, 23), cexRow = 0.5, cexCol=1)
-					})
-				names(hm)<-hyperinames
-			return(hm)
-			})
-		names(hyperhm)<-names(gs)
-	} else {
-		hyperhm<-NA
-	}
-	return(list(cis=res.cis, trans =res.trans, 
-		hyper = hyper, hyperhm = hyperhm))
+	return(list(de.enrich = hyper))
 }
 
 calc_sobel_y_z1<-function(x,y,z){
