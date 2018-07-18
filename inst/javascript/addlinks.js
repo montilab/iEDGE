@@ -28,7 +28,7 @@ function addLinksToDoc(){
      
                 return;
             }
-            new_text = "<a href=\"" + link_name + "\">" + prev_value + "</a>";
+            new_text = "<a href=\"" + link_name + "\"" + " target=\"_blank\"" + "\">" + prev_value + "</a>";
             //console.log(new_text);
             selection.html(new_text);
         }
