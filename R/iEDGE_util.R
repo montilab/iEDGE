@@ -200,7 +200,7 @@ run_iEDGE<-function(dat, #iEDGE object
 
 			}
 
-			de.enrich<-do_de_enrichment(header, gep, gepid, cnid, gs, f.dir.out = de_dir)
+			de.enrich<-do_de_enrichment(res = de, header, gep, gepid, cnid, gs, f.dir.out = de_dir)
 		}
 	}
 
@@ -623,7 +623,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 }
 
 #do enrichment for differential expression
-do_de_enrichment<-function(header, gep, gepid, cnid, gs, f.dir.out){
+do_de_enrichment<-function(res, header, gep, gepid, cnid, gs, f.dir.out){
 	cat("\nPerforming hyperEnrichment analysis...\n")
  	ngenes<-nrow(gep)
  	#make lists of drawns genes
