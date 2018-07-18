@@ -627,8 +627,8 @@ do_de_enrichment<-function(res, header, gep, gepid, cnid, gs, f.dir.out){
 	cat("\nPerforming hyperEnrichment analysis...\n")
  	ngenes<-nrow(gep)
  	#make lists of drawns genes
- 	res.cis<-res$de$cis
- 	res.trans<-res$de$trans
+ 	res.cis<-res$cis
+ 	res.trans<-res$trans
 	res.cis.sig<-res.cis$sig
 	res.trans.sig<-res.trans$sig
 	res.trans.sig.up<-res.trans.sig[res.trans.sig[, "high.class"] %in% "case",]
