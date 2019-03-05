@@ -3,6 +3,7 @@
 #' @param cn matrix of epi-DNA alterations (m rows of alterations by n samples)
 #' @param gep matrix of gene expression (g rows of genes by n samples)
 #' @param cisgenes list of cis genes corresponding to each row in cn
+#' @param transgenes optional list of trans genes corresponding to each row in cn
 #' @param cn.fdat data frame of row annotations for cn, must have column of row identifiers, and optionally column of direction identifiers if one-sided DE tests are applied
 #' @param gep.fdat data frame of row annotaions for gep, must have column of row identifiers
 #' @param cn.pdat optional data frame of column annotations for cn

@@ -14,8 +14,7 @@ Reporting options are available in table (.txt) format as well as in html format
 
 library(devtools)
 
-#contact maintainer for PAT
-install_github("montilab/iEDGE",auth_token = PAT)
+install_github("montilab/iEDGE")
 
 library(iEDGE)
 
