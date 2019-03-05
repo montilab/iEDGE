@@ -904,11 +904,17 @@ prune<-function(f_cis_tab, f_trans_tab,
 	gs, ... #other args.file in run_hyperEnrichment_pruned
 	) {
 	
+
+	res.actual<-list()
+	res.sig<-list()
+
 	if(nrow(f_cis_tab) == 0){
-		stop("No significant cis genes")
+		warning("No significant cis genes")
+		return(list(all = res.actual, sig = res.sig))
 	}
 	if(nrow(f_trans_tab) == 0){
-		stop("No significant trans genes")
+		warning("No significant trans genes")
+		return(list(all = res.actual, sig = res.sig))
 	}
 
 	alt_id<-unique(as.character(f_cis_tab[, alteration_id]))
@@ -921,9 +927,6 @@ prune<-function(f_cis_tab, f_trans_tab,
 
 	#set rownames of exprs to gene symbols
 	rownames(ge.exprs)<-ge.fdat.genes
-
-	res.actual<-list()
-	res.sig<-list()
 
 	pruning_dir_tables<-paste(pruning_dir, "/tables", sep = "")
 	pruning_dir_js<-paste(pruning_dir, "/js", sep = "")
