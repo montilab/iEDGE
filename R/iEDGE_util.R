@@ -8,7 +8,7 @@
 #' @param cn.pdat optional data frame of column annotations for cn
 #' @param gep.pdat optional data frame of column annotations for gep
 #' @export 
-construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat, cn.pdat = NA, gep.pdat = NA){
+construct_iEDGE<-function(cn, gep, cisgenes, transgenes = NA, cn.fdat, gep.fdat, cn.pdat = NA, gep.pdat = NA){
 	if(suppressWarnings(is.na(cn.pdat)))
 		cn.pdat<-data.frame(colid = colnames(cn))
 	if(suppressWarnings(is.na(gep.pdat)))
@@ -16,7 +16,12 @@ construct_iEDGE<-function(cn, gep, cisgenes, cn.fdat, gep.fdat, cn.pdat = NA, ge
 	
 	cn<-to.eSet(mat = cn, pdat = cn.pdat, fdat = cn.fdat)
 	gep<-to.eSet(mat = gep, pdat = gep.pdat, fdat = gep.fdat)
-	dat<-list(cn = cn, gep = gep, cisgenes = cisgenes)
+
+	if(suppressWarnings(is.na(transgenes)))
+		dat<-list(cn = cn, gep = gep, cisgenes = cisgenes)
+	else 
+		dat<-list(cn = cn, gep = gep, cisgenes = cisgenes, transgenes = transgenes)
+
 	return(dat)
 }
 
@@ -151,6 +156,10 @@ run_iEDGE<-function(dat, #iEDGE object
 
 	gep<-dat$gep
 	cisgenes<-dat$cisgenes
+	
+	if("transgenes" %in% names(dat))
+		transgenes<-dat$transgenes
+	else transgenes <- NA
 
 	suppressWarnings(dir.create(outdir, recursive = TRUE))
 	base_dir<-paste(outdir,"/", header, sep = "")
@@ -162,7 +171,7 @@ run_iEDGE<-function(dat, #iEDGE object
 		cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
 
 		cat("Making Differential Expression tables...\n")
-		de<-iEDGE_DE(cn, gep, cisgenes,
+		de<-iEDGE_DE(cn, gep, cisgenes, transgenes
 			header,
 			gepid, cnid,  	
 			f.dir.out = de_dir, 
@@ -380,7 +389,9 @@ run_limma<-function(eset, design,
 #' @import Biobase
 iEDGE_DE_inner<-function(gep, #eset containing log2 gene expression
  cn, #eset containing copy number by sample, must be sorted with respect to columns in gep
- cisgenes, #list of cisgenes in in gep with respect to cn ordered by rows in cn
+ cisgenes, #list of cisgenes in gep with respect to cn ordered by rows in cn
+ transgenes = NA, #optionally list of transgenes with respect ot cn, if not specified will consider all genes
+ 			 #with expeption of cisgenes
  gepid, #column name in fData of gep identifying the genes in cisgenes
  cnid, #column name in fData of cn identifying the alterations in names(cn)
  cndir, #column name in fData of cn identifying direction of test 
@@ -407,9 +418,12 @@ iEDGE_DE_inner<-function(gep, #eset containing log2 gene expression
 	get_genes<-function(i){
 		if (interaction_type == "cis")
 			genes.keep<-intersect(all_genes, unique(cisgenes[[i]]))
-		else 
-			genes.keep<-setdiff(all_genes, unique(cisgenes[[i]]))
-
+		else {
+			if(is.na(transgenes))
+				genes.keep<-setdiff(all_genes, unique(cisgenes[[i]]))
+			else 
+				genes.keep<-setdiff(transgenes[[i]], unique(cisgenes[[i]]))
+		}
 		return(genes.keep)
 
 	}
@@ -535,7 +549,7 @@ get_sig_single<-function(tab, gepid, nm){
 }
 
 #' iEDGE_DE performs differential expression analysis and pathway enrichment and saves to text tables
-iEDGE_DE<-function(cn, gep, cisgenes,
+iEDGE_DE<-function(cn, gep, cisgenes, transgenes,
 	header,
 	gepid, cnid,  	
 	f.dir.out, 
@@ -557,6 +571,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	res.cis<-iEDGE_DE_inner(gep = gep, 
  		cn = cn,
  		cisgenes = cisgenes, 
+ 		transgenes = transgenes,
  		gepid = gepid, 
  		cnid = cnid,
  		cndir = cndir,
@@ -586,6 +601,7 @@ iEDGE_DE<-function(cn, gep, cisgenes,
 	res.trans<-iEDGE_DE_inner(gep = gep, 
  		cn = cn,
  		cisgenes = cisgenes, 
+ 		transgenes = transgenes,
  		gepid = gepid, 
  		cnid = cnid,
  		cndir = cndir,

@@ -297,3 +297,47 @@ make_GISTIC2<-function(gistic_in, all_genes,
 	return(res)
 }
 
+##make_GISTIC2_focal
+
+#' make_GISTIC2 preprocess GISTIC2 data
+make_GISTIC2_focal<-function(gistic_in, all_genes, 
+	qvalue_focal,
+	all_lesions = NA, f.amp = NA, f.del = NA){
+
+	cat("Reading GISTIC2 data..\n")
+
+	if(is.na(all_lesions))
+	all_lesions<-paste(gistic_in, "/", "all_lesions.conf_99.txt", sep = "")
+
+	cat("Reading focal alterations...\n")
+	eset.focal<-read_GISTIC2_focal(all_lesions = all_lesions)
+	eset.focal<-eset.focal[as.numeric(fData(eset.focal)$q.values)<qvalue_focal,]
+
+	##get cis genes
+	cat("Fetching cis genes in focal..\n")
+
+	if(is.na(f.amp))
+	f.amp<-paste(gistic_in, "/", "amp_genes.conf_99.txt", sep = "")
+
+	if(is.na(f.del))
+	f.del<-paste(gistic_in, "/", "del_genes.conf_99.txt", sep = "")
+
+	genes.amp<-get_cis_genes(f.genes = f.amp, direction = "Amplification")
+	genes.del<-get_cis_genes(f.genes = f.del, direction = "Deletion")
+	
+	genes.both<-list(meta = rbind(genes.amp[["meta"]], genes.del[["meta"]]),
+		genes = c(genes.amp[["genes"]], genes.del[["genes"]]))
+
+	sample_meta<-fData(eset.focal)
+	sample_meta$wide.peak.boundaries<-as.character(sapply(sample_meta$Wide.Peak.Limits, 
+		function(x) strsplit(x, split = "\\(")[[1]][1]))
+	gene_meta<-genes.both[['meta']]
+	idx<-match(sample_meta$wide.peak.boundaries, gene_meta$wide.peak.boundaries)
+	cisgenes<-genes.both[['genes']][idx]
+
+	eset.focal<-add_direction(eset.focal)
+
+	res<-list(cn=eset.focal, cis=cisgenes)
+	return(res)
+}
+
