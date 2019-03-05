@@ -171,7 +171,7 @@ run_iEDGE<-function(dat, #iEDGE object
 		cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
 
 		cat("Making Differential Expression tables...\n")
-		de<-iEDGE_DE(cn, gep, cisgenes, transgenes
+		de<-iEDGE_DE(cn, gep, cisgenes, transgenes,
 			header,
 			gepid, cnid,  	
 			f.dir.out = de_dir, 
