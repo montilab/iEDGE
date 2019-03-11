@@ -339,7 +339,7 @@ to_table_html<-function(x,
 
  	if(hidecol == TRUE){
 	js_header<-paste("<head>
-	<script src=\"http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js\"></script>
+	<script src=\"https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js\"></script>
 	</head>
 		<link rel=\"stylesheet\" type=\"text/css\" href=\"", 
 		dtcss,
@@ -380,7 +380,7 @@ to_table_html<-function(x,
 		sep = "")
 	} else {
 		js_header<-paste("<head>
-	<script src=\"http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js\"></script>
+	<script src=\"https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js\"></script>
 	</head>
 		<link rel=\"stylesheet\" type=\"text/css\" href=\"", 
 		dtcss,
