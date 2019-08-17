@@ -167,7 +167,7 @@ run_iEDGE<-function(dat, #iEDGE object
 
 	suppressWarnings(dir.create(base_dir, recursive = TRUE))
 	de_dir<-paste(base_dir, "/tables", sep = "")
-
+	gs <-NA
 	if(do.DE){
 		cat(paste("Running iEDGE for data set: ", header, "\n",sep = ""))
 
@@ -193,7 +193,7 @@ run_iEDGE<-function(dat, #iEDGE object
 		if(enrichment == TRUE){
 			print("enrichment ")
 
-			gs<-NA
+			#gs<-NA
 			if(do.gs){
 				cat("Reading genesets..\n")
 				gs<-lapply(gs.file, function(i){
@@ -902,7 +902,7 @@ prune<-function(f_cis_tab, f_trans_tab,
 	gene_id = "accession", 
 	pruning_dir,
 	prunecol = "pvalue", prunethres = 0.25,
-	gs, ... #other args.file in run_hyperEnrichment_pruned
+	gs = NA, ... #other args.file in run_hyperEnrichment_pruned
 	) {
 	
 
