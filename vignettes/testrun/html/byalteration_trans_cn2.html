@@ -1,0 +1,409 @@
+<head>
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js"></script>
+	</head>
+		<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.css">
+		<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.js"></script>
+		<script type="text/javascript">
+    	$(document).ready(function() {
+        	$('#byalteration_trans_cn2').DataTable({
+    		aLengthMenu: [
+        	[25, 50, 100, 200, -1],
+        	[25, 50, 100, 200, "All"]
+    		],
+    		dom: 'lBfrtip',
+    		fixedHeader: true,
+    		buttons: [ 'copy',
+    			{ extend: 'excelHtml5',
+    			title: 'byalteration_trans_cn2',
+    			extension: '.xlsx'},
+  				{ extend: 'csvHtml5',
+    			title: 'byalteration_trans_cn2'},
+    			{ extend: 'pdfHtml5',
+    			title: 'byalteration_trans_cn2'
+    			}],
+    		iDisplayLength: -1 });} );	
+     	</script>
+<script> var dir_out = "./boxplots"; </script>
+<script type="text/javascript" charset="utf8" src="addboxplot.js"></script>
+<script type="text/javascript" charset="utf8" src="addgenecard.js"></script>
+<table id="byalteration_trans_cn2" class="display" cellspacing="0" width="60%">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> geneid </th>
+   <th style="text-align:right;"> fold.change </th>
+   <th style="text-align:right;"> adj.P.Val.all </th>
+   <th style="text-align:right;"> t </th>
+   <th style="text-align:left;"> high.class </th>
+   <th style="text-align:right;"> mean1.unlog </th>
+   <th style="text-align:right;"> mean0.unlog </th>
+   <th style="text-align:right;"> sd0.unlog </th>
+   <th style="text-align:right;"> sd1.unlog </th>
+   <th style="text-align:left;"> cnid </th>
+   <th style="text-align:left;"> direction </th>
+   <th style="text-align:left;"> interaction_type </th>
+   <th style="text-align:right;"> logFC </th>
+   <th style="text-align:right;"> AveExpr </th>
+   <th style="text-align:right;"> P.Value </th>
+   <th style="text-align:right;"> adj.P.Val </th>
+   <th style="text-align:right;"> B </th>
+   <th style="text-align:right;"> mean0.log </th>
+   <th style="text-align:right;"> mean1.log </th>
+   <th style="text-align:right;"> sd0.log </th>
+   <th style="text-align:right;"> sd1.log </th>
+   <th style="text-align:right;"> n0 </th>
+   <th style="text-align:right;"> n1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> t.m.cis2 </td>
+   <td style="text-align:right;"> 2.099416 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 10.238436 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 133.628514 </td>
+   <td style="text-align:right;"> 63.350522 </td>
+   <td style="text-align:right;"> 15.799246 </td>
+   <td style="text-align:right;"> 30.256475 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 1.0699878 </td>
+   <td style="text-align:right;"> 6.412925 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 22.205987 </td>
+   <td style="text-align:right;"> 5.963531 </td>
+   <td style="text-align:right;"> 7.033518 </td>
+   <td style="text-align:right;"> 0.3717169 </td>
+   <td style="text-align:right;"> 0.3589295 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.m.cis2.2.2 </td>
+   <td style="text-align:right;"> 1.949302 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 8.311495 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 134.731212 </td>
+   <td style="text-align:right;"> 67.185027 </td>
+   <td style="text-align:right;"> 17.186818 </td>
+   <td style="text-align:right;"> 44.897611 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.9629575 </td>
+   <td style="text-align:right;"> 6.452499 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 15.243361 </td>
+   <td style="text-align:right;"> 6.048057 </td>
+   <td style="text-align:right;"> 7.011015 </td>
+   <td style="text-align:right;"> 0.3607490 </td>
+   <td style="text-align:right;"> 0.4721728 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.m.cis2.2.1 </td>
+   <td style="text-align:right;"> 2.017078 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 7.995908 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 130.756132 </td>
+   <td style="text-align:right;"> 64.110736 </td>
+   <td style="text-align:right;"> 19.710974 </td>
+   <td style="text-align:right;"> 39.712828 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 1.0122671 </td>
+   <td style="text-align:right;"> 6.386646 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 14.075635 </td>
+   <td style="text-align:right;"> 5.961494 </td>
+   <td style="text-align:right;"> 6.973761 </td>
+   <td style="text-align:right;"> 0.4382137 </td>
+   <td style="text-align:right;"> 0.4717639 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.m.cis2.1 </td>
+   <td style="text-align:right;"> 2.114705 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 7.871670 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 143.139983 </td>
+   <td style="text-align:right;"> 68.763274 </td>
+   <td style="text-align:right;"> 30.311502 </td>
+   <td style="text-align:right;"> 44.435957 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 1.0804565 </td>
+   <td style="text-align:right;"> 6.478152 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 13.614692 </td>
+   <td style="text-align:right;"> 6.024361 </td>
+   <td style="text-align:right;"> 7.104817 </td>
+   <td style="text-align:right;"> 0.5179917 </td>
+   <td style="text-align:right;"> 0.4571101 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.m.cis2.1.1 </td>
+   <td style="text-align:right;"> 1.948903 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 7.892950 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 132.761056 </td>
+   <td style="text-align:right;"> 66.911508 </td>
+   <td style="text-align:right;"> 20.265057 </td>
+   <td style="text-align:right;"> 43.891505 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.9626621 </td>
+   <td style="text-align:right;"> 6.433138 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 13.693686 </td>
+   <td style="text-align:right;"> 6.028820 </td>
+   <td style="text-align:right;"> 6.991482 </td>
+   <td style="text-align:right;"> 0.4080321 </td>
+   <td style="text-align:right;"> 0.4692182 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.m.cis2.2 </td>
+   <td style="text-align:right;"> 1.824150 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 7.500303 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 127.195071 </td>
+   <td style="text-align:right;"> 68.639064 </td>
+   <td style="text-align:right;"> 18.642133 </td>
+   <td style="text-align:right;"> 37.522194 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.8672242 </td>
+   <td style="text-align:right;"> 6.436824 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 12.234050 </td>
+   <td style="text-align:right;"> 6.072590 </td>
+   <td style="text-align:right;"> 6.939814 </td>
+   <td style="text-align:right;"> 0.3840830 </td>
+   <td style="text-align:right;"> 0.4436510 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.m.cis2.3 </td>
+   <td style="text-align:right;"> 1.931419 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 7.330336 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 128.149987 </td>
+   <td style="text-align:right;"> 66.431025 </td>
+   <td style="text-align:right;"> 24.303224 </td>
+   <td style="text-align:right;"> 40.397472 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.9496609 </td>
+   <td style="text-align:right;"> 6.395706 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 11.601382 </td>
+   <td style="text-align:right;"> 5.996849 </td>
+   <td style="text-align:right;"> 6.946510 </td>
+   <td style="text-align:right;"> 0.4720417 </td>
+   <td style="text-align:right;"> 0.4522382 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.d.2 </td>
+   <td style="text-align:right;"> 2.261927 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 7.064457 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 17.589394 </td>
+   <td style="text-align:right;"> 7.284700 </td>
+   <td style="text-align:right;"> 3.614237 </td>
+   <td style="text-align:right;"> 8.438905 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 1.1775523 </td>
+   <td style="text-align:right;"> 3.415714 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 10.611756 </td>
+   <td style="text-align:right;"> 2.921143 </td>
+   <td style="text-align:right;"> 4.098695 </td>
+   <td style="text-align:right;"> 0.6223732 </td>
+   <td style="text-align:right;"> 0.5819095 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.d.2.1 </td>
+   <td style="text-align:right;"> 2.333666 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 7.024461 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 17.364317 </td>
+   <td style="text-align:right;"> 7.249737 </td>
+   <td style="text-align:right;"> 4.033946 </td>
+   <td style="text-align:right;"> 6.425593 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 1.2225980 </td>
+   <td style="text-align:right;"> 3.398443 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 10.462966 </td>
+   <td style="text-align:right;"> 2.884952 </td>
+   <td style="text-align:right;"> 4.107550 </td>
+   <td style="text-align:right;"> 0.6909334 </td>
+   <td style="text-align:right;"> 0.5437472 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.m.cis2.1.2 </td>
+   <td style="text-align:right;"> 1.759596 </td>
+   <td style="text-align:right;"> 0.0000002 </td>
+   <td style="text-align:right;"> 6.521638 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 129.392951 </td>
+   <td style="text-align:right;"> 70.980877 </td>
+   <td style="text-align:right;"> 20.359354 </td>
+   <td style="text-align:right;"> 47.651696 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.8152441 </td>
+   <td style="text-align:right;"> 6.462655 </td>
+   <td style="text-align:right;"> 0.0000000 </td>
+   <td style="text-align:right;"> 0.0000001 </td>
+   <td style="text-align:right;"> 8.597096 </td>
+   <td style="text-align:right;"> 6.120253 </td>
+   <td style="text-align:right;"> 6.935497 </td>
+   <td style="text-align:right;"> 0.3773623 </td>
+   <td style="text-align:right;"> 0.5279879 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> t.d.2.2 </td>
+   <td style="text-align:right;"> 1.931331 </td>
+   <td style="text-align:right;"> 0.0000005 </td>
+   <td style="text-align:right;"> 6.210679 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 14.235840 </td>
+   <td style="text-align:right;"> 6.808636 </td>
+   <td style="text-align:right;"> 2.879285 </td>
+   <td style="text-align:right;"> 6.280067 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.9495955 </td>
+   <td style="text-align:right;"> 3.268788 </td>
+   <td style="text-align:right;"> 0.0000001 </td>
+   <td style="text-align:right;"> 0.0000003 </td>
+   <td style="text-align:right;"> 7.450780 </td>
+   <td style="text-align:right;"> 2.869957 </td>
+   <td style="text-align:right;"> 3.819553 </td>
+   <td style="text-align:right;"> 0.5396365 </td>
+   <td style="text-align:right;"> 0.5720326 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> others_18 </td>
+   <td style="text-align:right;"> 1.253027 </td>
+   <td style="text-align:right;"> 0.0029198 </td>
+   <td style="text-align:right;"> 3.698341 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 8.164103 </td>
+   <td style="text-align:right;"> 6.311902 </td>
+   <td style="text-align:right;"> 1.594748 </td>
+   <td style="text-align:right;"> 1.963041 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.3254181 </td>
+   <td style="text-align:right;"> 2.976316 </td>
+   <td style="text-align:right;"> 0.0005065 </td>
+   <td style="text-align:right;"> 0.0020682 </td>
+   <td style="text-align:right;"> -1.126283 </td>
+   <td style="text-align:right;"> 2.839641 </td>
+   <td style="text-align:right;"> 3.165059 </td>
+   <td style="text-align:right;"> 0.2975670 </td>
+   <td style="text-align:right;"> 0.3049271 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> others_30 </td>
+   <td style="text-align:right;"> 1.173228 </td>
+   <td style="text-align:right;"> 0.0203856 </td>
+   <td style="text-align:right;"> 3.029386 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 8.130351 </td>
+   <td style="text-align:right;"> 6.781669 </td>
+   <td style="text-align:right;"> 1.314218 </td>
+   <td style="text-align:right;"> 1.594321 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.2304831 </td>
+   <td style="text-align:right;"> 3.036152 </td>
+   <td style="text-align:right;"> 0.0037443 </td>
+   <td style="text-align:right;"> 0.0141131 </td>
+   <td style="text-align:right;"> -3.010755 </td>
+   <td style="text-align:right;"> 2.939349 </td>
+   <td style="text-align:right;"> 3.169832 </td>
+   <td style="text-align:right;"> 0.2523399 </td>
+   <td style="text-align:right;"> 0.2511483 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> others_12 </td>
+   <td style="text-align:right;"> 1.213275 </td>
+   <td style="text-align:right;"> 0.0219357 </td>
+   <td style="text-align:right;"> 2.984135 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 8.287840 </td>
+   <td style="text-align:right;"> 6.707615 </td>
+   <td style="text-align:right;"> 1.836031 </td>
+   <td style="text-align:right;"> 2.018288 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> trans </td>
+   <td style="text-align:right;"> 0.2789063 </td>
+   <td style="text-align:right;"> 3.024220 </td>
+   <td style="text-align:right;"> 0.0042528 </td>
+   <td style="text-align:right;"> 0.0148849 </td>
+   <td style="text-align:right;"> -3.128960 </td>
+   <td style="text-align:right;"> 2.907080 </td>
+   <td style="text-align:right;"> 3.185986 </td>
+   <td style="text-align:right;"> 0.3427352 </td>
+   <td style="text-align:right;"> 0.2922131 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+</tbody>
+</table>

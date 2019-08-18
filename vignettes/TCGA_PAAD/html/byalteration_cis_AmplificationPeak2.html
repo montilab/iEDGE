@@ -1,0 +1,202 @@
+<head>
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js"></script>
+	</head>
+		<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.css">
+		<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.js"></script>
+		<script type="text/javascript">
+    	$(document).ready(function() {
+        	$('#byalteration_cis_AmplificationPeak2').DataTable({
+    		aLengthMenu: [
+        	[25, 50, 100, 200, -1],
+        	[25, 50, 100, 200, "All"]
+    		],
+    		dom: 'lBfrtip',
+    		fixedHeader: true,
+    		buttons: [ 'copy',
+    			{ extend: 'excelHtml5',
+    			title: 'byalteration_cis_AmplificationPeak2',
+    			extension: '.xlsx'},
+  				{ extend: 'csvHtml5',
+    			title: 'byalteration_cis_AmplificationPeak2'},
+    			{ extend: 'pdfHtml5',
+    			title: 'byalteration_cis_AmplificationPeak2'
+    			}],
+    		iDisplayLength: -1 });} );	
+     	</script>
+<script> var dir_out = "./boxplots"; </script>
+<script type="text/javascript" charset="utf8" src="addboxplot.js"></script>
+<script type="text/javascript" charset="utf8" src="addgenecard.js"></script>
+<table id="byalteration_cis_AmplificationPeak2" class="display" cellspacing="0" width="60%">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> gene_symbol </th>
+   <th style="text-align:right;"> fold.change </th>
+   <th style="text-align:right;"> adj.P.Val.all </th>
+   <th style="text-align:right;"> t </th>
+   <th style="text-align:left;"> high.class </th>
+   <th style="text-align:right;"> mean1.unlog </th>
+   <th style="text-align:right;"> mean0.unlog </th>
+   <th style="text-align:right;"> sd0.unlog </th>
+   <th style="text-align:right;"> sd1.unlog </th>
+   <th style="text-align:left;"> entrez_id </th>
+   <th style="text-align:left;"> gene_description </th>
+   <th style="text-align:left;"> Unique.Name </th>
+   <th style="text-align:left;"> Descriptor </th>
+   <th style="text-align:left;"> alteration_direction </th>
+   <th style="text-align:left;"> interaction_type </th>
+   <th style="text-align:right;"> logFC </th>
+   <th style="text-align:right;"> AveExpr </th>
+   <th style="text-align:right;"> P.Value </th>
+   <th style="text-align:right;"> adj.P.Val </th>
+   <th style="text-align:right;"> B </th>
+   <th style="text-align:right;"> mean0.log </th>
+   <th style="text-align:right;"> mean1.log </th>
+   <th style="text-align:right;"> sd0.log </th>
+   <th style="text-align:right;"> sd1.log </th>
+   <th style="text-align:right;"> n0 </th>
+   <th style="text-align:right;"> n1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> ADAM30 </td>
+   <td style="text-align:right;"> 1.052309 </td>
+   <td style="text-align:right;"> 0.0014389 </td>
+   <td style="text-align:right;"> 3.356768 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 7.017080e-02 </td>
+   <td style="text-align:right;"> 5.623500e-03 </td>
+   <td style="text-align:right;"> 4.937980e-02 </td>
+   <td style="text-align:right;"> 1.901695e-01 </td>
+   <td style="text-align:left;"> 11085 </td>
+   <td style="text-align:left;"> ADAM metallopeptidase domain 30 </td>
+   <td style="text-align:left;"> AmplificationPeak2 </td>
+   <td style="text-align:left;"> 1p12 </td>
+   <td style="text-align:left;"> Amplification </td>
+   <td style="text-align:left;"> cis </td>
+   <td style="text-align:right;"> 0.0735588 </td>
+   <td style="text-align:right;"> 0.0167097 </td>
+   <td style="text-align:right;"> 0.0004833 </td>
+   <td style="text-align:right;"> 0.0024165 </td>
+   <td style="text-align:right;"> -0.9306388 </td>
+   <td style="text-align:right;"> 0.0067357 </td>
+   <td style="text-align:right;"> 0.0802944 </td>
+   <td style="text-align:right;"> 0.0590218 </td>
+   <td style="text-align:right;"> 0.2174034 </td>
+   <td style="text-align:right;"> 153 </td>
+   <td style="text-align:right;"> 24 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> REG4 </td>
+   <td style="text-align:right;"> 5.302164 </td>
+   <td style="text-align:right;"> 0.0084156 </td>
+   <td style="text-align:right;"> 2.751589 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 3.988599e+04 </td>
+   <td style="text-align:right;"> 1.229044e+04 </td>
+   <td style="text-align:right;"> 4.978796e+04 </td>
+   <td style="text-align:right;"> 9.703144e+04 </td>
+   <td style="text-align:left;"> 83998 </td>
+   <td style="text-align:left;"> regenerating islet-derived family, member 4 </td>
+   <td style="text-align:left;"> AmplificationPeak2 </td>
+   <td style="text-align:left;"> 1p12 </td>
+   <td style="text-align:left;"> Amplification </td>
+   <td style="text-align:left;"> cis </td>
+   <td style="text-align:right;"> 2.4065812 </td>
+   <td style="text-align:right;"> 9.8670658 </td>
+   <td style="text-align:right;"> 0.0032763 </td>
+   <td style="text-align:right;"> 0.0081908 </td>
+   <td style="text-align:right;"> -2.6184064 </td>
+   <td style="text-align:right;"> 9.5407497 </td>
+   <td style="text-align:right;"> 11.9473309 </td>
+   <td style="text-align:right;"> 3.9734750 </td>
+   <td style="text-align:right;"> 4.1107909 </td>
+   <td style="text-align:right;"> 153 </td>
+   <td style="text-align:right;"> 24 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> NOTCH2 </td>
+   <td style="text-align:right;"> 1.348747 </td>
+   <td style="text-align:right;"> 0.0543869 </td>
+   <td style="text-align:right;"> 1.963649 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 4.209016e+03 </td>
+   <td style="text-align:right;"> 3.163900e+03 </td>
+   <td style="text-align:right;"> 1.464857e+03 </td>
+   <td style="text-align:right;"> 2.513367e+03 </td>
+   <td style="text-align:left;"> 4853 </td>
+   <td style="text-align:left;"> notch 2 </td>
+   <td style="text-align:left;"> AmplificationPeak2 </td>
+   <td style="text-align:left;"> 1p12 </td>
+   <td style="text-align:left;"> Amplification </td>
+   <td style="text-align:left;"> cis </td>
+   <td style="text-align:right;"> 0.4316195 </td>
+   <td style="text-align:right;"> 11.4483694 </td>
+   <td style="text-align:right;"> 0.0255743 </td>
+   <td style="text-align:right;"> 0.0426238 </td>
+   <td style="text-align:right;"> -4.3508553 </td>
+   <td style="text-align:right;"> 11.3898447 </td>
+   <td style="text-align:right;"> 11.8214642 </td>
+   <td style="text-align:right;"> 1.0249616 </td>
+   <td style="text-align:right;"> 0.8421944 </td>
+   <td style="text-align:right;"> 153 </td>
+   <td style="text-align:right;"> 24 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> HMGCS2 </td>
+   <td style="text-align:right;"> 1.933768 </td>
+   <td style="text-align:right;"> 0.1535440 </td>
+   <td style="text-align:right;"> 1.394157 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 9.425228e+02 </td>
+   <td style="text-align:right;"> 6.415291e+02 </td>
+   <td style="text-align:right;"> 1.294707e+03 </td>
+   <td style="text-align:right;"> 1.498075e+03 </td>
+   <td style="text-align:left;"> 3158 </td>
+   <td style="text-align:left;"> 3-hydroxy-3-methylglutaryl-CoA synthase 2 (mitochondrial) </td>
+   <td style="text-align:left;"> AmplificationPeak2 </td>
+   <td style="text-align:left;"> 1p12 </td>
+   <td style="text-align:left;"> Amplification </td>
+   <td style="text-align:left;"> cis </td>
+   <td style="text-align:right;"> 0.9514144 </td>
+   <td style="text-align:right;"> 6.9528170 </td>
+   <td style="text-align:right;"> 0.0825152 </td>
+   <td style="text-align:right;"> 0.0825152 </td>
+   <td style="text-align:right;"> -5.2571507 </td>
+   <td style="text-align:right;"> 6.8238116 </td>
+   <td style="text-align:right;"> 7.7752260 </td>
+   <td style="text-align:right;"> 3.0925096 </td>
+   <td style="text-align:right;"> 3.2568183 </td>
+   <td style="text-align:right;"> 153 </td>
+   <td style="text-align:right;"> 24 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> PHGDH </td>
+   <td style="text-align:right;"> 1.298994 </td>
+   <td style="text-align:right;"> 0.1521515 </td>
+   <td style="text-align:right;"> 1.402250 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 1.116877e+03 </td>
+   <td style="text-align:right;"> 8.243791e+02 </td>
+   <td style="text-align:right;"> 8.224443e+02 </td>
+   <td style="text-align:right;"> 9.385145e+02 </td>
+   <td style="text-align:left;"> 26227 </td>
+   <td style="text-align:left;"> phosphoglycerate dehydrogenase </td>
+   <td style="text-align:left;"> AmplificationPeak2 </td>
+   <td style="text-align:left;"> 1p12 </td>
+   <td style="text-align:left;"> Amplification </td>
+   <td style="text-align:left;"> cis </td>
+   <td style="text-align:right;"> 0.3773947 </td>
+   <td style="text-align:right;"> 9.2708648 </td>
+   <td style="text-align:right;"> 0.0813023 </td>
+   <td style="text-align:right;"> 0.0825152 </td>
+   <td style="text-align:right;"> -5.2463653 </td>
+   <td style="text-align:right;"> 9.2196927 </td>
+   <td style="text-align:right;"> 9.5970873 </td>
+   <td style="text-align:right;"> 1.2109253 </td>
+   <td style="text-align:right;"> 1.3358172 </td>
+   <td style="text-align:right;"> 153 </td>
+   <td style="text-align:right;"> 24 </td>
+  </tr>
+</tbody>
+</table>

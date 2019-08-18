@@ -1,0 +1,492 @@
+<html>
+<body>
+<script src="https://d3js.org/d3.v3.min.js" id = "d3"></script>
+
+<svg width=1500 height=75 id="mainplot">
+  <g id="buttons"></g>
+  <g id="mainheader"></g>
+  <g id="subheader"></g>
+ 
+</svg>
+
+<svg width=1500 height=500 id="mainplot">
+  <g id="cisplot"></g>
+  <g id="transplot"></g>
+  <g id="edgeplot"></g>
+  <g id="hyperplot"></g>
+  <g id="edgehyperplot"></g>
+  <g id="cislabel"></g>
+  <g id="translabel"></g>
+  <g id="hyperlabel"></g>
+
+</svg>
+
+<script id = "init">
+
+  var cis = [];
+  var trans = [];
+  var edges = [];
+  var hypergsetscis = {};
+  var hyperedgescis = {};
+  var hypergsets =[];
+  var hyperedges = [];
+  var selectedButton = "";
+
+</script>
+
+<script src="temp.js" id = "jslink"></script>
+
+<script id = "bipartite">
+
+
+  var x1 = 200;
+  var x2 = 400;
+  var x3 = 600;
+  var width = 40;
+
+  var x1label1 = x1-180;
+  var x1label2 = x1-100;
+  var x1label3 = x1-60;
+
+  var x2label1 = x2+10+width;
+  var x2label2 = x2+70+width;
+  var x2label3 = x2+100+width;
+
+  var x3label1 = x3+10+width;
+  var x3label2 = x3+260+width;
+  var x3label3 = x3+290+width;
+  var x3label4 = x3+340+width;
+  var x3label5 = x3+390+width;
+
+  //formats data input for sidebars
+  function formatBarData(data) {
+    if(!data){return [];}
+    if(data.length == 0) {return([]);}
+    var datasize = data.map(function (i) {return parseInt(i[1]);});
+    var datacolor = data.map(function (i) {return i[2];});
+    var datalabel = data.map(function(i) {return i[0];});
+    var totHeight = 500;
+    var n = datasize.length;
+    var summed = datasize.reduce(function(pv, cv) { return pv + cv; }, 0);
+    var heights = datasize.map(function(dat) { return (dat * totHeight / summed)});
+
+    var prefixes = [];
+    var tot = 0;
+    for(var i = 0; i < heights.length; i++) {
+      prefixes[i] = tot;
+      tot += heights[i];
+    }
+    var datazipped = heights.map(function (e, i) {return [heights[i], 
+      prefixes[i], datacolor[i], data[i], datasize[i]];});
+    return(datazipped)
+  };
+
+  //formats data input for edges
+  //colorby the label 0 for left column, 1 for rigtht column
+  //unileft = 1 per label on left
+  //uniright = 1 per label on right
+  //otherwise break bar into fractions depending on how many outgoing edges
+  function formatEdgeData(left, right, links, colorby, unileft, uniright){
+    if(!left || !right || !links){return [];};
+    if(right.length == 0 | left.length == 0 | links.length == 0){return([])};
+
+    var arr = links; 
+    var ord = left.map(function(i){return(i[3][0])});
+    var ord2 = right.map(function(i){return(i[3][0])});
+
+    //order edges by left node, then by right node
+    var arrord = arr.sort(function(a,b) { 
+    var ia = ord.indexOf(a[0])
+    var ib = ord.indexOf(b[0])
+    var ja = ord2.indexOf(a[1])
+    var jb = ord2.indexOf(b[1])
+
+    if(ia >= 0 && ib >= 0) {
+      if(ia == ib)
+        return ja -jb;
+      else
+        return ia - ib;    
+    }
+    if(ia >= 0) return -1;
+    if(ib >= 0) return +1;
+    return (a > b ? 1 : a == b ? 0 : -1);});
+
+    links = arrord;
+
+    leftMap = {};
+    left.forEach(function(i) {
+      lower = i[1];
+      length = i[0];
+      size = i[4];
+      color = i[2];
+      leftMap[i[3][0]] = [lower, length, size, color];
+    });
+
+    rightMap = {};
+    right.forEach(function(i) {
+      lower = i[1];
+      length = i[0];
+      size = i[4];
+      color = i[2];
+      rightMap[i[3][0]] = [lower, length, size, color];
+    });
+
+    var leftDict = {};
+    for(var i = 0; i < left.length; i++){
+      leftDict[left[i][3][0]] = 0;
+    };
+
+    var rightDict = {};
+    for(var i = 0; i < right.length; i++){
+      rightDict[right[i][3][0]] = 0;
+    };
+
+    //iterate through edges
+    linkszipped = links.map(function(i){
+
+    var leftKey = i[0];
+
+    leftInd = leftDict[leftKey];
+    leftDict[leftKey] = leftDict[leftKey]+1;
+    leftMapVal = leftMap[leftKey];
+
+    leftLower = leftMapVal[0]+(leftInd/leftMapVal[2])*leftMapVal[1];
+    leftUpper = leftMapVal[0]+((leftInd+1)/leftMapVal[2])*leftMapVal[1];
+
+    if(unileft){
+      leftLower = leftMapVal[0];
+      leftUpper = leftMapVal[0]+leftMapVal[1];        
+    }
+
+    var rightKey = i[1];
+    rightInd = rightDict[rightKey];
+    rightDict[rightKey] = rightDict[rightKey]+1; 
+    rightMapVal = rightMap[rightKey];
+
+    rightLower = rightMapVal[0]+(rightInd/rightMapVal[2])*rightMapVal[1];
+    rightUpper = rightMapVal[0]+((rightInd+1)/rightMapVal[2])*rightMapVal[1];
+
+    if(uniright){
+      rightLower = rightMapVal[0];
+      rightUpper = rightMapVal[0]+rightMapVal[1];    
+    }
+    if(colorby == 0){
+      var color = leftMapVal[3];
+    } else {
+      var color = rightMapVal[3];
+    }
+    return([i[0], i[1], leftLower, leftUpper, rightLower, rightUpper,
+      color]);
+    });
+    return(linkszipped);
+  };
+
+  //draw sidebars
+  function drawBar( zipped, x, width, id, position){
+
+    if(position !=0){
+      d3.select("#" + id).selectAll('rect').remove();
+    }
+
+    if(zipped.length == 0) return;
+
+
+    d3.select("#" + id).selectAll().data(zipped).enter()
+      .append("rect").attr("x",x).attr("y",function(y){return y[1];}).attr("width",width)
+      .attr("height",function(h){return h[0];})
+      .attr("fill", function(c){return c[2];})
+      .style("shape-rendering","auto")
+      .style("fill-opacity",1).style("stroke-width","0.5")
+      .style("stroke","black").style("stroke-opacity",0)
+      .on("mouseover",function(d,i) { if(position == 0){
+         transitionTo(d[3][0]); 
+     }})
+      .on("mouseout", function(d,i) { if(position == 0){
+        transitionOut();
+      }} );
+  };
+
+  //draw edges
+  function drawEdges( zipped, x1, x2, id){
+
+    d3.select("#" + id).selectAll('polygon').remove(); 
+    if(zipped.length == 0) return;
+    d3.select("#" + id).selectAll().data(zipped).enter()
+      .append("polygon")
+        .attr("points",function(y){return ([x1, y[2], 
+          x1, y[3], 
+          x2, y[5], 
+          x2, y[4]].join(","));})
+      .attr("fill", function(c){return c[6];})
+      .style("opacity", 0.3)
+      ;
+    };
+
+    //get unique
+    function onlyUnique(value, index, self) { 
+    return self.indexOf(value) === index;
+    };
+    //get unique wrapper
+    function getUnique (a) {
+      return a.filter( onlyUnique );
+  };
+
+  //draw labels
+  function drawlabels( zipped, id, x1, x2, x3, x4, x5){
+    if(zipped.length == 0){ 
+      d3.select("#" + id).selectAll('text').remove();
+      return;
+    }
+    var datasize = zipped.map(function (i) {return parseInt(i[4]);});
+    var summed = datasize.reduce(function(pv, cv) { return pv + cv; }, 0);
+    var datalabel = zipped.map(function (i) {return i[3][0];});
+    var datalabeluniq = getUnique (datalabel)
+    var n = datalabeluniq.length
+
+    d3.select("#" + id).selectAll('text').remove();
+    d3.select("#" + id).selectAll().data(zipped).enter()
+      .append("text")
+        .attr("x",x1)
+        .attr("y",function(i){return(i[1]+(i[0]/2));})
+        .attr("font-size", function(i){
+          if (n>50){
+              return([300/n, ""].join(""));
+          } else {
+              return("10");
+          };
+        })
+        .style("alignment-baseline", "middle")
+        .text(function(i){
+
+            var oldStr = i[3][0];
+            var newStr =oldStr;
+            if(oldStr.length > 40){
+              var newStr = oldStr.substring(0, 39)+ '...'
+            } 
+          return(newStr);});
+
+    d3.select("#" + id).selectAll().data(zipped).enter()
+      .append("text")
+        .attr("x",x2)
+        .attr("y",function(i){return(i[1]+(i[0]/2));})
+        .attr("font-size", function(i){
+          if (n>50){
+              return([300/n, ""].join(""));
+          } else {
+              return("10");
+          };
+        })
+        .style("alignment-baseline", "middle")
+        .text(function(i){return(i[4]);});
+
+    d3.select("#" + id).selectAll().data(zipped).enter()
+      .append("text")
+        .attr("x",x3)
+        .attr("y",function(i){return(i[1]+(i[0]/2));})
+        .attr("font-size", function(i){
+          if (n>50){
+              return([300/n, ""].join(""));
+          } else {
+              return("10");
+          };
+        })
+        .style("alignment-baseline", "middle")
+        .text(function(i){
+          return( ['(', 
+          Math.round(i[4]/summed*10000)/100, '%', ')'].join('') );});
+
+    if(x4){
+      d3.select("#" + id).selectAll().data(zipped).enter()
+      .append("text")
+        .attr("x",x4)
+        .attr("y",function(i){return(i[1]+(i[0]/2));})
+        .attr("font-size", function(i){
+          if (n>50){
+              return([300/n, ""].join(""));
+          } else {
+              return("10");
+          };
+        })
+        .style("alignment-baseline", "middle")
+        .text(function(i){
+          return(i[3][3]);});
+    } 
+
+    if(x5){
+      d3.select("#" + id).selectAll().data(zipped).enter()
+      .append("text")
+        .attr("x",x5)
+        .attr("y",function(i){return(i[1]+(i[0]/2));})
+        .attr("font-size", function(i){
+          if (n>50){
+              return([300/n, ""].join(""));
+          } else {
+              return("10");
+          };
+        })
+        .style("alignment-baseline", "middle")
+        .text(function(i){
+          return(i[3][4]);});
+    } 
+
+  };
+
+  function drawAll(cis, trans, edges, allhypergsets, allhyperedges, allhypergsetscis, allhyperedgescis) {
+    var hypergsets = allhypergsets[selectedButton];
+    var hyperedges = allhyperedges[selectedButton];
+    var hypergsetscis = allhypergsetscis[selectedButton];
+    var hyperedgescis = allhyperedgescis[selectedButton];
+
+    cisData = formatBarData(cis);
+    transData = formatBarData(trans);
+    edgesData = formatEdgeData(cisData, transData, edges, 0, false, false);
+    drawBar(cisData, x1, width, "cisplot", 0);
+    drawBar(transData, x2, width, "transplot",1);
+    drawEdges(edgesData, x1+width, x2, "edgeplot");
+    drawlabels(cisData, "cislabel", x1label1, x1label2, x1label3);
+    drawlabels(transData, "translabel", x2label1, x2label2, x2label3);
+    hyperData = formatBarData(hypergsets);
+    hyperEdgesData = formatEdgeData(transData, hyperData, hyperedges,
+      1, true, false);
+    drawBar(hyperData, x3, width, "hyperplot", 1);
+    drawEdges(hyperEdgesData, x2label1, x3, "edgehyperplot");
+    drawlabels(hyperData, "hyperlabel", x3label1, x3label2, x3label3, x3label4, x3label5); 
+  }
+
+  //update without hyper
+  function drawUpdate(cis, trans, edges, hyper,hyperedges) {
+    cisData = formatBarData(cis);
+    transData = formatBarData(trans);
+    edgesData = formatEdgeData(cisData, transData, edges,0, false, false);
+    drawBar(transData, x2, width, "transplot",1);
+    drawEdges(edgesData, x1+width, x2, "edgeplot");
+    drawlabels(transData, "translabel", x2label1, x2label2, x2label3);
+    
+    hyperData = formatBarData(hyper);
+    hyperEdgesData = formatEdgeData(transData, hyperData, hyperedges,1, true, false);
+    drawBar(hyperData, x3, width, "hyperplot", 1);
+    drawEdges(hyperEdgesData, x2label1, x3, "edgehyperplot");
+    drawlabels(hyperData, "hyperlabel", x3label1, x3label2, x3label3, x3label4, x3label5);
+
+  }
+
+  //filter data by cis
+  function filterData(cis, trans, edges, cisname){
+    var s = {};
+    //mapping from trans name to true and filter edges
+    var edges2 = edges.filter(function(i){
+      if(i[0] == cisname){
+        s[i[1]] = true;
+        return(true);
+      }
+    });
+
+    var trans2 = trans.filter(function(i){
+      return(i[0] in s);
+    });
+
+    var trans2 = trans2.map(function(i){
+      var j = i.map(function(x){return x;});
+      j[1] = 1;
+      return(j);
+    });
+
+    var selectedhypergsetscis = hypergsetscis[selectedButton];
+    var selectedhyperedgescis = hyperedgescis[selectedButton]; 
+    if(selectedhypergsetscis && cisname in selectedhypergsetscis){
+      var hyper2 = selectedhypergsetscis[cisname];
+      var hyperedges2 = selectedhyperedgescis[cisname];
+      return([cis, trans2, edges2, hyper2, hyperedges2]);
+    } else {
+      return([cis, trans2, edges2, [], []])
+    }
+  }
+
+  function transitionTo( transId ){ 
+
+    var filtered = filterData(cis, trans, edges, transId);
+    drawUpdate.apply(this, filtered);
+
+  }
+
+  function transitionOut() {
+     drawUpdate(cis, trans, edges, hypergsets[selectedButton], hyperedges[selectedButton]);
+    
+  }
+
+     //draw labels
+  function drawheaders( zipped, id, y, textsize, textstyle){
+    if(zipped.length == 0) return;
+    
+    var xpos = zipped.map(function (i) {return i[0];});    
+    var datalabel = zipped.map(function (i) {return i[1];});
+
+    d3.select("#" + id).selectAll('text').remove();
+    d3.select("#" + id).selectAll().data(zipped).enter()
+      .append("text")
+        .attr("x", function(i){return(i[1])})
+        .attr("y", y)
+        .attr("font-size", textsize)
+        .style("alignment-baseline", "middle")
+        .style('font-weight',textstyle)
+        .text(function(i){
+          return(i[0]);});
+
+  };
+
+  function updateHyper(arg) {
+    selectedButton = arg.value;
+    drawAll(cis, trans, edges, hypergsets, hyperedges, hypergsetscis, hyperedgescis);
+  };
+
+  //add buttons
+  function addButtons() {
+    var buttonNames = Object.keys(hypergsets).reverse();
+    if (buttonNames.length > 0) {
+      selectedButton = buttonNames[buttonNames.length - 1];
+    }
+      // Use jquery to insert a button with this name
+      d3.select("#mainheader").append("foreignObject")
+            .attr("x",800)
+            .attr("y",16)
+            .attr("width",200)
+            .attr("height",25).append("xhtml:body")
+    .style("margin",0)
+    .style("padding",0)
+            
+            .append("select")
+            .attr("onchange", "updateHyper(this)")
+
+      .selectAll("option").data(buttonNames.reverse()).enter().insert("option", ":first-child")
+            .attr("value", function (d){return d;})
+            .html(function (d){return d;})
+            
+  };
+
+  //main call  
+
+
+  var headerlabels = ["gene", "count", "percent", "gene", "count", "percent",
+  "pathway", "count", "percent", "p-value", "fdr"]
+  var headerxpos = [x1label1, x1label2, x1label3, x2label1, x2label2, x2label3, 
+  x3label1, x3label2, x3label3, x3label4, x3label5]
+
+  var mainlabels = ["Cis Genes", "Trans Genes", "Pathway Enrichment"]
+  var mainxpos = [x1label1, x2label1, x3label1]
+  var mainzipped = mainlabels.map(function (e, i) {return [mainlabels[i], 
+      mainxpos[i]];});
+  drawheaders(mainzipped, "mainheader", 25, 15, "bold");
+  addButtons();
+
+  var headerzipped = headerlabels.map(function (e, i) {return [headerlabels[i], 
+      headerxpos[i]];});
+  drawheaders(headerzipped, "subheader", 60, 10, "normal");
+
+  drawAll(cis, trans, edges, hypergsets, hyperedges, hypergsetscis, hyperedgescis)
+
+
+</script>
+
+</body>
+
+</html>

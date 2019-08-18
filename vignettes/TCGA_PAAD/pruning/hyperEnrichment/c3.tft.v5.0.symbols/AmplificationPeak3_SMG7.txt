@@ -1,0 +1,7 @@
+"set"	"pval"	"fdr"	"set.annotated"	"set.size"	"category.annotated"	"total.annotated"	"category"	"hits"
+"drawn"	0.00035	0.14555	3	15	189	19965	"V$HNF3_Q6"	"SLIT3,FABP4,PALMD"
+"drawn"	5e-04	0.14555	3	15	213	19965	"V$FOX_Q2"	"SLIT3,FABP4,PALMD"
+"drawn"	0.00071	0.14555	3	15	241	19965	"V$NKX62_Q2"	"SLIT3,FABP4,ERG"
+"drawn"	0.001	0.15375	3	15	275	19965	"V$AP1_C"	"NUDT10,LYVE1,FABP4"
+"drawn"	0.0017	0.1845	4	15	722	19965	"TGCCAAR_V$NF1_Q6"	"NUDT10,SLIT3,PALMD,ERG"
+"drawn"	0.0018	0.1845	4	15	738	19965	"TGTTTGY_V$HNF3_Q6"	"C16orf89,SLIT3,PALMD,ERG"

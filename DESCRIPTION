@@ -31,3 +31,6 @@ Imports:
 License: MIT + file LICENSE
 LazyData: true
 RoxygenNote: 6.0.1
+VignetteBuilder: knitr
+Suggests: 
+    rmarkdown

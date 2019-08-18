@@ -1,0 +1,2 @@
+"set"	"pval"	"fdr"	"set.annotated"	"set.size"	"category.annotated"	"total.annotated"	"category"	"hits"
+"drawn"	0.0047	0.235	3	34	200	19965	"HALLMARK_ESTROGEN_RESPONSE_EARLY"	"FKBP4,KCNK15,ENDOD1"

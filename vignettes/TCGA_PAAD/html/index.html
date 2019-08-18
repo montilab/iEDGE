@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>iEDGE Report</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="heatmap.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+
+  <style>
+    /* Remove the navbar's default margin-bottom and rounded borders */ 
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+
+
+    .jumbotron {
+      padding-top: 15px;
+      padding-bottom: 15px;
+    }
+
+    .indented {   padding-left: 50pt;   padding-right: 50pt; } 
+
+    /* Override Table */
+    table td, table th {
+      border: 1px solid #ddd; 
+      text-align: center;
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+    }
+
+    table {
+      width: 90%;
+      border-collapse: collapse;
+      border: 2px solid black;
+    }
+            
+    /* Add a gray background color and some padding to the footer */
+    footer {
+      position:fixed;
+      bottom:0;
+      left:0;
+      width:100%;
+      background-color: #f2f2f2;
+      padding:2px;
+      padding-top:5px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="header" id="myHeader">
+  <h2>iEDGE report</h2>
+</div>
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">      
+      <ul class="nav navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" data-toggle="tab" href="#tab1" role="tab">Summary Page</a>
+        </li>
+        <li class="nav-item">
+          <a  data-toggle="tab" href="#tab2" role="tab">Pathway Enrichment</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="tab-content">
+
+<div id="tab1" class="tab-pane active" role="tabpanel">
+  
+
+<div class="indented">
+<br></br><head>
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js"></script>
+	</head>
+		<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.css">
+		<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.js"></script>
+		<script type="text/javascript">
+    	$(document).ready(function() {
+        	$('#summarytable').DataTable({
+    		aLengthMenu: [
+        	[25, 50, 100, 200, -1],
+        	[25, 50, 100, 200, "All"]
+    		],
+    		dom: 'lBfrtip',
+    		fixedHeader: false,
+    		buttons: [ 'copy',
+    			{ extend: 'excelHtml5',
+    			title: 'summarytable',
+    			extension: '.xlsx'},
+  				{ extend: 'csvHtml5',
+    			title: 'summarytable'},
+    			{ extend: 'pdfHtml5',
+    			title: 'summarytable'
+    			}],
+
+    		        columnDefs: [
+            {
+                targets: [ 0 ],
+                visible: false,
+                searchable: false
+            }
+        ],	
+    		iDisplayLength: -1 });} );	
+     	</script>
+<script type="text/javascript" charset="utf8" src="addlinks.js"></script>
+<table id="summarytable" class="display" cellspacing="0" width="60%">
+ <thead>
+  <tr>
+   <th style="text-align:right;"> index </th>
+   <th style="text-align:left;"> alteration_id </th>
+   <th style="text-align:left;"> alteration_description </th>
+   <th style="text-align:left;"> cis </th>
+   <th style="text-align:right;"> trans </th>
+   <th style="text-align:left;"> bipartite </th>
+   <th style="text-align:right;"> num_altered </th>
+   <th style="text-align:right;"> num_normal </th>
+   <th style="text-align:left;"> genes_in_alteration </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> AmplificationPeak1 </td>
+   <td style="text-align:left;"> 1p34.2 </td>
+   <td style="text-align:left;"> (46/91) </td>
+   <td style="text-align:right;"> 36 </td>
+   <td style="text-align:left;"> (11/34) </td>
+   <td style="text-align:right;"> 12 </td>
+   <td style="text-align:right;"> 165 </td>
+   <td style="text-align:left;"> RNA5SP46,RNA5SP45,RN7SL326P,MIR30C1,MIR30E,BMP8B,SNORA55,BMP8A,RNA5SP44,MYCBP,SNORA63,SNOU13,MIR5581,MEAF6,RNA5SP43,ATP6V0B,CDC20,COL9A2,CTPS1,DPH2,EDN2,FHL3,GRIK3,GUCA2A,GUCA2B,INPP5B,MPL,MTF1,MYCL,NDUFS5,NFYC,YBX1,POU3F1,PPT1,PTPRF,RLF,ST3GAL3,SLC2A1,SLC6A9,TIE1,DNALI1,B4GALT2,PABPC4,ARTN,KCNQ4,IPO13,KDM4A,RIMS3,ZMPSTE24,PPIE,PPIH,CAP1,SF3A3,EBNA1BP2,FOXJ3,SCMH1,SZT2,MACF1,HEYL,GNL2,ZNF691,UTP11L,HPCAL4,TRIT1,RHBDL2,C1ORF109,CDCA8,HIVEP3,OXCT2,RRAGC,LEPRE1,SMAP2,EXO5,ELOVL1,ZFP69B,C1ORF50,AKIRIN1,YRDC,PPCS,SNIP1,ZC3H12A,GJA9,HYI,ZMYND12,NT5C1A,MFSD2A,MED8,ERMAP,TMCO2,ZNF684,C1ORF122,TMEM125,MANEAL,CLDN19,WDR65,C1ORF210,CCDC24,CITED4,SLFNL1,RSPO1,EPHA10,RIMKLA,ZFP69,CCDC23,FAM183A,KIAA0754,CCDC30,FOXO6,MIR4255,MIR3659 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;"> AmplificationPeak2 </td>
+   <td style="text-align:left;"> 1p12 </td>
+   <td style="text-align:left;"> (4/5) </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> (0/0) </td>
+   <td style="text-align:right;"> 24 </td>
+   <td style="text-align:right;"> 153 </td>
+   <td style="text-align:left;"> HMGCS2,NOTCH2,ADAM30,PHGDH,REG4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> AmplificationPeak3 </td>
+   <td style="text-align:left;"> 1q21.3 </td>
+   <td style="text-align:left;"> (242/559) </td>
+   <td style="text-align:right;"> 311 </td>
+   <td style="text-align:left;"> (38/311) </td>
+   <td style="text-align:right;"> 59 </td>
+   <td style="text-align:right;"> 118 </td>
+   <td style="text-align:left;"> MIR181A1HG,MIR4735,U3,MIR1278,SNOU109,RN7SKP126,RNA5SP73,RN7SKP156,RNA5SP72,SNORD112,RN7SL654P,RNA5SP71,RN7SKP229,RNA5SP70,KIAA1614,U6,MIR3121,LHX4,RN7SL230P,IFRG15,RN7SL374P,SNORA67,SNORA67,TOR3A,SNORA63,RNA5SP69,C1ORF220,LINC00083,MIR488,SCARNA3,SNOU13,RNA5SP68,RNA5SP67,SNORD78,GAS5,RN7SKP160,SNOU13,ANKRD45,SNOU13,TNFSF18,SNORD112,DNM3OS,SCARNA20,RN7SL425P,SNOU13,RN7SL269P,RN7SL333P,C1ORF112,F5,RNA5SP66,LINC00970,LINC00626,ANKRD36BP1,SFT2D2,MIR1255B2,SNOU13,RNA5SP65,POGK,MIR921,RNA5SP64,UCK2,TMCO1,SNORD112,U3,RNA5SP63,RNA5SP62,SNORD112,RN7SL861P,C1ORF111,MIR556,RNA5SP61,MIR4654,RN7SL466P,RPL31P11,FCGR2C,SDHC,MIR5187,ADAMTS4,ACA64,F11R,DCAF8,KCNJ9,SNORD64,OR10J4,RNA5SP60,RN7SL612P,MIR765,SNOU13,BGLAP,SNORA26,SCARNA4,SNORA42,SNOU13,MIR555,GBAP1,EFNA3,MIR4258,SNORD59,SNORA58,C1ORF189,RN7SL431P,MIR5698,U3,SNOU13,RN7SL372P,RN7SL44P,S100A7L2,SPRR2B,SNORA31,LINC00302,NBPF18P,THEM4,LINGO4,CELF3,MIR554,SNORA44,RNY4P25,RN7SL444P,MLLT11,SNORA40,RN7SL600P,RN7SL473P,C1ORF138,LINC00568,SNOU13,RN7SL480P,OTUD7B,HIST2H3A,HIST2H2AA3,HIST2H3C,FAM72C,FCGR1C,RNA5SP59,NBPF15,RNA5SP58,NBPF24,RN7SL261P,ACP6,LINC00624,HYDIN2,RNA5SP57,PDZK1P1,RNF115,NUDT17,GNRHR2,NBPF10,SEC22B,RN7SKP88,LINC00623,NBPF8,SRGAP2B,ANKRD20A12P,FCGR1B,HIST2H2BA,ABL2,ADAR,ALDH9A1,APCS,APOA2,FASLG,ARNT,ASTN1,SERPINC1,ATP1A2,ATP1A4,ATP1B1,BCL9,CACNA1E,CASQ1,CD1A,CD1B,CD1C,CD1D,CD1E,CD247,CD5L,CD48,CHRNB2,CKS1B,CLK2,COPA,CRABP2,CRP,CTSK,CTSS,DHX9,DPT,ECM1,EFNA1,EFNA4,ENSA,ETV3,F13B,FCER1A,FCER1G,FCGR1A,FCGR2A,FCGR2B,FCGR3A,FCGR3B,FDPS,FLG,FMO1,FMO2,FMO3,FMO4,FMO5,NR5A2,DARC,GBA,GJA5,GJA8,GLUL,HDGF,CFH,CFHR1,CFHR2,MR1,HSPA6,IFI16,IL6R,ILF2,INSRR,IVL,KCNJ10,KCNN3,LAMC1,LAMC2,LMNA,LMX1A,LOR,LY9,MCL1,SMCP,MEF2D,MGST3,MNDA,MPZ,MTX1,MUC1,MYOC,NCF2,NDUFS2,NHLH1,NIT1,NOTCH2,NPR1,NTRK1,DDR2,PBX1,PDC,PDZK1,PFDN2,PIGC,PI4KB,PKLR,PLA2G4A,PRRX1,POU2F1,PPOX,PRCC,PRKAB2,PSMB4,PSMD4,PTGS2,QSOX1,PTPRC,PEX19,RAB13,RFX5,RGS1,RGS2,RGS4,RGS13,RGS16,RIT1,RNASEL,RNF2,RORC,RPS27,RXRG,S100A1,S100A2,S100A3,S100A4,S100A5,S100A6,S100A7,S100A8,S100A9,S100A10,S100A11,S100A12,S100A13,XCL1,SELE,SELL,SELP,SHC1,SLAMF1,SOAT1,UAP1,SPRR1A,SPRR1B,SPRR2A,SPRR2D,SPRR2E,SPRR2F,SPRR2G,SPRR3,SPTA1,TROVE2,SSR2,XCL2,VPS72,THBS3,TCHH,TNR,TPM3,TPR,CCT3,TUFT1,TNFSF4,USF1,DAP3,NPHS2,HIST2H2AC,HIST2H2BE,HIST2H4A,PIP5K1A,TAGLN2,ANXA9,RGS5,ITGA10,BLZF1,VAMP4,PEA15,B4GALT3,B3GALT2,ADAM15,PEX11B,CREG1,CD84,SELENBP1,MPZL1,SH2D2A,ANGPTL1,TBX19,PRPF3,ARHGEF2,DEDD,XPR1,GPR52,AIM2,RASAL2,CHD1L,PRDX6,PDE4DIP,SLC25A44,KIAA0040,NOS1AP,ARHGEF11,CEP350,SETDB1,SMG7,UBAP2L,SV2A,DENND4B,RABGAP1L,FAM20B,RBM8A,NR1I3,SCAMP3,ARPC5,PRG4,GPA33,STX6,SF3B4,PIAS3,HAX1,C1ORF61,SEMA6C,SLC19A2,POLR3C,IVNS1ABP,TXNIP,PMVK,FAM189B,NES,CFHR4,CFHR3,OCLM,JTB,MTMR11,SLC27A3,TDRKH,CD160,PMF1,DUSP12,VPS45,KIAA0907,KIFAP3,ATF6,NMNAT2,POGZ,COLGALT2,RGL1,SYT11,PRRC2C,RPRD2,SMG5,NCSTN,CRB1,GPR161,SNAPIN,RUSC1,CA14,CCDC19,NBPF14,MPC2,OLFML2B,C1ORF43,DNM3,TOR1AIP1,CHTOP,LCE2B,OR10J1,USP21,CACYBP,SLC39A1,KLHL20,LAMTOR2,TMOD4,NME7,CERS2,CRNN,GLRX2,BOLA1,ZBTB7B,RRNAD1,APH1A,PLEKHO1,IER5,UCHL5,SUCO,GPR89B,HSD17B7,UFC1,METTL13,OAZ3,CD244,DPM3,MRPS21,ADAMTSL4,CRCT1,SWT1,GON4L,GPATCH4,DUSP23,C1ORF27,C1ORF56,RALGPS2,MSTO1,DARS2,GOLPH3L,KIRREL,YY1AP1,UBE2Q1,ITLN1,FAM63A,ADCY10,DCAF6,ASH1L,LENEP,SLC50A1,SLAMF8,CDC42SE1,UBQLN4,LHX9,RAB25,PGLYRP4,RHBG,SCYL3,ATP8B2,VANGL2,PBXIP1,S100A14,GATAD2B,CGN,IGSF9,ZNF687,HCN3,FAM5B,CCDC181,SLAMF7,CADM3,PRUNE,HAPLN2,PAPPA2,BCAN,TNN,MRPS14,SEMA4A,RFWD2,RGS18,MRPL9,INTS3,SCNM1,FCRL2,CDC73,MRPL24,TNFAIP8L2,C1ORF54,PAQR6,TRIM46,MROH9,TARS2,EDEM3,FLAD1,NPL,OR6N2,OR6K2,CFHR5,C1ORF21,PVRL4,SNX27,ANP32E,SHCBP1L,TRMT1L,ISG20L2,FCRL5,FCRL4,NUF2,HMCN1,TEX35,HORMAD1,TOMM40L,POLR3GL,TMEM79,ACBD6,ZBTB37,LCE3D,FCRLA,MAEL,RGS8,SEC16B,AQP10,SLAMF9,PYGO2,NUP210L,CENPL,DUSP27,RCSD1,MEX3A,METTL18,GORAB,C1ORF105,PIGM,IGSF8,C1ORF85,PGLYRP3,SLAMF6,FCRL1,FCRL3,FMO9P,TSEN15,FAM129A,TADA1,SH2D1B,GABPB2,TCHHL1,RPTN,TDRD10,SHE,KLHDC9,AXDND1,ATP6V1G3,OR10J5,DCST2,ZNF648,TEDDM1,UHMK1,FCRLB,LIX1L,TSACC,IQGAP3,APOA1BP,OR10T2,OR6P1,OR10X1,OR10Z1,OR6K6,OR6N1,S100A16,NEK7,ITLN2,CREB3L4,C1ORF51,HFE2,ANKRD35,FAM163A,NBPF12,LELP1,RC3H1,DCST1,METTL11B,FAM78B,BNIPL,LRRC71,PYHIN1,DENND1B,TDRD5,TOR1AIP2,SPRR4,PPIAL4A,TTC24,LCE4A,NBPF11,KRTCAP2,CRTC2,LCE5A,ARHGAP30,C1ORF192,ASPM,TIPRL,RIIAD1,THEM5,SLC9C2,NBPF16,ANKRD34A,C1ORF204,HIST2H2AB,S100A7A,RXFP4,FAM5C,C1ORF110,OR10R2,FCRL6,KCNT2,LCE1A,LCE1B,LCE1C,LCE1D,LCE1E,LCE1F,LCE2A,LCE2C,LCE2D,LCE3A,LCE3B,LCE3C,LCE3E,RGSL1,ZBTB41,PEAR1,ILDR2,NOTCH2NL,LYSMD1,HRNR,FLG2,FMO6P,LINC00272,C1ORF53,VHLL,OR10K2,OR10K1,OR6Y1,OR6K3,VSIG8,C1ORF226,C1ORF220,NBPF9,APOBEC4,MIR181B1,MIR199A2,MIR181A1,MIR214,RGS21,HIST2H2BF,ETV3L,LRRC52,OR10J3,KPRP,LCE6A,HIST2H4B,PRR9,PPIAL4G,PPIAL4D,PPIAL4B,GPR89A,PPIAL4C,HIST2H3D,FAM72B,PCP4L1,MIR557,MIR92B,HIST2H2AA4,FAM72D,GPR89C,MIR190B,C1ORF68,TSTD1,C2CD4D,NBPF20,MIR1295A,MIR4257,MIR4424 </td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+  
+
+</div>
+
+<div id="tab2" class="tab-pane" role="tabpanel">
+ <div class="indented">
+
+
+
+<div id="wrapper">
+  <h1 id="heatmap-main-title"></h1>
+  <br>
+  <h3 id="heatmap-sub-title"></h3>
+  <div id = "menu"></div>
+  <svg class="legend-panel" style="align:center;"></svg>
+  <p></p>
+  <svg class="heat-map" style="align:center;"></svg>
+  <div id="source"></div>
+</div>
+
+<script type="text/javascript" src="combined_cistrans_split.json"></script>
+<script type="text/javascript" src="heatmap.js"></script>
+
+
+
+
+</div>
+
+<br><br><br>
+
+
+</body>
+</html>
