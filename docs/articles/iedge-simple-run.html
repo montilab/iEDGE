@@ -99,35 +99,9 @@
 <p>For this tutorial we will simulate the input gene expression data, the cis and trans genes with known mediations and run iEDGE to recover these mediations.</p>
 <p>We start by generating the dataset. You can use construct_iEDGE to generate the iEDGE dataset from standard matrices (binary matrices for alteration data or numeric matrices for expression data).</p>
 <p>Please note that this simulation is optimized for the evaluation of the iEDGE methology but is meant for demonstrating how to construct an iEDGE object from scratch for use in standard analysis.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(iEDGE)</code></pre></div>
-<pre><code>## Loading required package: Biobase</code></pre>
-<pre><code>## Loading required package: BiocGenerics</code></pre>
-<pre><code>## Loading required package: parallel</code></pre>
-<pre><code>## 
-## Attaching package: 'BiocGenerics'</code></pre>
-<pre><code>## The following objects are masked from 'package:parallel':
-## 
-##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
-##     clusterExport, clusterMap, parApply, parCapply, parLapply,
-##     parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     IQR, mad, sd, var, xtabs</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     anyDuplicated, append, as.data.frame, cbind, colMeans,
-##     colnames, colSums, do.call, duplicated, eval, evalq, Filter,
-##     Find, get, grep, grepl, intersect, is.unsorted, lapply,
-##     lengths, Map, mapply, match, mget, order, paste, pmax,
-##     pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce,
-##     rowMeans, rownames, rowSums, sapply, setdiff, sort, table,
-##     tapply, union, unique, unsplit, which, which.max, which.min</code></pre>
-<pre><code>## Welcome to Bioconductor
-## 
-##     Vignettes contain introductory material; view with
-##     'browseVignettes()'. To cite Bioconductor, see
-##     'citation("Biobase")', and for packages 'citation("pkgname")'.</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">1</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(iEDGE)
+
+<span class="kw">set.seed</span>(<span class="dv">1</span>)
 
 <span class="co">#define number of samples</span>
 n&lt;-<span class="dv">50</span>
@@ -182,11 +156,31 @@ gep.fdat&lt;-<span class="kw">data.frame</span>(<span class="dt">geneid =</span>
 
 dat&lt;-<span class="kw"><a href="../reference/construct_iEDGE.html">construct_iEDGE</a></span>(cn, gep, cisgenes, <span class="dt">transgenes =</span> <span class="ot">NA</span>, cn.fdat, gep.fdat, 
                 <span class="dt">cn.pdat =</span> <span class="ot">NA</span>, <span class="dt">gep.pdat =</span> <span class="ot">NA</span>)</code></pre></div>
-<pre><code>## Warning in to.eSet(mat = cn, pdat = cn.pdat, fdat = cn.fdat): pdat rownames
-## and mat colnames do not match, setting fdat rownames to mat rownames</code></pre>
-<pre><code>## Warning in to.eSet(mat = gep, pdat = gep.pdat, fdat = gep.fdat): pdat
-## rownames and mat colnames do not match, setting fdat rownames to mat
-## rownames</code></pre>
+</div>
+<div id="explanation-of-the-iedge-object" class="section level2">
+<h2 class="hasAnchor">
+<a href="#explanation-of-the-iedge-object" class="anchor"></a>Explanation of the iEDGE object</h2>
+<p>The iEDGE object is a list consisting of:</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>cn</strong>: Copy-Number of other binary alteration ExpressionSet:</p>
+<ul>
+<li><p>exprs(dat$cn): the binary matrix encoding presence or absence of an alteration (c alterations by n samples)</p></li>
+<li><p>fData(dat$cn): alteration annotation data frame (c alterations by g alteration annotation columns). Please note that if direction of differential expression test is dependent on the alteration, specify as such to be used in run_iEDGE, e.g. run_iEDGE(… cndir = “direction”, uptest = “UP”, downtest = “DOWN”) corresponds to reporting one-sided pvalues for significantly upregulated in genes for alterations in which fData(dat$cn)[, “direction”] == “UP”, or significantly downregulated genes for alterations in which fData(dat$cn)[, “direction”] == “DOWN”</p></li>
+<li><p>pData(dat$cn): sample annotation data frame (n samples by l sample annotation columns)</p></li>
+</ul>
+</li>
+<li>
+<strong>gep</strong>: The gene expression ExpressionSet:
+<ul>
+<li><p>exprs(dat$gep): gene expression matrix, assumed to be already log2 transformed (m genes by n samples)</p></li>
+<li><p>fData(dat$gep): gene annotation data frame (m genes by j gene annotation columns)</p></li>
+<li><p>pData(dat$gep): sample annotation data frame (n samples by k sample annotation columns)</p></li>
+</ul>
+</li>
+<li><p><strong>cisgenes</strong>: A list of character vectors specifying the genes that in the cis regions of each alteration, must be in the same order as the rows in exprs(dat$cn). For copy number alterations we defined the cis genes to be genes in the focal peaks of each amplification or deletion of interest.</p></li>
+<li><p><strong>transgenes</strong> (optional): A list of character vectors specifying the genes outside the cis regions (trans genes). If not specified, all genes in the expression matrix that are not the cis genes are considered. Trans genes specification is not recommended for exploratory analysis but may be useful for testing mediation and pathway enrichment for particular target gene sets in hypothesis-driven approaches.</p></li>
+</ol>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat</code></pre></div>
 <pre><code>## $cn
 ## ExpressionSet (storageMode: lockedEnvironment)
@@ -230,7 +224,11 @@ dat&lt;-<span class="kw"><a href="../reference/construct_iEDGE.html">construct_i
 <div id="running-iedge" class="section level2">
 <h2 class="hasAnchor">
 <a href="#running-iedge" class="anchor"></a>Running iEDGE</h2>
-<p>Now that the iEDGE object is created, we can run the iEDGE pipeline on this dataset</p>
+<p>Now that the iEDGE object is created, we can run the iEDGE pipeline on this dataset.</p>
+<div id="running-iedge-with-differential-expression-only" class="section level3">
+<h3 class="hasAnchor">
+<a href="#running-iedge-with-differential-expression-only" class="anchor"></a>Running iEDGE with differential expression only:</h3>
+<p>This will create the results object with differential expression tables for cis and trans genes</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#cis and trans differential expression analysis only</span>
 <span class="co">#no mediation analysis</span>
 <span class="co">#no html report</span>
@@ -264,13 +262,86 @@ res&lt;-<span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></sp
   |=================================================================| 100%
 ## Writing table to ./testrun/tables/testrun_trans_sig_fdr_0.05.txt
 ## Done!</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(res)</code></pre></div>
+<pre><code>## [1] "de"        "de.enrich" "pruning"   "ui"</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(res$de$cis$full)</code></pre></div>
+<pre><code>##        geneid fold.change adj.P.Val.all        t high.class mean1.unlog
+## cis1.1 cis1.1    2.132349  3.810924e-24 12.45441       case    15.10178
+## cis1.2 cis1.2    2.037804  1.156082e-22 11.70850       case    15.71264
+## cis1     cis1    1.916725  3.747522e-20 10.70101       case    15.44336
+## cis2     cis2    2.045179  1.156082e-22 11.70744       case    15.49973
+## cis2.1 cis2.1    1.918057  3.896869e-20 10.65738       case    15.27832
+## cis2.2 cis2.2    1.900450  8.035568e-20 10.50649       case    15.25603
+##        mean0.unlog sd0.unlog sd1.unlog cnid direction interaction_type
+## cis1.1    6.542553  1.465369  3.168008  cn1        UP              cis
+## cis1.2    7.212833  1.903196  3.605576  cn1        UP              cis
+## cis1      7.670445  2.081563  3.150070  cn1        UP              cis
+## cis2      7.075236  1.886268  3.559967  cn2        UP              cis
+## cis2.1    7.446159  1.652364  3.521293  cn2        UP              cis
+## cis2.2    7.512069  1.634062  3.505537  cn2        UP              cis
+##            logFC  AveExpr      P.Value    adj.P.Val        B mean0.log
+## cis1.1 1.0924433 3.634254 6.351540e-25 1.905462e-24 69.81907  2.891393
+## cis1.2 1.0270153 3.703061 5.743513e-23 8.615269e-23 60.83393  3.004690
+## cis1   0.9386434 3.715198 2.498348e-20 2.498348e-20 49.57859  3.076920
+## cis2   1.0322269 3.410606 5.780412e-23 1.734124e-22 60.85680  2.977071
+## cis2.1 0.9396453 3.447198 3.247391e-20 4.871087e-20 49.15384  3.052547
+## cis2.2 0.9263412 3.452841 8.035568e-20 8.035568e-20 47.56241  3.063777
+##        mean1.log   sd0.log   sd1.log n0 n1
+## cis1.1  3.983836 0.2661433 0.2704973 16 34
+## cis1.2  4.031706 0.3132603 0.3018580 16 34
+## cis1    4.015564 0.3486787 0.2625479 16 34
+## cis2    4.009298 0.3282196 0.3359340 29 21
+## cis2.1  3.992192 0.2774623 0.3171413 29 21
+## cis2.2  3.990118 0.2782353 0.3182936 29 21</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(res$de$trans$full)</code></pre></div>
+<pre><code>##                    geneid fold.change adj.P.Val.all         t high.class
+## t.m.cis1.2     t.m.cis1.2   1.8720487  2.453809e-08  7.224216       case
+## t.m.cis1         t.m.cis1   1.9280348  6.777171e-08  6.863515       case
+## t.d.1               t.d.1   2.0850965  1.580501e-07  6.610930       case
+## t.d.1.2           t.d.1.2   2.0990569  5.983020e-06  5.557481       case
+## t.d.1.1           t.d.1.1   1.7583323  1.603663e-04  4.606910       case
+## t.m.cis2.2.1 t.m.cis2.2.1   0.7426035  1.407019e-01 -2.248904    control
+##              mean1.unlog mean0.unlog sd0.unlog sd1.unlog cnid direction
+## t.m.cis1.2     125.47707   65.783097 17.256715 40.441390  cn1        UP
+## t.m.cis1       128.56393   68.256628 26.732052 37.636026  cn1        UP
+## t.d.1           16.46298    7.084557  2.475993  7.196020  cn1        UP
+## t.d.1.2         16.07174    6.938782  2.961621  7.847104  cn1        UP
+## t.d.1.1         16.78763    9.636795  5.216208  6.835061  cn1        UP
+## t.m.cis2.2.1    83.10962  111.210199 48.300863 40.050606  cn1        UP
+##              interaction_type      logFC  AveExpr      P.Value
+## t.m.cis1.2              trans  0.9046180 6.628850 2.003110e-09
+## t.m.cis1                trans  0.9471311 6.657309 7.607029e-09
+## t.d.1                   trans  1.0601142 3.672923 1.935307e-08
+## t.d.1.2                 trans  1.0697413 3.605716 9.157683e-07
+## t.d.1.1                 trans  0.8142077 3.797642 2.618225e-05
+## t.m.cis2.2.1            trans -0.4293360 6.386646 2.871468e-02
+##                 adj.P.Val         B mean0.log mean1.log   sd0.log
+## t.m.cis1.2   9.815238e-08 11.296754  6.013710  6.918328 0.3890997
+## t.m.cis1     1.863722e-07  9.984859  6.013260  6.960391 0.5627077
+## t.d.1        3.161002e-07  9.067678  2.952045  4.012159 0.4433943
+## t.d.1.2      1.121816e-05  5.291036  2.878292  3.948033 0.6211865
+## t.d.1.1      2.565861e-04  2.034074  3.243981  4.058189 0.7392263
+## t.m.cis2.2.1 2.345032e-01 -4.521582  6.678594  6.249258 0.6552676
+##                sd1.log n0 n1
+## t.m.cis1.2   0.4299934 16 34
+## t.m.cis1     0.4102757 16 34
+## t.d.1        0.5822797 16 34
+## t.d.1.2      0.6711068 16 34
+## t.d.1.1      0.5254953 16 34
+## t.m.cis2.2.1 0.6481353 16 34</code></pre>
+</div>
+<div id="running-iedge-with-differential-expression-only-and-html-report" class="section level3">
+<h3 class="hasAnchor">
+<a href="#running-iedge-with-differential-expression-only-and-html-report" class="anchor"></a>Running iEDGE with differential expression only and HTML report:</h3>
+<p>This will create the results object with differential expression tables for cis and trans genes and an associated HTML report</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#cis and trans differential expression analysis only</span>
 <span class="co">#no mediation analysis</span>
 <span class="co">#do html report</span>
 res&lt;-<span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></span>(<span class="dt">dat =</span> dat, <span class="dt">header =</span> <span class="st">"testrun"</span>, <span class="dt">outdir =</span> <span class="st">"."</span>, 
         <span class="dt">cnid =</span> <span class="st">"cnid"</span>, <span class="dt">cndesc =</span> <span class="st">"cnid"</span>, <span class="dt">cndir =</span> <span class="st">"direction"</span>, 
         <span class="dt">uptest =</span> <span class="st">"UP"</span>, <span class="dt">downtest =</span> <span class="st">"DOWN"</span>,
-        <span class="dt">gepid =</span> <span class="st">"geneid"</span>, <span class="dt">enrichment =</span> <span class="ot">FALSE</span>, <span class="dt">bipartite =</span> <span class="ot">FALSE</span>, <span class="dt">html =</span> <span class="ot">TRUE</span>)</code></pre></div>
+        <span class="dt">gepid =</span> <span class="st">"geneid"</span>, <span class="dt">enrichment =</span> <span class="ot">FALSE</span>, 
+        <span class="dt">bipartite =</span> <span class="ot">FALSE</span>, <span class="dt">html =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running iEDGE for data set: testrun
 ## Making Differential Expression tables...
 ## Performancing cis analysis...
@@ -306,13 +377,19 @@ res&lt;-<span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></sp
 ## Adding links to main table...
 ## Adding main table to main index...
 ## Done constructing html report at directory: ./testrun/html</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#the result html page should be opened automatically, this displays the graphical view of results</span></code></pre></div>
+</div>
+<div id="running-iedge-with-differential-expression-and-mediation-analysis-bipartite-and-html-report" class="section level3">
+<h3 class="hasAnchor">
+<a href="#running-iedge-with-differential-expression-and-mediation-analysis-bipartite-and-html-report" class="anchor"></a>Running iEDGE with differential expression and mediation analysis (bipartite) and HTML report:</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#cis and trans differential expression analysis only</span>
 <span class="co">#do mediation analysis</span>
 <span class="co">#do html report</span>
 res&lt;-<span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></span>(<span class="dt">dat =</span> dat, <span class="dt">header =</span> <span class="st">"testrun"</span>, <span class="dt">outdir =</span> <span class="st">"."</span>, 
         <span class="dt">cnid =</span> <span class="st">"cnid"</span>, <span class="dt">cndesc =</span> <span class="st">"cnid"</span>, <span class="dt">cndir =</span> <span class="st">"direction"</span>, 
         <span class="dt">uptest =</span> <span class="st">"UP"</span>, <span class="dt">downtest =</span> <span class="st">"DOWN"</span>,
-        <span class="dt">gepid =</span> <span class="st">"geneid"</span>, <span class="dt">enrichment =</span> <span class="ot">FALSE</span>)</code></pre></div>
+        <span class="dt">gepid =</span> <span class="st">"geneid"</span>, <span class="dt">enrichment =</span> <span class="ot">FALSE</span>, 
+        <span class="dt">bipartite =</span> <span class="ot">TRUE</span>, <span class="dt">html =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>## Running iEDGE for data set: testrun
 ## Making Differential Expression tables...
 ## Performancing cis analysis...
@@ -367,68 +444,6 @@ res&lt;-<span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></sp
 ## Adding main table to main index...
 ## Writing bipartite graphs...
 ## Done constructing html report at directory: ./testrun/html</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#the result html page should be opened automatically, this displays the graphical view of results</span>
-<span class="co">#you can also view the results in raw matrix format</span>
-<span class="kw">names</span>(res)</code></pre></div>
-<pre><code>## [1] "de"        "de.enrich" "pruning"   "ui"</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(res$de$cis$sig)</code></pre></div>
-<pre><code>##        geneid fold.change adj.P.Val.all        t high.class mean1.unlog
-## cis1.1 cis1.1    2.132349  3.810924e-24 12.45441       case    15.10178
-## cis1.2 cis1.2    2.037804  1.156082e-22 11.70850       case    15.71264
-## cis1     cis1    1.916725  3.747522e-20 10.70101       case    15.44336
-## cis2     cis2    2.045179  1.156082e-22 11.70744       case    15.49973
-## cis2.1 cis2.1    1.918057  3.896869e-20 10.65738       case    15.27832
-## cis2.2 cis2.2    1.900450  8.035568e-20 10.50649       case    15.25603
-##        mean0.unlog sd0.unlog sd1.unlog cnid direction interaction_type
-## cis1.1    6.542553  1.465369  3.168008  cn1        UP              cis
-## cis1.2    7.212833  1.903196  3.605576  cn1        UP              cis
-## cis1      7.670445  2.081563  3.150070  cn1        UP              cis
-## cis2      7.075236  1.886268  3.559967  cn2        UP              cis
-## cis2.1    7.446159  1.652364  3.521293  cn2        UP              cis
-## cis2.2    7.512069  1.634062  3.505537  cn2        UP              cis
-##            logFC  AveExpr      P.Value    adj.P.Val        B mean0.log
-## cis1.1 1.0924433 3.634254 6.351540e-25 1.905462e-24 69.81907  2.891393
-## cis1.2 1.0270153 3.703061 5.743513e-23 8.615269e-23 60.83393  3.004690
-## cis1   0.9386434 3.715198 2.498348e-20 2.498348e-20 49.57859  3.076920
-## cis2   1.0322269 3.410606 5.780412e-23 1.734124e-22 60.85680  2.977071
-## cis2.1 0.9396453 3.447198 3.247391e-20 4.871087e-20 49.15384  3.052547
-## cis2.2 0.9263412 3.452841 8.035568e-20 8.035568e-20 47.56241  3.063777
-##        mean1.log   sd0.log   sd1.log n0 n1
-## cis1.1  3.983836 0.2661433 0.2704973 16 34
-## cis1.2  4.031706 0.3132603 0.3018580 16 34
-## cis1    4.015564 0.3486787 0.2625479 16 34
-## cis2    4.009298 0.3282196 0.3359340 29 21
-## cis2.1  3.992192 0.2774623 0.3171413 29 21
-## cis2.2  3.990118 0.2782353 0.3182936 29 21</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(res$de$trans$sig)</code></pre></div>
-<pre><code>##                geneid fold.change adj.P.Val.all         t high.class
-## t.m.cis1.2 t.m.cis1.2    1.872049  2.453809e-08  7.224216       case
-## t.m.cis1     t.m.cis1    1.928035  6.777171e-08  6.863515       case
-## t.d.1           t.d.1    2.085097  1.580501e-07  6.610930       case
-## t.d.1.2       t.d.1.2    2.099057  5.983020e-06  5.557481       case
-## t.d.1.1       t.d.1.1    1.758332  1.603663e-04  4.606910       case
-## t.m.cis21    t.m.cis2    2.099416  2.654605e-12 10.238436       case
-##            mean1.unlog mean0.unlog sd0.unlog sd1.unlog cnid direction
-## t.m.cis1.2   125.47707   65.783097 17.256715 40.441390  cn1        UP
-## t.m.cis1     128.56393   68.256628 26.732052 37.636026  cn1        UP
-## t.d.1         16.46298    7.084557  2.475993  7.196020  cn1        UP
-## t.d.1.2       16.07174    6.938782  2.961621  7.847104  cn1        UP
-## t.d.1.1       16.78763    9.636795  5.216208  6.835061  cn1        UP
-## t.m.cis21    133.62851   63.350522 15.799246 30.256475  cn2        UP
-##            interaction_type     logFC  AveExpr      P.Value    adj.P.Val
-## t.m.cis1.2            trans 0.9046180 6.628850 2.003110e-09 9.815238e-08
-## t.m.cis1              trans 0.9471311 6.657309 7.607029e-09 1.863722e-07
-## t.d.1                 trans 1.0601142 3.672923 1.935307e-08 3.161002e-07
-## t.d.1.2               trans 1.0697413 3.605716 9.157683e-07 1.121816e-05
-## t.d.1.1               trans 0.8142077 3.797642 2.618225e-05 2.565861e-04
-## t.m.cis21             trans 1.0699878 6.412925 2.708781e-14 1.327303e-12
-##                    B mean0.log mean1.log   sd0.log   sd1.log n0 n1
-## t.m.cis1.2 11.296754  6.013710  6.918328 0.3890997 0.4299934 16 34
-## t.m.cis1    9.984859  6.013260  6.960391 0.5627077 0.4102757 16 34
-## t.d.1       9.067678  2.952045  4.012159 0.4433943 0.5822797 16 34
-## t.d.1.2     5.291036  2.878292  3.948033 0.6211865 0.6711068 16 34
-## t.d.1.1     2.034074  3.243981  4.058189 0.7392263 0.5254953 16 34
-## t.m.cis21  22.205987  5.963531  7.033518 0.3717169 0.3589295 29 21</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#significant cn-cis-trans connections found using mediation analysis</span>
 res$pruning$sig</code></pre></div>
 <pre><code>## $cn1
@@ -458,11 +473,14 @@ res$pruning$sig</code></pre></div>
 ## 14 0.9684822 5.625419 0.1742737 9.252891e-09 1.295405e-07
 ## 15 0.8575816 5.076170 0.1626846 1.925591e-07 1.347913e-06
 ## 16 1.0084903 5.299893 0.1807063 5.793537e-08 4.866571e-07</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#the result html page should be opened automatically, this displays the graphical view of results</span>
+<span class="co">#an additional column "bipartite" is available in the html to display results of the mediation analysis</span></code></pre></div>
+</div>
 </div>
 <div id="iedge-html-report" class="section level2">
 <h2 class="hasAnchor">
 <a href="#iedge-html-report" class="anchor"></a>iEDGE HTML report</h2>
-<p>The HTML report of this run is contained <a href="file:./testrun/html/index.html">here</a></p>
+<p>The HTML report of the final run is contained <a href="file:./testrun/html/index.html">here</a></p>
 </div>
 </div>
   </div>
@@ -475,6 +493,7 @@ res$pruning$sig</code></pre></div>
 <li>
 <a href="#getting-started-with-iedge-walkthrough-with-simple-simulated-dataset">Getting started with iEDGE: walkthrough with simple simulated dataset</a><ul class="nav nav-pills nav-stacked">
 <li><a href="#setting-up-the-iedge-object">Setting up the iEDGE object</a></li>
+      <li><a href="#explanation-of-the-iedge-object">Explanation of the iEDGE object</a></li>
       <li><a href="#running-iedge">Running iEDGE</a></li>
       <li><a href="#iedge-html-report">iEDGE HTML report</a></li>
       </ul>
