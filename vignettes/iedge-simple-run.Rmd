@@ -13,7 +13,7 @@ We start by generating the dataset. You can use construct_iEDGE to generate the 
 
 Please note that this simulation is optimized for the evaluation of the iEDGE methology but is meant for demonstrating how to construct an iEDGE object from scratch for use in standard analysis.
 
-```{r}
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
 
 library(iEDGE)
 
@@ -72,13 +72,40 @@ rownames(gep.fdat)<-rownames(gep)
 
 dat<-construct_iEDGE(cn, gep, cisgenes, transgenes = NA, cn.fdat, gep.fdat, 
 				cn.pdat = NA, gep.pdat = NA)
+```
 
+##Explanation of the iEDGE object
+The iEDGE object is a list consisting of:
+
+1. **cn**: Copy-Number of other binary alteration ExpressionSet:
+
+	+ exprs(dat\$cn): the binary matrix encoding presence or absence of an alteration (c alterations by n samples)
+
+	+ fData(dat\$cn): alteration annotation data frame (c alterations by g alteration annotation columns). Please note that if direction of differential expression test is dependent on the alteration, specify as such to be used in run_iEDGE, e.g. run_iEDGE(... cndir = "direction", uptest = "UP", downtest = "DOWN") corresponds to reporting one-sided pvalues for significantly upregulated in genes for alterations in which fData(dat\$cn)[, "direction"] == "UP", or significantly downregulated genes for alterations in which fData(dat\$cn)[, "direction"] == "DOWN"
+
+	+ pData(dat\$cn): sample annotation data frame (n samples by l sample annotation columns)
+
+2. **gep**: The gene expression ExpressionSet:
+	+ exprs(dat\$gep): gene expression matrix, assumed to be already log2 transformed (m genes by n samples)
+
+	+ fData(dat\$gep): gene annotation data frame (m genes by j gene annotation columns)
+
+	+ pData(dat\$gep): sample annotation data frame (n samples by k sample annotation columns)
+
+3. **cisgenes**: A list of character vectors specifying the genes that in the cis regions of each alteration, must be in the same order as the rows in exprs(dat$cn). For copy number alterations we defined the cis genes to be genes in the focal peaks of each amplification or deletion of interest. 
+
+4. **transgenes** (optional): A list of character vectors specifying the genes outside the cis regions (trans genes). If not specified, all genes in the expression matrix that are not the cis genes are considered. Trans genes specification is not recommended for exploratory analysis but may be useful for testing mediation and pathway enrichment for particular target gene sets in hypothesis-driven approaches. 
+
+```{r}
 dat
+
 ```
 
 ##Running iEDGE
-Now that the iEDGE object is created, we can run the iEDGE pipeline on this dataset
+Now that the iEDGE object is created, we can run the iEDGE pipeline on this dataset. 
 
+###Running iEDGE with differential expression only: 
+This will create the results object with differential expression tables for cis and trans genes
 ```{r}
 #cis and trans differential expression analysis only
 #no mediation analysis
@@ -87,37 +114,50 @@ res<-run_iEDGE(dat = dat, header = "testrun", outdir = ".",
 		cnid = "cnid", cndesc = "cnid", cndir = "direction", 
 		uptest = "UP", downtest = "DOWN",
 		gepid = "geneid", enrichment = FALSE, bipartite = FALSE, html = FALSE)
+```
 
+```{r}
+names(res)
+
+head(res$de$cis$full)
+head(res$de$trans$full)
+
+```
+###Running iEDGE with differential expression only and HTML report: 
+This will create the results object with differential expression tables for cis and trans genes and an associated HTML report
+
+```{r}
 #cis and trans differential expression analysis only
 #no mediation analysis
 #do html report
 res<-run_iEDGE(dat = dat, header = "testrun", outdir = ".", 
 		cnid = "cnid", cndesc = "cnid", cndir = "direction", 
 		uptest = "UP", downtest = "DOWN",
-		gepid = "geneid", enrichment = FALSE, bipartite = FALSE, html = TRUE)
+		gepid = "geneid", enrichment = FALSE, 
+		bipartite = FALSE, html = TRUE)
+#the result html page should be opened automatically, this displays the graphical view of results
+```
 
-
+###Running iEDGE with differential expression and mediation analysis (bipartite) and HTML report: 
+```{r}
 #cis and trans differential expression analysis only
 #do mediation analysis
 #do html report
 res<-run_iEDGE(dat = dat, header = "testrun", outdir = ".", 
 		cnid = "cnid", cndesc = "cnid", cndir = "direction", 
 		uptest = "UP", downtest = "DOWN",
-		gepid = "geneid", enrichment = FALSE)
+		gepid = "geneid", enrichment = FALSE, 
+		bipartite = TRUE, html = TRUE)
 
-#the result html page should be opened automatically, this displays the graphical view of results
-#you can also view the results in raw matrix format
-names(res)
-
-head(res$de$cis$sig)
-head(res$de$trans$sig)
 
 #significant cn-cis-trans connections found using mediation analysis
 res$pruning$sig
 
+#the result html page should be opened automatically, this displays the graphical view of results
+#an additional column "bipartite" is available in the html to display results of the mediation analysis
 
 ```
 
 ##iEDGE HTML report
 
-The HTML report of this run is contained [here] (file:./testrun/html/index.html)
+The HTML report of the final run is contained [here](file:./testrun/html/index.html)

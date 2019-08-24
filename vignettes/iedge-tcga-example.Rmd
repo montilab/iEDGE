@@ -55,4 +55,4 @@ res<-run_iEDGE(dat, header, f_out,
 
 ##iEDGE HTML report
 
-The HTML report of this run is contained [here] (file:./TCGA_PAAD/html/index.html)
+The HTML report of this run is contained [here](file:./TCGA_PAAD/html/index.html)

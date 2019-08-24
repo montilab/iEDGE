@@ -1,0 +1,11 @@
+navbar:
+  title: "iEDGE"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: “Examples"
+      menu:
+      - text: "Simple Run"
+        href: articles/docs/iedge-simple-run.html 
+      - text: "TCGA Example"
+        href: articles/docs/iedge-tcga-example.html

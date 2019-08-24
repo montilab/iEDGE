@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>iEDGE Report</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="heatmap.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+
+  <style>
+    /* Remove the navbar's default margin-bottom and rounded borders */ 
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+
+
+    .jumbotron {
+      padding-top: 15px;
+      padding-bottom: 15px;
+    }
+
+    .indented {   padding-left: 50pt;   padding-right: 50pt; } 
+
+    /* Override Table */
+    table td, table th {
+      border: 1px solid #ddd; 
+      text-align: center;
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+    }
+
+    table {
+      width: 90%;
+      border-collapse: collapse;
+      border: 2px solid black;
+    }
+            
+    /* Add a gray background color and some padding to the footer */
+    footer {
+      position:fixed;
+      bottom:0;
+      left:0;
+      width:100%;
+      background-color: #f2f2f2;
+      padding:2px;
+      padding-top:5px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="header" id="myHeader">
+  <h2>iEDGE report</h2>
+</div>
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">      
+      <ul class="nav navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" data-toggle="tab" href="#tab1" role="tab">Summary Page</a>
+        </li>
+        <li class="nav-item">
+          <a  data-toggle="tab" href="#tab2" role="tab">Pathway Enrichment</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="tab-content">
+
+<div id="tab1" class="tab-pane active" role="tabpanel">
+  
+
+<div class="indented">
+<br></br><head>
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js"></script>
+	</head>
+		<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.css">
+		<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.js"></script>
+		<script type="text/javascript">
+    	$(document).ready(function() {
+        	$('#summarytable').DataTable({
+    		aLengthMenu: [
+        	[25, 50, 100, 200, -1],
+        	[25, 50, 100, 200, "All"]
+    		],
+    		dom: 'lBfrtip',
+    		fixedHeader: false,
+    		buttons: [ 'copy',
+    			{ extend: 'excelHtml5',
+    			title: 'summarytable',
+    			extension: '.xlsx'},
+  				{ extend: 'csvHtml5',
+    			title: 'summarytable'},
+    			{ extend: 'pdfHtml5',
+    			title: 'summarytable'
+    			}],
+
+    		        columnDefs: [
+            {
+                targets: [ 0 ],
+                visible: false,
+                searchable: false
+            }
+        ],	
+    		iDisplayLength: -1 });} );	
+     	</script>
+<script type="text/javascript" charset="utf8" src="addlinks.js"></script>
+<table id="summarytable" class="display" cellspacing="0" width="60%">
+ <thead>
+  <tr>
+   <th style="text-align:right;"> index </th>
+   <th style="text-align:left;"> alteration_id </th>
+   <th style="text-align:left;"> alteration_description </th>
+   <th style="text-align:left;"> cis </th>
+   <th style="text-align:right;"> trans </th>
+   <th style="text-align:left;"> bipartite </th>
+   <th style="text-align:right;"> num_altered </th>
+   <th style="text-align:right;"> num_normal </th>
+   <th style="text-align:left;"> genes_in_alteration </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> cn1 </td>
+   <td style="text-align:left;"> cn1 </td>
+   <td style="text-align:left;"> (3/3) </td>
+   <td style="text-align:right;"> 5 </td>
+   <td style="text-align:left;"> (2/2) </td>
+   <td style="text-align:right;"> 34 </td>
+   <td style="text-align:right;"> 16 </td>
+   <td style="text-align:left;"> cis1,cis1.1,cis1.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> (3/3) </td>
+   <td style="text-align:right;"> 14 </td>
+   <td style="text-align:left;"> (3/8) </td>
+   <td style="text-align:right;"> 21 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:left;"> cis2,cis2.1,cis2.2 </td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+  
+
+</div>
+
+<div id="tab2" class="tab-pane" role="tabpanel">
+ <div class="indented">
+
+
+
+<div id="wrapper">
+  <h1 id="heatmap-main-title"></h1>
+  <br>
+  <h3 id="heatmap-sub-title"></h3>
+  <div id = "menu"></div>
+  <svg class="legend-panel" style="align:center;"></svg>
+  <p></p>
+  <svg class="heat-map" style="align:center;"></svg>
+  <div id="source"></div>
+</div>
+
+<script type="text/javascript" src="combined_cistrans_split.json"></script>
+<script type="text/javascript" src="heatmap.js"></script>
+
+
+
+
+</div>
+
+<br><br><br>
+
+
+</body>
+</html>

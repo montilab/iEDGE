@@ -4,9 +4,9 @@
 \alias{make_GISTIC2}
 \title{make_GISTIC2 preprocess GISTIC2 data}
 \usage{
-make_GISTIC2(gistic_in, all_genes, amp_thres_arm, del_thres_arm, amp_qvalue_arm,
-  del_qvalue_arm, qvalue_focal, all_lesions = NA, f.amp = NA, f.del = NA,
-  broad_thres = TRUE)
+make_GISTIC2(gistic_in, all_genes, amp_thres_arm, del_thres_arm,
+  amp_qvalue_arm, del_qvalue_arm, qvalue_focal, all_lesions = NA,
+  f.amp = NA, f.del = NA, broad_thres = TRUE)
 }
 \description{
 make_GISTIC2 preprocess GISTIC2 data

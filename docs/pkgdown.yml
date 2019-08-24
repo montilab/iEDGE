@@ -1,5 +1,7 @@
 pandoc: 1.16.0.2
-pkgdown: 1.0.0
+pkgdown: 1.1.0
 pkgdown_sha: ~
-articles: []
+articles:
+  iedge-simple-run: iedge-simple-run.html
+  iedge-tcga-example: iedge-tcga-example.html
 

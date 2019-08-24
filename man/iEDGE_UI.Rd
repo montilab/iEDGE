@@ -8,8 +8,8 @@ iEDGE_UI(cistab, cisfulltab, transtab, cn, gep, cisgenes, outdir,
   jsdir = file.path(path.package("iEDGE"), "javascript"), pruning,
   pruningjsdir, altid = "Unique.Name", altdesc = "Descriptor",
   geneid = "accession", cis.boxplot = TRUE, trans.boxplot = TRUE,
-  bipartite = TRUE, heatmap = TRUE, heatmapdatadir = NA, header = NA,
-  gs.names = NA)
+  bipartite = TRUE, heatmap = TRUE, heatmapdatadir = NA,
+  header = NA, gs.names = NA)
 }
 \description{
 iEDGE_UI makes the user interface for iEDGE reports

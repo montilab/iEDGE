@@ -7,13 +7,14 @@
 run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
   cnid = "Unique.Name", cndesc = "Descriptor",
   cndir = "alteration_direction", fdr.cis.cutoff = 0.25,
-  fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA, min.drawsize = 3,
-  onesided.cis = TRUE, onesided.trans = FALSE, uptest = "Amplification",
-  downtest = "Deletion", min.group = 2, prune.col = "pvalue",
-  prune.thres = 0.05, hyperthres = 0.25, cis.boxplot = TRUE,
-  trans.boxplot = TRUE, enrich.heatmap = TRUE, bipartite = TRUE,
-  html = TRUE, jsdir = NA, numcores = NA, cache = list(DE = NULL,
-  prunning = NULL, ui = NULL), includeheatmap = TRUE)
+  fdr.trans.cutoff = 0.05, fc.cis = NA, fc.trans = NA,
+  min.drawsize = 3, onesided.cis = TRUE, onesided.trans = FALSE,
+  uptest = "Amplification", downtest = "Deletion", min.group = 2,
+  prune.col = "pvalue", prune.thres = 0.05, hyperthres = 0.25,
+  cis.boxplot = TRUE, trans.boxplot = TRUE, enrichment = TRUE,
+  bipartite = TRUE, html = TRUE, jsdir = NA, numcores = NA,
+  cache = list(DE = NULL, DE.enrich = NULL, prunning = NULL,
+  pruning.enrich = NULL, ui = NULL), includeheatmap = TRUE)
 }
 \arguments{
 \item{dat}{the input iEDGE object, see construct_iEDGE for specification}
@@ -62,8 +63,6 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 
 \item{trans.boxplot}{default = TRUE, display boxplot for trans genes}
 
-\item{enrich.heatmap}{= TRUE, display heatmap for pathway enrichment results}
-
 \item{bipartite}{default = TRUE, do bipartite graph/pruning}
 
 \item{html}{default = TRUE, do html report}
@@ -74,7 +73,9 @@ run_iEDGE(dat, header, outdir, gs.file = NA, gepid = "SYMBOL",
 
 \item{cache}{default = list(DE = NULL, prunning = NULL, ui = NULL), optional, cached result of previous run_iEDGE}
 
-\item{includeheatmap}{= TRUE, optional, include heatmap for pathway enrichment in UI}
+\item{includeheatmap}{= TRUE, optional, include heatmap for pathway enrichment in UI, must be enrichment=TRUE for this to work}
+
+\item{enrich.heatmap}{= TRUE, display heatmap for pathway enrichment results}
 }
 \description{
 Main wrapper for iEDGE, assumes input data is constructed by construct_iEDGE

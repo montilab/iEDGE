@@ -1,0 +1,25 @@
+<!doctype html>
+<meta charset="utf-8">
+
+<script src="http://www.d3plus.org/js/d3.js"></script>
+<script src="http://www.d3plus.org/js/d3plus.js"></script>
+<div id="viz"></div>
+<script>
+
+var data = [{"alteration":1,"gene_expression":6.78,"name":"sample_1"},{"alteration":1,"gene_expression":6.37,"name":"sample_2"},{"alteration":1,"gene_expression":7.04,"name":"sample_3"},{"alteration":0,"gene_expression":6.26,"name":"sample_4"},{"alteration":1,"gene_expression":7.50,"name":"sample_5"},{"alteration":0,"gene_expression":6.64,"name":"sample_6"},{"alteration":0,"gene_expression":5.99,"name":"sample_7"},{"alteration":1,"gene_expression":6.57,"name":"sample_8"},{"alteration":1,"gene_expression":6.75,"name":"sample_9"},{"alteration":1,"gene_expression":7.76,"name":"sample_10"},{"alteration":1,"gene_expression":7.59,"name":"sample_11"},{"alteration":1,"gene_expression":6.90,"name":"sample_12"},{"alteration":1,"gene_expression":6.67,"name":"sample_13"},{"alteration":1,"gene_expression":6.93,"name":"sample_14"},{"alteration":0,"gene_expression":5.70,"name":"sample_15"},{"alteration":1,"gene_expression":6.98,"name":"sample_16"},{"alteration":0,"gene_expression":4.92,"name":"sample_17"},{"alteration":0,"gene_expression":6.98,"name":"sample_18"},{"alteration":1,"gene_expression":7.58,"name":"sample_19"},{"alteration":0,"gene_expression":6.86,"name":"sample_20"},{"alteration":0,"gene_expression":5.81,"name":"sample_21"},{"alteration":1,"gene_expression":7.00,"name":"sample_22"},{"alteration":1,"gene_expression":7.11,"name":"sample_23"},{"alteration":1,"gene_expression":6.62,"name":"sample_24"},{"alteration":1,"gene_expression":7.03,"name":"sample_25"},{"alteration":1,"gene_expression":6.72,"name":"sample_26"},{"alteration":1,"gene_expression":6.71,"name":"sample_27"},{"alteration":1,"gene_expression":6.78,"name":"sample_28"},{"alteration":0,"gene_expression":6.03,"name":"sample_29"},{"alteration":1,"gene_expression":6.35,"name":"sample_30"},{"alteration":1,"gene_expression":6.62,"name":"sample_31"},{"alteration":1,"gene_expression":7.17,"name":"sample_32"},{"alteration":1,"gene_expression":7.49,"name":"sample_33"},{"alteration":1,"gene_expression":6.25,"name":"sample_34"},{"alteration":0,"gene_expression":6.35,"name":"sample_35"},{"alteration":1,"gene_expression":6.37,"name":"sample_36"},{"alteration":0,"gene_expression":6.22,"name":"sample_37"},{"alteration":1,"gene_expression":7.12,"name":"sample_38"},{"alteration":0,"gene_expression":5.91,"name":"sample_39"},{"alteration":1,"gene_expression":7.07,"name":"sample_40"},{"alteration":0,"gene_expression":5.36,"name":"sample_41"},{"alteration":1,"gene_expression":7.62,"name":"sample_42"},{"alteration":0,"gene_expression":5.79,"name":"sample_43"},{"alteration":1,"gene_expression":7.11,"name":"sample_44"},{"alteration":1,"gene_expression":7.40,"name":"sample_45"},{"alteration":0,"gene_expression":6.19,"name":"sample_46"},{"alteration":1,"gene_expression":6.37,"name":"sample_47"},{"alteration":1,"gene_expression":7.38,"name":"sample_48"},{"alteration":0,"gene_expression":5.20,"name":"sample_49"},{"alteration":1,"gene_expression":6.93,"name":"sample_50"}]
+
+   var visualization = d3plus.viz()
+    .container("#viz")
+    .data(data)
+    .type("box")
+    .id("name")
+    .x("alteration")
+    .y("gene_expression")
+    .ui([{ 
+        "label": "Visualization Type",
+        "method": "type", 
+        "value": ["scatter","box"]
+      }])
+    .draw()
+
+</script>

@@ -1,0 +1,134 @@
+<head>
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js"></script>
+	</head>
+		<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.css">
+		<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/s/dt/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.10,b-1.1.0,b-colvis-1.1.0,b-flash-1.1.0,b-html5-1.1.0,b-print-1.1.0,cr-1.3.0,fc-3.2.0,fh-3.1.0,r-2.0.0,sc-1.4.0,se-1.1.0/datatables.min.js"></script>
+		<script type="text/javascript">
+    	$(document).ready(function() {
+        	$('#byalteration_cis_cn2').DataTable({
+    		aLengthMenu: [
+        	[25, 50, 100, 200, -1],
+        	[25, 50, 100, 200, "All"]
+    		],
+    		dom: 'lBfrtip',
+    		fixedHeader: true,
+    		buttons: [ 'copy',
+    			{ extend: 'excelHtml5',
+    			title: 'byalteration_cis_cn2',
+    			extension: '.xlsx'},
+  				{ extend: 'csvHtml5',
+    			title: 'byalteration_cis_cn2'},
+    			{ extend: 'pdfHtml5',
+    			title: 'byalteration_cis_cn2'
+    			}],
+    		iDisplayLength: -1 });} );	
+     	</script>
+<script> var dir_out = "./boxplots"; </script>
+<script type="text/javascript" charset="utf8" src="addboxplot.js"></script>
+<script type="text/javascript" charset="utf8" src="addgenecard.js"></script>
+<table id="byalteration_cis_cn2" class="display" cellspacing="0" width="60%">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> geneid </th>
+   <th style="text-align:right;"> fold.change </th>
+   <th style="text-align:right;"> adj.P.Val.all </th>
+   <th style="text-align:right;"> t </th>
+   <th style="text-align:left;"> high.class </th>
+   <th style="text-align:right;"> mean1.unlog </th>
+   <th style="text-align:right;"> mean0.unlog </th>
+   <th style="text-align:right;"> sd0.unlog </th>
+   <th style="text-align:right;"> sd1.unlog </th>
+   <th style="text-align:left;"> cnid </th>
+   <th style="text-align:left;"> direction </th>
+   <th style="text-align:left;"> interaction_type </th>
+   <th style="text-align:right;"> logFC </th>
+   <th style="text-align:right;"> AveExpr </th>
+   <th style="text-align:right;"> P.Value </th>
+   <th style="text-align:right;"> adj.P.Val </th>
+   <th style="text-align:right;"> B </th>
+   <th style="text-align:right;"> mean0.log </th>
+   <th style="text-align:right;"> mean1.log </th>
+   <th style="text-align:right;"> sd0.log </th>
+   <th style="text-align:right;"> sd1.log </th>
+   <th style="text-align:right;"> n0 </th>
+   <th style="text-align:right;"> n1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> cis2 </td>
+   <td style="text-align:right;"> 2.045179 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 11.70744 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 15.49973 </td>
+   <td style="text-align:right;"> 7.075236 </td>
+   <td style="text-align:right;"> 1.886268 </td>
+   <td style="text-align:right;"> 3.559967 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> cis </td>
+   <td style="text-align:right;"> 1.0322269 </td>
+   <td style="text-align:right;"> 3.410607 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 60.85680 </td>
+   <td style="text-align:right;"> 2.977071 </td>
+   <td style="text-align:right;"> 4.009298 </td>
+   <td style="text-align:right;"> 0.3282196 </td>
+   <td style="text-align:right;"> 0.3359340 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> cis2.1 </td>
+   <td style="text-align:right;"> 1.918057 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 10.65738 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 15.27832 </td>
+   <td style="text-align:right;"> 7.446159 </td>
+   <td style="text-align:right;"> 1.652364 </td>
+   <td style="text-align:right;"> 3.521293 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> cis </td>
+   <td style="text-align:right;"> 0.9396453 </td>
+   <td style="text-align:right;"> 3.447198 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 49.15384 </td>
+   <td style="text-align:right;"> 3.052547 </td>
+   <td style="text-align:right;"> 3.992192 </td>
+   <td style="text-align:right;"> 0.2774623 </td>
+   <td style="text-align:right;"> 0.3171413 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> cis2.2 </td>
+   <td style="text-align:right;"> 1.900450 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 10.50649 </td>
+   <td style="text-align:left;"> case </td>
+   <td style="text-align:right;"> 15.25603 </td>
+   <td style="text-align:right;"> 7.512069 </td>
+   <td style="text-align:right;"> 1.634062 </td>
+   <td style="text-align:right;"> 3.505537 </td>
+   <td style="text-align:left;"> cn2 </td>
+   <td style="text-align:left;"> UP </td>
+   <td style="text-align:left;"> cis </td>
+   <td style="text-align:right;"> 0.9263412 </td>
+   <td style="text-align:right;"> 3.452841 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 47.56241 </td>
+   <td style="text-align:right;"> 3.063777 </td>
+   <td style="text-align:right;"> 3.990118 </td>
+   <td style="text-align:right;"> 0.2782353 </td>
+   <td style="text-align:right;"> 0.3182936 </td>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:right;"> 21 </td>
+  </tr>
+</tbody>
+</table>

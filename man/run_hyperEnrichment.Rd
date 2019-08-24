@@ -4,8 +4,9 @@
 \alias{run_hyperEnrichment}
 \title{\code{run_hyperEnrichment} performs hyperenrichment test from gistic2ge DE results on gene sets}
 \usage{
-run_hyperEnrichment(drawn, categories, ntotal, min.drawsize = 4, mht = TRUE,
-  verbose = FALSE, order = TRUE, hypercol = "fdr", hyperthres = NULL)
+run_hyperEnrichment(drawn, categories, ntotal, min.drawsize = 4,
+  mht = TRUE, verbose = FALSE, order = TRUE, hypercol = "fdr",
+  hyperthres = NULL)
 }
 \arguments{
 \item{drawn}{list of genesets, usually from user-defined queries}

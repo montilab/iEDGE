@@ -1,0 +1,202 @@
+dataset = 
+
+{
+  "h.all.v5.0.symbols": {
+    "colors": ["#CB181D", "#FB6A4A", "#FCAE91", "#FEE5D9"],
+    "colorbreaks": [0.01, 0.05, 0.25],
+    "rowLabs": [null],
+    "colLabs": [null],
+    "heatmapData": []
+  },
+  "c2.cp.v5.0.symbols": {
+    "colors": ["#CB181D", "#FB6A4A", "#FCAE91", "#FEE5D9"],
+    "colorbreaks": [0.01, 0.05, 0.25],
+    "rowLabs": [null],
+    "colLabs": [null],
+    "heatmapData": []
+  },
+  "c3.tft.v5.0.symbols": {
+    "colors": ["#CB181D", "#FB6A4A", "#FCAE91", "#FEE5D9"],
+    "colorbreaks": [0.01, 0.05, 0.25],
+    "rowLabs": ["V$ETF_Q6", "V$STAT1_02", "V$MYC_Q2", "V$USF2_Q6", "V$E2F_Q2", "V$LEF1_Q2", "V$SRY_01", "V$TEF1_Q6", "V$MAZ_Q6", "V$AREB6_02", "GGGAGGRR_V$MAZ_Q6", "V$NKX62_Q2"],
+    "colLabs": ["AmplificationPeak3", "AmplificationPeak1"],
+    "heatmapData": [
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$TEF1_Q6",
+        "fdr": 6.642e-08,
+        "x": 1,
+        "y": 8
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$MAZ_Q6",
+        "fdr": 1.3837e-07,
+        "x": 1,
+        "y": 9
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$USF2_Q6",
+        "fdr": 3.936e-06,
+        "x": 2,
+        "y": 4
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$SRY_01",
+        "fdr": 7.8413e-06,
+        "x": 1,
+        "y": 7
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$ETF_Q6",
+        "fdr": 8.856e-06,
+        "x": 1,
+        "y": 1
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$MYC_Q2",
+        "fdr": 0,
+        "x": 2,
+        "y": 3
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$E2F_Q2",
+        "fdr": 0.0001,
+        "x": 1,
+        "y": 5
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$LEF1_Q2",
+        "fdr": 0.0003,
+        "x": 1,
+        "y": 6
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$E2F_Q2",
+        "fdr": 0.0013,
+        "x": 2,
+        "y": 5
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$USF2_Q6",
+        "fdr": 0.0013,
+        "x": 1,
+        "y": 4
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$STAT1_02",
+        "fdr": 0.0013,
+        "x": 1,
+        "y": 2
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "GGGAGGRR_V$MAZ_Q6",
+        "fdr": 0.0014,
+        "x": 1,
+        "y": 11
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$NKX62_Q2",
+        "fdr": 0.002,
+        "x": 1,
+        "y": 12
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$AREB6_02",
+        "fdr": 0.0356,
+        "x": 1,
+        "y": 10
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$STAT1_02",
+        "fdr": 0.2191,
+        "x": 2,
+        "y": 2
+      },
+      {
+        "set": "AmplificationPeak3",
+        "category": "V$MYC_Q2",
+        "fdr": 0.2649,
+        "x": 1,
+        "y": 3
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$ETF_Q6",
+        "fdr": 0.3954,
+        "x": 2,
+        "y": 1
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$MAZ_Q6",
+        "fdr": 0.6058,
+        "x": 2,
+        "y": 9
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$SRY_01",
+        "fdr": 0.6058,
+        "x": 2,
+        "y": 7
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$TEF1_Q6",
+        "fdr": 0.6058,
+        "x": 2,
+        "y": 8
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$LEF1_Q2",
+        "fdr": 0.6058,
+        "x": 2,
+        "y": 6
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$AREB6_02",
+        "fdr": 1,
+        "x": 2,
+        "y": 10
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "GGGAGGRR_V$MAZ_Q6",
+        "fdr": 1,
+        "x": 2,
+        "y": 11
+      },
+      {
+        "set": "AmplificationPeak1",
+        "category": "V$NKX62_Q2",
+        "fdr": 1,
+        "x": 2,
+        "y": 12
+      }
+    ]
+  }
+}
+;
+
+heatmap_metadata = 
+
+{
+  "header": ["TCGA_PAAD"]
+}
+;

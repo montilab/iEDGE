@@ -21,9 +21,11 @@
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
+<!-- sticky kit -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
 
 
@@ -32,6 +34,7 @@
 
 <meta property="og:description" content="Main wrapper for iEDGE, assumes input data is constructed by construct_iEDGE" />
 <meta name="twitter:card" content="summary" />
+
 
 
 <!-- mathjax -->
@@ -73,6 +76,21 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="../articles/iedge-simple-run.html">iEDGE - tutorial for simple run using simulated dataset</a>
+    </li>
+    <li>
+      <a href="../articles/iedge-tcga-example.html">iEDGE - tutorial for example walkthrough on a subset of TCGA PAAD dataset</a>
+    </li>
+  </ul>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
@@ -108,13 +126,14 @@
     <pre class="usage"><span class='fu'>run_iEDGE</span>(<span class='no'>dat</span>, <span class='no'>header</span>, <span class='no'>outdir</span>, <span class='kw'>gs.file</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>gepid</span> <span class='kw'>=</span> <span class='st'>"SYMBOL"</span>,
   <span class='kw'>cnid</span> <span class='kw'>=</span> <span class='st'>"Unique.Name"</span>, <span class='kw'>cndesc</span> <span class='kw'>=</span> <span class='st'>"Descriptor"</span>,
   <span class='kw'>cndir</span> <span class='kw'>=</span> <span class='st'>"alteration_direction"</span>, <span class='kw'>fdr.cis.cutoff</span> <span class='kw'>=</span> <span class='fl'>0.25</span>,
-  <span class='kw'>fdr.trans.cutoff</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>fc.cis</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>fc.trans</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>min.drawsize</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>onesided.cis</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>onesided.trans</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>uptest</span> <span class='kw'>=</span> <span class='st'>"Amplification"</span>,
-  <span class='kw'>downtest</span> <span class='kw'>=</span> <span class='st'>"Deletion"</span>, <span class='kw'>min.group</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>prune.col</span> <span class='kw'>=</span> <span class='st'>"pvalue"</span>,
-  <span class='kw'>prune.thres</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>hyperthres</span> <span class='kw'>=</span> <span class='fl'>0.25</span>, <span class='kw'>cis.boxplot</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>trans.boxplot</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>enrich.heatmap</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>bipartite</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>html</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>jsdir</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>numcores</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>cache</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='kw'>DE</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>prunning</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ui</span> <span class='kw'>=</span> <span class='kw'>NULL</span>), <span class='kw'>includeheatmap</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+  <span class='kw'>fdr.trans.cutoff</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>fc.cis</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>fc.trans</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>min.drawsize</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>onesided.cis</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>onesided.trans</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>uptest</span> <span class='kw'>=</span> <span class='st'>"Amplification"</span>, <span class='kw'>downtest</span> <span class='kw'>=</span> <span class='st'>"Deletion"</span>, <span class='kw'>min.group</span> <span class='kw'>=</span> <span class='fl'>2</span>,
+  <span class='kw'>prune.col</span> <span class='kw'>=</span> <span class='st'>"pvalue"</span>, <span class='kw'>prune.thres</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>hyperthres</span> <span class='kw'>=</span> <span class='fl'>0.25</span>,
+  <span class='kw'>cis.boxplot</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>trans.boxplot</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>enrichment</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>bipartite</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>html</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>jsdir</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>numcores</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>cache</span> <span class='kw'>=</span> <span class='fu'>list</span>(<span class='kw'>DE</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>DE.enrich</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>prunning</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>pruning.enrich</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ui</span> <span class='kw'>=</span> <span class='kw'>NULL</span>), <span class='kw'>includeheatmap</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -212,10 +231,6 @@
       <td><p>default = TRUE, display boxplot for trans genes</p></td>
     </tr>
     <tr>
-      <th>enrich.heatmap</th>
-      <td><p>= TRUE, display heatmap for pathway enrichment results</p></td>
-    </tr>
-    <tr>
       <th>bipartite</th>
       <td><p>default = TRUE, do bipartite graph/pruning</p></td>
     </tr>
@@ -237,7 +252,11 @@
     </tr>
     <tr>
       <th>includeheatmap</th>
-      <td><p>= TRUE, optional, include heatmap for pathway enrichment in UI</p></td>
+      <td><p>= TRUE, optional, include heatmap for pathway enrichment in UI, must be enrichment=TRUE for this to work</p></td>
+    </tr>
+    <tr>
+      <th>enrich.heatmap</th>
+      <td><p>= TRUE, display heatmap for pathway enrichment results</p></td>
     </tr>
     </table>
     
