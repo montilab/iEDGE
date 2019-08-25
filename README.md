@@ -4,7 +4,7 @@
 iEDGE is an R-package for performing integrative analysis of epi-DNA
 and gene expression data that builds upon, and significantly expands,
 the methodology first described in [Monti, Chapuy, et. al., Cancer
-Cell (2012).](http://www.ncbi.nlm.nih.gov/pubmed/22975378). This
+Cell (2012)](http://www.ncbi.nlm.nih.gov/pubmed/22975378). This
 package provides the generalized pipeline to perform integrative
 analysis of epi-genomic data (methylation, copy number alteration,
 mutation, microRNA, etc) and gene-expression data arising from
