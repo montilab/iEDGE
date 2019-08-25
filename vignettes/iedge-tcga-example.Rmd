@@ -13,7 +13,7 @@ alterations in the dataset.
 For this tutorial, we use a processed iEDGE object. See 
 [iEDGE analysis of a simulated dataset](https://montilab.github.io/iEDGE/articles/iedge-simple-run.html)
 for a description of the object's components. Also, see
-`scripts_TCGA_pancancer/1.preprocess_all_TCGA.R` in the vignette
+[scripts_TCGA_pancancer/1.preprocess_all_TCGA.R](https://github.com/montilab/iEDGE/blob/master/vignettes/scripts_TCGA_pancancer/1.preprocess_all_TCGA.R) in the vignette
 folder for an illustration of how to datasets were preprocessed for the TCGA
 pancancer analysis.
 

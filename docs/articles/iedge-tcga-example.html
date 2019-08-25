@@ -94,7 +94,7 @@
 <div id="iedge-execution" class="section level2">
 <h2 class="hasAnchor">
 <a href="#iedge-execution" class="anchor"></a>iEDGE execution</h2>
-<p>For this tutorial, we use a processed iEDGE object. See <a href="https://montilab.github.io/iEDGE/articles/iedge-simple-run.html">iEDGE analysis of a simulated dataset</a> for a description of the object’s components. Also, see <code>scripts_TCGA_pancancer/1.preprocess_all_TCGA.R</code> in the vignette folder for an illustration of how to datasets were preprocessed for the TCGA pancancer analysis.</p>
+<p>For this tutorial, we use a processed iEDGE object. See <a href="https://montilab.github.io/iEDGE/articles/iedge-simple-run.html">iEDGE analysis of a simulated dataset</a> for a description of the object’s components. Also, see <a href="https://github.com/montilab/iEDGE/blob/master/vignettes/scripts_TCGA_pancancer/1.preprocess_all_TCGA.R">scripts_TCGA_pancancer/1.preprocess_all_TCGA.R</a> in the vignette folder for an illustration of how to datasets were preprocessed for the TCGA pancancer analysis.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">f_in &lt;-<span class="st"> "./tcga_sample_data/TCGA_PAAD.RDS"</span>
 header &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="kw">gsub</span>(<span class="st">".RDS"</span>, <span class="st">""</span>, <span class="kw">basename</span>(f_in)), <span class="dt">sep =</span> <span class="st">""</span>)
 <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">"header: "</span>, header, <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>, <span class="dt">sep =</span> <span class="st">""</span>))
