@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iEDGE - tutorial for example walkthrough on a subset of TCGA PAAD dataset • iEDGE</title>
+<title>iEDGE analysis of the TCGA PAAD dataset • iEDGE</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="iEDGE - tutorial for example walkthrough on a subset of TCGA PAAD dataset">
+<script src="../pkgdown.js"></script><meta property="og:title" content="iEDGE analysis of the TCGA PAAD dataset">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -52,10 +52,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/iedge-simple-run.html">iEDGE - tutorial for simple run using simulated dataset</a>
+      <a href="../articles/iedge-simple-run.html">iEDGE analysis of a simulated dataset</a>
     </li>
     <li>
-      <a href="../articles/iedge-tcga-example.html">iEDGE - tutorial for example walkthrough on a subset of TCGA PAAD dataset</a>
+      <a href="../articles/iedge-tcga-example.html">iEDGE analysis of the TCGA PAAD dataset</a>
     </li>
   </ul>
 </li>
@@ -79,7 +79,7 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>iEDGE - tutorial for example walkthrough on a subset of TCGA PAAD dataset</h1>
+      <h1>iEDGE analysis of the TCGA PAAD dataset</h1>
                         <h4 class="author">Amy Li</h4>
             
       
@@ -90,52 +90,61 @@
 
     
     
-<div id="iedge-walkthrough-on-example-tcga-dataset" class="section level1">
-<h1 class="hasAnchor">
-<a href="#iedge-walkthrough-on-example-tcga-dataset" class="anchor"></a>iEDGE walkthrough on example TCGA dataset</h1>
-<div id="iedge-run-on-tcga-paad" class="section level2">
+<p>In this tutorial, we run iEDGE on the TCGA PAAD dataset. To achieve reasonable run time, we restrict the run to the first 3 copy number alterations in the dataset.</p>
+<div id="iedge-execution" class="section level2">
 <h2 class="hasAnchor">
-<a href="#iedge-run-on-tcga-paad" class="anchor"></a>iEDGE run on TCGA PAAD</h2>
-<p>In this tutorial, we run iEDGE on the TCGA PAAD dataset.</p>
-<p>To achieve reasonable run time in this vignette, we will subset the run to the first 3 copy number alterations in this dataset.</p>
-<p>For this tutorial we use a processed iEDGE object. Please see scripts_TCGA_pancancer/1.preprocess_all_TCGA.R in the vignette folder for an example of preprocessing of datasets for TCGA pancancer analysis</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">f_in&lt;-<span class="st">"./tcga_sample_data/TCGA_PAAD.RDS"</span>
-header&lt;-<span class="kw">paste</span>(<span class="kw">gsub</span>(<span class="st">".RDS"</span>, <span class="st">""</span>, <span class="kw">basename</span>(f_in)), <span class="dt">sep =</span> <span class="st">""</span>)
+<a href="#iedge-execution" class="anchor"></a>iEDGE execution</h2>
+<p>For this tutorial, we use a processed iEDGE object. See <a href="https://montilab.github.io/iEDGE/articles/iedge-simple-run.html">iEDGE analysis of a simulated dataset</a> for a description of the object’s components. Also, see <code>scripts_TCGA_pancancer/1.preprocess_all_TCGA.R</code> in the vignette folder for an illustration of how to datasets were preprocessed for the TCGA pancancer analysis.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">f_in &lt;-<span class="st"> "./tcga_sample_data/TCGA_PAAD.RDS"</span>
+header &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="kw">gsub</span>(<span class="st">".RDS"</span>, <span class="st">""</span>, <span class="kw">basename</span>(f_in)), <span class="dt">sep =</span> <span class="st">""</span>)
 <span class="kw">cat</span>(<span class="kw">paste</span>(<span class="st">"header: "</span>, header, <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>, <span class="dt">sep =</span> <span class="st">""</span>))
 
-dat&lt;-<span class="kw">readRDS</span>(f_in)
+dat &lt;-<span class="st"> </span><span class="kw">readRDS</span>(f_in)
 
-<span class="co">#subset dat to first 3 copy number alterations</span>
+<span class="co"># subset dat to first 3 copy number alterations</span>
 <span class="kw">names</span>(dat)
-cn&lt;-dat$cn[<span class="dv">1</span>:<span class="dv">3</span>,]
-gep&lt;-dat$gep
-cisgenes&lt;-dat$cisgenes[<span class="dv">1</span>:<span class="dv">3</span>]
+cn &lt;-<span class="st"> </span>dat$cn[<span class="dv">1</span>:<span class="dv">3</span>,]
+gep &lt;-<span class="st"> </span>dat$gep
+cisgenes &lt;-<span class="st"> </span>dat$cisgenes[<span class="dv">1</span>:<span class="dv">3</span>]
 
-dat&lt;-<span class="kw">list</span>(<span class="dt">cn =</span> cn, <span class="dt">gep =</span> gep, <span class="dt">cisgenes =</span> cisgenes)
+dat &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">cn =</span> cn, <span class="dt">gep =</span> gep, <span class="dt">cisgenes =</span> cisgenes)
 
-<span class="co">#read in geneset annotation files for pathway enrichment analysis</span>
-gs.dir&lt;-<span class="st">"./tcga_sample_data"</span>
-gs.names&lt;-<span class="kw">c</span>(<span class="st">"h.all.v5.0.symbols.gmt"</span>,<span class="st">"c2.cp.v5.0.symbols.gmt"</span>, <span class="st">"c3.tft.v5.0.symbols.gmt"</span>)
-gs.names&lt;-<span class="kw">paste</span>(gs.dir, gs.names, <span class="dt">sep =</span> <span class="st">"/"</span>)
+<span class="co"># read in geneset annotation files for pathway enrichment analysis</span>
+gs.dir &lt;-<span class="st"> "./tcga_sample_data"</span>
+gs.names &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"h.all.v5.0.symbols.gmt"</span>,<span class="st">"c2.cp.v5.0.symbols.gmt"</span>, <span class="st">"c3.tft.v5.0.symbols.gmt"</span>)
+gs.names &lt;-<span class="st"> </span><span class="kw">paste</span>(gs.dir, gs.names, <span class="dt">sep =</span> <span class="st">"/"</span>)
 
-<span class="co">#directory for output reports</span>
-f_out&lt;-<span class="st">"."</span>
+<span class="co"># directory for output reports</span>
+f_out &lt;-<span class="st"> "."</span>
 
-res&lt;-<span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></span>(dat, header, f_out, 
-    <span class="dt">gs.file =</span> gs.names, 
-    <span class="dt">gepid =</span> <span class="st">"gene_symbol"</span>, <span class="dt">cnid =</span> <span class="st">"Unique.Name"</span>, 
-    <span class="dt">cndir =</span> <span class="st">"alteration_direction"</span>, <span class="dt">fdr.cis.cutoff =</span> <span class="fl">0.25</span>, 
-    <span class="dt">fdr.trans.cutoff =</span> <span class="fl">0.01</span>, <span class="dt">fc.cis =</span> <span class="fl">1.2</span>, <span class="dt">fc.trans =</span> <span class="fl">1.5</span>, <span class="dt">min.drawsize =</span> <span class="dv">3</span>, <span class="dt">onesided.cis =</span> <span class="ot">TRUE</span>, 
-    <span class="dt">onesided.trans =</span> <span class="ot">FALSE</span>, <span class="dt">uptest =</span> <span class="st">"Amplification"</span>, <span class="dt">downtest =</span> <span class="st">"Deletion"</span>, 
-    <span class="dt">min.group =</span> <span class="dv">2</span>,
-    <span class="dt">prune.col =</span> <span class="st">"fdr"</span>, <span class="dt">prune.thres =</span> <span class="fl">0.05</span>, <span class="dt">hyperthres =</span> <span class="fl">0.25</span>,
-    <span class="dt">cis.boxplot =</span> <span class="ot">TRUE</span>, <span class="dt">trans.boxplot =</span> <span class="ot">FALSE</span>, <span class="dt">bipartite =</span> <span class="ot">TRUE</span>, <span class="dt">enrichment =</span> <span class="ot">TRUE</span>, <span class="dt">html =</span> <span class="ot">TRUE</span>)</code></pre></div>
+res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></span>(dat, header, f_out, 
+                 <span class="dt">gs.file =</span> gs.names, 
+                 <span class="dt">gepid =</span> <span class="st">"gene_symbol"</span>,
+                 <span class="dt">cnid =</span> <span class="st">"Unique.Name"</span>, 
+                 <span class="dt">cndir =</span> <span class="st">"alteration_direction"</span>,
+                 <span class="dt">fdr.cis.cutoff =</span> <span class="fl">0.25</span>, 
+                 <span class="dt">fdr.trans.cutoff =</span> <span class="fl">0.01</span>,
+                 <span class="dt">fc.cis =</span> <span class="fl">1.2</span>,
+                 <span class="dt">fc.trans =</span> <span class="fl">1.5</span>,
+                 <span class="dt">min.drawsize =</span> <span class="dv">3</span>,
+                 <span class="dt">onesided.cis =</span> <span class="ot">TRUE</span>, 
+                 <span class="dt">onesided.trans =</span> <span class="ot">FALSE</span>,
+                 <span class="dt">uptest =</span> <span class="st">"Amplification"</span>,
+                 <span class="dt">downtest =</span> <span class="st">"Deletion"</span>, 
+                 <span class="dt">min.group =</span> <span class="dv">2</span>,
+                 <span class="dt">prune.col =</span> <span class="st">"fdr"</span>,
+                 <span class="dt">prune.thres =</span> <span class="fl">0.05</span>,
+                 <span class="dt">hyperthres =</span> <span class="fl">0.25</span>,
+                 <span class="dt">cis.boxplot =</span> <span class="ot">TRUE</span>,
+                 <span class="dt">trans.boxplot =</span> <span class="ot">FALSE</span>,
+                 <span class="dt">bipartite =</span> <span class="ot">TRUE</span>,
+                 <span class="dt">enrichment =</span> <span class="ot">TRUE</span>,
+                 <span class="dt">html =</span> <span class="ot">TRUE</span>)</code></pre></div>
 </div>
 <div id="iedge-html-report" class="section level2">
 <h2 class="hasAnchor">
 <a href="#iedge-html-report" class="anchor"></a>iEDGE HTML report</h2>
 <p>The HTML report of this run is contained <a href="./TCGA_PAAD/html/index.html">here</a></p>
-</div>
 </div>
   </div>
 
@@ -144,12 +153,8 @@ res&lt;-<span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></sp
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li>
-<a href="#iedge-walkthrough-on-example-tcga-dataset">iEDGE walkthrough on example TCGA dataset</a><ul class="nav nav-pills nav-stacked">
-<li><a href="#iedge-run-on-tcga-paad">iEDGE run on TCGA PAAD</a></li>
+<li><a href="#iedge-execution">iEDGE execution</a></li>
       <li><a href="#iedge-html-report">iEDGE HTML report</a></li>
-      </ul>
-</li>
       </ul>
 </div>
       </div>
@@ -158,7 +163,7 @@ res&lt;-<span class="kw"><a href="../reference/run_iEDGE.html">run_iEDGE</a></sp
 
 
       <footer><div class="copyright">
-  <p>Developed by Amy Li.</p>
+  <p>Developed by Amy Li, Stefano Monti.</p>
 </div>
 
 <div class="pkgdown">

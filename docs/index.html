@@ -54,10 +54,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/iedge-simple-run.html">iEDGE - tutorial for simple run using simulated dataset</a>
+      <a href="articles/iedge-simple-run.html">iEDGE analysis of a simulated dataset</a>
     </li>
     <li>
-      <a href="articles/iedge-tcga-example.html">iEDGE - tutorial for example walkthrough on a subset of TCGA PAAD dataset</a>
+      <a href="articles/iedge-tcga-example.html">iEDGE analysis of the TCGA PAAD dataset</a>
     </li>
   </ul>
 </li>
@@ -85,10 +85,10 @@
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#iedge" class="anchor"></a>iEDGE</h1></div>
 <p><strong>I</strong>ntegrative analysis of (<strong>E</strong>pi-)<strong>D</strong>NA and <strong>G</strong>ene <strong>E</strong>xpression Data</p>
-<p>iEDGE is a R-package for performing integrative analysis of epi-DNA and gene expression data. This analysis was based on <a href="http://www.ncbi.nlm.nih.gov/pubmed/22975378">Monti, Chapuy, et. al., Cancer Cell (2012).</a>, which describes an approach to integrate copy number alteration to gene expression dataset in Diffuse Large B cell lymphoma samples and extends the methodology to study in detail the effect of p53 and cell cycle deregulation in DLBCL. This package provides the generalized pipeline to perform integrative analysis of epi-genomic data (methylation, copy number alteration, mutation, microRNA, etc) and gene-expression data arising from overlapping samples. The package consistent of 3 major modules:</p>
+<p>iEDGE is an R-package for performing integrative analysis of (epi-)DNA and gene expression data that builds upon, and significantly expands, the methodology first described in <a href="http://www.ncbi.nlm.nih.gov/pubmed/22975378">Monti, Chapuy, et. al., Cancer Cell (2012)</a>. This package provides the generalized pipeline to perform integrative analysis of epi-genomic data (methylation, copy number alteration, mutation, microRNA, etc.) and gene-expression data from paired samples, and consists of 3 major modules:</p>
 <ol>
-<li>cis/trans differential expression based analysis of epi-DNA and gene expression data</li>
-<li>pathway enrichment analysis of significant cis and trans genes correlated with the epi-DNA alterations</li>
+<li>cis/trans differential expression analysis of epi-DNA and gene expression data</li>
+<li>pathway enrichment analysis of significant cis and trans genes associated with the epi-DNA alterations</li>
 <li>pruning of cis/trans epi-DNA to gene expression connections using a statistical mediation model</li>
 </ol>
 <p>Reporting options are available in table (.txt) format as well as in html format, supported by interactive plots and tables</p>
@@ -129,6 +129,7 @@ library(iEDGE)
 <h2>Developers</h2>
 <ul class="list-unstyled">
 <li>Amy Li <br><small class="roles"> Author, maintainer </small>  </li>
+<li>Stefano Monti <br><small class="roles"> Author </small>  </li>
 </ul>
 </div>
 
@@ -137,7 +138,7 @@ library(iEDGE)
 
 
       <footer><div class="copyright">
-  <p>Developed by Amy Li.</p>
+  <p>Developed by Amy Li, Stefano Monti.</p>
 </div>
 
 <div class="pkgdown">
