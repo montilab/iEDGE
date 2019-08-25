@@ -3,18 +3,17 @@ title: "iEDGE - tutorial with TCGA PAAD dataset"
 author: "Amy Li"
 output: rmarkdown::html_notebook
 ---
-# iEDGE walkthrough on example TCGA dataset
+# iEDGE-based analysis of the TCGA PAAD dataset
 
-## iEDGE run on TCGA PAAD 
+In this tutorial, we run iEDGE on the TCGA PAAD dataset. To achieve
+reasonable run time in this vignette, we restricted the run to the
+first 3 copy number alterations in the dataset.
 
-In this tutorial, we run iEDGE on the TCGA PAAD dataset. 
+## iEDGE execution
 
-To achieve reasonable run time in this vignette, we will subset the
-run to the first 3 copy number alterations in this dataset.
-
-For this tutorial we use a processed iEDGE object. Please see
+For this tutorial, we use a processed iEDGE object. Please see
 scripts_TCGA_pancancer/1.preprocess_all_TCGA.R in the vignette folder
-for an example of preprocessing of datasets for TCGA pancancer
+for an illustration of how to preprocess datasets for TCGA pancancer
 analysis
 
 ```{r, eval = FALSE}
