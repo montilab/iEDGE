@@ -1,58 +1,71 @@
 ---
-title: "iEDGE - tutorial for example walkthrough on a subset of TCGA PAAD dataset"
+title: "iEDGE analysis of the TCGA PAAD dataset"
 author: "Amy Li"
 output: rmarkdown::html_notebook
 ---
-#iEDGE walkthrough on example TCGA dataset
 
-##iEDGE run on TCGA PAAD 
+In this tutorial, we run iEDGE on the TCGA PAAD dataset. To achieve
+reasonable run time, we restrict the run to the first 3 copy number
+alterations in the dataset.
 
-In this tutorial, we run iEDGE on the TCGA PAAD dataset. 
+## iEDGE execution
 
-To achieve reasonable run time in this vignette, we will subset the run to the first 3 copy number alterations in this dataset. 
-
-For this tutorial we use a processed iEDGE object. Please see scripts_TCGA_pancancer/1.preprocess_all_TCGA.R in the vignette folder for an example of preprocessing of datasets for TCGA pancancer analysis
-
+For this tutorial, we use a processed iEDGE object. See 
+[iEDGE analysis of a simulated dataset](https://montilab.github.io/iEDGE/articles/iedge-simple-run.html)
+for a description of the object's components. Also, see
+`scripts_TCGA_pancancer/1.preprocess_all_TCGA.R` in the vignette
+folder for an illustration of how to datasets were preprocessed for the TCGA
+pancancer analysis.
 
 ```{r, eval = FALSE}
-
-f_in<-"./tcga_sample_data/TCGA_PAAD.RDS"
-header<-paste(gsub(".RDS", "", basename(f_in)), sep = "")
+f_in <- "./tcga_sample_data/TCGA_PAAD.RDS"
+header <- paste(gsub(".RDS", "", basename(f_in)), sep = "")
 cat(paste("header: ", header, "\n", sep = ""))
 
-dat<-readRDS(f_in)
+dat <- readRDS(f_in)
 
-#subset dat to first 3 copy number alterations
+# subset dat to first 3 copy number alterations
 names(dat)
-cn<-dat$cn[1:3,]
-gep<-dat$gep
-cisgenes<-dat$cisgenes[1:3]
+cn <- dat$cn[1:3,]
+gep <- dat$gep
+cisgenes <- dat$cisgenes[1:3]
 
-dat<-list(cn = cn, gep = gep, cisgenes = cisgenes)
+dat <- list(cn = cn, gep = gep, cisgenes = cisgenes)
 
-#read in geneset annotation files for pathway enrichment analysis
-gs.dir<-"./tcga_sample_data"
-gs.names<-c("h.all.v5.0.symbols.gmt","c2.cp.v5.0.symbols.gmt", "c3.tft.v5.0.symbols.gmt")
-gs.names<-paste(gs.dir, gs.names, sep = "/")
+# read in geneset annotation files for pathway enrichment analysis
+gs.dir <- "./tcga_sample_data"
+gs.names <- c("h.all.v5.0.symbols.gmt","c2.cp.v5.0.symbols.gmt", "c3.tft.v5.0.symbols.gmt")
+gs.names <- paste(gs.dir, gs.names, sep = "/")
 
-#directory for output reports
-f_out<-"."
+# directory for output reports
+f_out <- "."
 
-res<-run_iEDGE(dat, header, f_out, 
-	gs.file = gs.names, 
-	gepid = "gene_symbol", cnid = "Unique.Name", 
-	cndir = "alteration_direction", fdr.cis.cutoff = 0.25, 
-	fdr.trans.cutoff = 0.01, fc.cis = 1.2, fc.trans = 1.5, min.drawsize = 3, onesided.cis = TRUE, 
-	onesided.trans = FALSE, uptest = "Amplification", downtest = "Deletion", 
-	min.group = 2,
-	prune.col = "fdr", prune.thres = 0.05, hyperthres = 0.25,
-	cis.boxplot = TRUE, trans.boxplot = FALSE, bipartite = TRUE, enrichment = TRUE, html = TRUE)
-
-
-
+res <- run_iEDGE(dat, header, f_out, 
+                 gs.file = gs.names, 
+                 gepid = "gene_symbol",
+                 cnid = "Unique.Name", 
+                 cndir = "alteration_direction",
+                 fdr.cis.cutoff = 0.25, 
+                 fdr.trans.cutoff = 0.01,
+                 fc.cis = 1.2,
+                 fc.trans = 1.5,
+                 min.drawsize = 3,
+                 onesided.cis = TRUE, 
+                 onesided.trans = FALSE,
+                 uptest = "Amplification",
+                 downtest = "Deletion", 
+                 min.group = 2,
+                 prune.col = "fdr",
+                 prune.thres = 0.05,
+                 hyperthres = 0.25,
+                 cis.boxplot = TRUE,
+                 trans.boxplot = FALSE,
+                 bipartite = TRUE,
+                 enrichment = TRUE,
+                 html = TRUE)
 ```
 
 
-##iEDGE HTML report
+## iEDGE HTML report
 
 The HTML report of this run is contained [here](./TCGA_PAAD/html/index.html)

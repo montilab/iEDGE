@@ -1,80 +1,89 @@
 ---
-title: "iEDGE - tutorial for simple run using simulated dataset"
+title: "iEDGE analysis of a simulated dataset"
 author: "Amy Li"
 output: rmarkdown::html_notebook
 ---
-#Getting started with iEDGE: walkthrough with simple simulated dataset
 
-##Setting up the iEDGE object
+For this tutorial we will simulate the input gene expression data, the
+cis and trans genes with known mediations, and we will run iEDGE to
+recover these mediations.
 
-For this tutorial we will simulate the input gene expression data, the cis and trans genes with known mediations and run iEDGE to recover these mediations. 
+## Setting up the iEDGE object
 
-We start by generating the dataset. You can use construct_iEDGE to generate the iEDGE dataset from standard matrices (binary matrices for alteration data or numeric matrices for expression data).  
+We start by generating the dataset. You can use `construct_iEDGE` to
+generate the iEDGE dataset from standard matrices (binary matrices for
+alteration data or numeric matrices for expression data).
 
-Please note that this simulation is optimized for the evaluation of the iEDGE methology but is meant for demonstrating how to construct an iEDGE object from scratch for use in standard analysis.
+Please note that this simulation is optimized for the evaluation of
+the iEDGE methology, and its only purpose is to demonstrate how to
+construct an iEDGE object from scratch for use in standard analysis.
 
 ```{r, echo = TRUE, warning = FALSE, message = FALSE}
-
 library(iEDGE)
 
 set.seed(1)
 
-#define number of samples
-n<-50
+# define number of samples
+n <- 50
 
-#construct 'cn': binary alternations by samples matrix 
-#two independent alterations across 50 samples
-cn1<-sample(x= c(1,0), size = n, replace = T, prob = c(0.7, 0.3))
-cn2<-sample(x= c(1,0), size = n, replace = T, prob = c(0.5, 0.5))
+# construct 'cn': binary alternations by samples matrix two
+# independent alterations across 50 samples
+cn1 <- sample(x= c(1,0), size = n, replace = T, prob = c(0.7, 0.3))
+cn2 <- sample(x= c(1,0), size = n, replace = T, prob = c(0.5, 0.5))
 
-cn<-rbind(cn1, cn2)
-colnames(cn)<-paste0("sample_", 1:ncol(cn))
+cn <- rbind(cn1, cn2)
+colnames(cn) <- paste0("sample_", 1:ncol(cn))
 
-#construct 'cis' gene expressions: genes correlated with one or more alterations in 'cn'
-cis<- t(sapply(c(1,1,1,2,2,2), function(i){
+# construct 'cis' gene expressions: genes correlated with one or more
+# alterations in 'cn'
+cis <-  t(sapply(c(1,1,1,2,2,2), function(i) {
 		3 + cn[i, ] + rnorm(n, 0, 0.3)
-	}))
-rownames(cis)<-make.unique(paste0("cis", c(1,1,1,2,2,2)))
+}))
+rownames(cis) <- make.unique(paste0("cis", c(1,1,1,2,2,2)))
 
-#construct 'trans-mediated' gene expression: gene correlated with one or more alteration in 'cn' and mediated through a cis gene
-cis.m<-sample(rownames(cis), 10, replace = T)
-trans.m<-t(sapply(1:length(cis.m), function(i)
+# construct 'trans-mediated' gene expression: gene correlated with
+# one or more alteration in 'cn' and mediated through a cis gene
+
+cis.m <- sample(rownames(cis), 10, replace = T)
+trans.m <- t(sapply(1:length(cis.m), function(i)
 		3 + cis[cis.m[i], ] + rnorm(n, 0, 0.3)
 	))
-rownames(trans.m)<-make.unique(paste0("t.m.", cis.m))
+rownames(trans.m) <- make.unique(paste0("t.m.", cis.m))
 
-#construct 'trans-direct' gene expression: trans gene correlated with one or more alteration in 'cn' but not mediated through cis genes, this would be similar to construction of cis genes
-trans.d<- t(sapply(c(1,1,1,2,2,2), function(i)
-		3 + cn[i, ] + rnorm(n, 0, 0.6)
-		))
-rownames(trans.d)<-make.unique(paste0("t.d.", c(1,1,1,2,2,2)))
+# construct 'trans-direct' gene expression: trans gene correlated
+# with one or more alteration in 'cn' but not mediated through cis
+# genes, this would be similar to construction of cis genes
+trans.d <-  t(sapply(c(1,1,1,2,2,2), function(i)
+    3 + cn[i, ] + rnorm(n, 0, 0.6)
+    ))
+rownames(trans.d) <- make.unique(paste0("t.d.", c(1,1,1,2,2,2)))
 
+# uncorrelated genes
+others <- t(sapply(1:30, function(i) 3+rnorm(n, 0, 0.3)))
+rownames(others) <- paste0("others_", 1:nrow(others))
 
-#uncorrelated genes
-others<-t(sapply(1:30, function(i) 3+rnorm(n, 0, 0.3)))
-rownames(others)<-paste0("others_", 1:nrow(others))
+# putting genes together in expression matrix
+gep <- rbind(cis, trans.m, trans.d, others)
+colnames(gep) <- paste0("sample_", 1:ncol(gep))
 
-#putting genes together in expression matrix
-gep<-rbind(cis, trans.m, trans.d, others)
-colnames(gep)<-paste0("sample_", 1:ncol(gep))
+cisgenes <- list(cn1 = grep("cis1", rownames(cis), value = T),
+                 cn2 = grep("cis2", rownames(cis), value = T))
 
-cisgenes<-list(cn1 = grep("cis1", rownames(cis), value = T),
-			   cn2 = grep("cis2", rownames(cis), value = T))
+# the direction column in cn.fdat specifies whether to compute
+# one-sided or two-sided p-values in differential tests. In this
+# simulation we expect an increase in expression with the presence of
+# the alteration, hence a one-sided ("UP") p-value is computed.
+cn.fdat <- data.frame(cnid = rownames(cn), direction = "UP")
+rownames(cn.fdat) <- rownames(cn)
 
-#the direction column in cn.fdat specifies one-sided vs. bidirectional p-values in differential test
-#in this simulation we expect increase in expression with the presence of the alteration
-cn.fdat<-data.frame(cnid = rownames(cn), direction = "UP")
-rownames(cn.fdat)<-rownames(cn)
+gep.fdat <- data.frame(geneid = rownames(gep))
+rownames(gep.fdat) <- rownames(gep)
 
-gep.fdat<-data.frame(geneid = rownames(gep))
-rownames(gep.fdat)<-rownames(gep)
-
-
-dat<-construct_iEDGE(cn, gep, cisgenes, transgenes = NA, cn.fdat, gep.fdat, 
+dat <- construct_iEDGE(cn, gep, cisgenes, transgenes = NA, cn.fdat, gep.fdat, 
 				cn.pdat = NA, gep.pdat = NA)
 ```
 
-##Explanation of the iEDGE object
+## Explanation of the iEDGE object components
 The iEDGE object is a list consisting of:
 
 1. **cn**: Copy-Number of other binary alteration ExpressionSet:
@@ -98,22 +107,21 @@ The iEDGE object is a list consisting of:
 
 ```{r}
 dat
-
 ```
 
-##Running iEDGE
+## Running iEDGE
 Now that the iEDGE object is created, we can run the iEDGE pipeline on this dataset. 
 
-###Running iEDGE with differential expression only: 
+### Running iEDGE with differential expression only: 
 This will create the results object with differential expression tables for cis and trans genes
 ```{r}
-#cis and trans differential expression analysis only
-#no mediation analysis
-#no html report
-res<-run_iEDGE(dat = dat, header = "testrun", outdir = ".", 
-		cnid = "cnid", cndesc = "cnid", cndir = "direction", 
-		uptest = "UP", downtest = "DOWN",
-		gepid = "geneid", enrichment = FALSE, bipartite = FALSE, html = FALSE)
+# cis and trans differential expression analysis only
+# no mediation analysis
+# no html report
+res <- run_iEDGE(dat = dat, header = "testrun", outdir = ".", 
+                 cnid = "cnid", cndesc = "cnid", cndir = "direction", 
+                 uptest = "UP", downtest = "DOWN",
+                 gepid = "geneid", enrichment = FALSE, bipartite = FALSE, html = FALSE)
 ```
 
 ```{r}
@@ -123,41 +131,48 @@ head(res$de$cis$full)
 head(res$de$trans$full)
 
 ```
-###Running iEDGE with differential expression only and HTML report: 
-This will create the results object with differential expression tables for cis and trans genes and an associated HTML report
+### Running iEDGE with differential expression only and HTML report: 
+
+This will create the results object with differential expression
+tables for cis and trans genes only, and an associated HTML report
 
 ```{r}
-#cis and trans differential expression analysis only
-#no mediation analysis
-#do html report
-res<-run_iEDGE(dat = dat, header = "testrun", outdir = ".", 
-		cnid = "cnid", cndesc = "cnid", cndir = "direction", 
-		uptest = "UP", downtest = "DOWN",
-		gepid = "geneid", enrichment = FALSE, 
-		bipartite = FALSE, html = TRUE)
-#the result html page should be opened automatically, this displays the graphical view of results
+# cis and trans differential expression analysis only
+# no mediation analysis
+# do html report
+res <- run_iEDGE(dat = dat, header = "testrun", outdir = ".", 
+                 cnid = "cnid", cndesc = "cnid", cndir = "direction", 
+                 uptest = "UP", downtest = "DOWN",
+                 gepid = "geneid", enrichment = FALSE, 
+                 bipartite = FALSE, html = TRUE)
+# the result html page should be opened automatically, this displays the graphical view of results
 ```
 
-###Running iEDGE with differential expression and mediation analysis (bipartite) and HTML report: 
+### Running iEDGE with differential expression and mediation analysis (bipartite) and HTML report: 
+
+This will create the results object with differential expression
+tables for cis and trans genes _and_ mediation analysis, and an
+associated HTML report
+
 ```{r}
-#cis and trans differential expression analysis only
-#do mediation analysis
-#do html report
-res<-run_iEDGE(dat = dat, header = "testrun", outdir = ".", 
-		cnid = "cnid", cndesc = "cnid", cndir = "direction", 
-		uptest = "UP", downtest = "DOWN",
-		gepid = "geneid", enrichment = FALSE, 
-		bipartite = TRUE, html = TRUE)
+# cis and trans differential expression analysis only
+# do mediation analysis
+# do html report
+res <- run_iEDGE(dat = dat, header = "testrun", outdir = ".", 
+                 cnid = "cnid", cndesc = "cnid", cndir = "direction", 
+                 uptest = "UP", downtest = "DOWN",
+                 gepid = "geneid", enrichment = FALSE, 
+                 bipartite = TRUE, html = TRUE)
 
-
-#significant cn-cis-trans connections found using mediation analysis
+# significant cn-cis-trans connections found using mediation analysis
 res$pruning$sig
-
-#the result html page should be opened automatically, this displays the graphical view of results
-#an additional column "bipartite" is available in the html to display results of the mediation analysis
-
 ```
 
-##iEDGE HTML report
+The result html page should open automatically, and it will include an
+additional column "bipartite" with hyperlinks to the graphical display
+of the mediation analysis.
+
+## iEDGE HTML report
 
 The HTML report of the final run is contained [here](./testrun/html/index.html)
+

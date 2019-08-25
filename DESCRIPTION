@@ -3,8 +3,10 @@ Type: Package
 Title: integrative analysis of (epi-)DNA and gene expression data
 Version: 1.0
 Date: 2016-05-18
-Authors@R: person("Amy", "Li", email = "lia978@gmail.com", role = c("aut", "cre")) 
-Maintainer: Amy Li <ajli@bu.edu>
+Authors@R: c(person(given="Amy", family="Li", email="lia978@gmail.com", 
+             role=c("aut","cre")),
+             person(given="Stefano", family="Monti", email="smonti@bu.edu", 
+             role=c("aut")))
 Description: iEDGE performs integrative analysis of (epi-)DNA data (methylation,
     microRNA, or copy number alteration) and gene expression data from paired
     samples.
