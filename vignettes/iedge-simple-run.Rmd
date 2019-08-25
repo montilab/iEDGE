@@ -1,17 +1,16 @@
 ---
-title: "iEDGE - tutorial with simulated dataset"
+title: "iEDGE analysis of a simulated dataset"
 author: "Amy Li"
 output: rmarkdown::html_notebook
 ---
-# Getting started with iEDGE: walkthrough with simple simulated dataset
+
+For this tutorial we will simulate the input gene expression data, the
+cis and trans genes with known mediations, and we will run iEDGE to
+recover these mediations.
 
 ## Setting up the iEDGE object
 
-For this tutorial we will simulate the input gene expression data, the
-cis and trans genes with known mediations and run iEDGE to recover
-these mediations.
-
-We start by generating the dataset. You can use construct_iEDGE to
+We start by generating the dataset. You can use `construct_iEDGE` to
 generate the iEDGE dataset from standard matrices (binary matrices for
 alteration data or numeric matrices for expression data).
 
@@ -68,24 +67,23 @@ gep <- rbind(cis, trans.m, trans.d, others)
 colnames(gep) <- paste0("sample_", 1:ncol(gep))
 
 cisgenes <- list(cn1 = grep("cis1", rownames(cis), value = T),
-			   cn2 = grep("cis2", rownames(cis), value = T))
+                 cn2 = grep("cis2", rownames(cis), value = T))
 
-# the direction column in cn.fdat specifies one-sided vs. 
-# bidirectional p-values in differential test in this simulation
-# we expect increase in expression with the presence of the
-# alteration
+# the direction column in cn.fdat specifies whether to compute
+# one-sided or two-sided p-values in differential tests. In this
+# simulation we expect an increase in expression with the presence of
+# the alteration, hence a one-sided ("UP") p-value is computed.
 cn.fdat <- data.frame(cnid = rownames(cn), direction = "UP")
 rownames(cn.fdat) <- rownames(cn)
 
 gep.fdat <- data.frame(geneid = rownames(gep))
 rownames(gep.fdat) <- rownames(gep)
 
-
 dat <- construct_iEDGE(cn, gep, cisgenes, transgenes = NA, cn.fdat, gep.fdat, 
 				cn.pdat = NA, gep.pdat = NA)
 ```
 
-## Explanation of the iEDGE object
+## Explanation of the iEDGE object components
 The iEDGE object is a list consisting of:
 
 1. **cn**: Copy-Number of other binary alteration ExpressionSet:
