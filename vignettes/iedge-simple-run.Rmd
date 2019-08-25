@@ -160,4 +160,4 @@ res$pruning$sig
 
 ##iEDGE HTML report
 
-The HTML report of the final run is contained [here](file:./testrun/html/index.html)
+The HTML report of the final run is contained [here](./testrun/html/index.html)
