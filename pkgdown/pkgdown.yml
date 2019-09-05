@@ -3,7 +3,7 @@ navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: “Examples"
+    - text: "Examples"
       menu:
       - text: "Simple Run"
         href: articles/docs/iedge-simple-run.html 
