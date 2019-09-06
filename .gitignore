@@ -3,3 +3,4 @@ finalscripts*
 backup*
 private*
 inst/web/*
+.Rproj.user
