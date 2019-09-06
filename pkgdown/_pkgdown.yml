@@ -15,6 +15,6 @@ navbar:
     - text: "Examples"
       menu:
       - text: "Simple Run"
-        href: articles/docs/iedge-simple-run.html 
+        href: articles/iedge-simple-run.html 
       - text: "TCGA Example"
-        href: articles/docs/iedge-tcga-example.html
+        href: articles/iedge-tcga-example.html
