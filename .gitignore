@@ -5,3 +5,4 @@ private*
 inst/web/*
 .Rproj.user
 .Rhistory
+*.Rproj
