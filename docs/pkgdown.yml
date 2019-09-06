@@ -4,4 +4,7 @@ pkgdown_sha: ~
 articles:
   iedge-simple-run: iedge-simple-run.html
   iedge-tcga-example: iedge-tcga-example.html
+urls:
+  reference: https://github.com/montilab/iEDGE/reference
+  article: https://github.com/montilab/iEDGE/articles
 

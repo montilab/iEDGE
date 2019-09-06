@@ -4,3 +4,4 @@ backup*
 private*
 inst/web/*
 .Rproj.user
+.Rhistory

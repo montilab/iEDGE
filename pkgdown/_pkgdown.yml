@@ -1,3 +1,12 @@
+url: https://github.com/montilab/iEDGE
+
+development:
+  mode: auto
+
+template:
+  params:
+    bootswatch: cosmo
+
 navbar:
   title: "iEDGE"
   left:
